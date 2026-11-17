@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function juontaja() {
-      return request.auth != null && request.auth.token.email in ['JUONTAJAN@SAHKOPOSTI.FI'];
+      return request.auth != null && request.auth.token.email in ['tophaavisto@icloud.com'];
     }
     match /tilaisuudet/{tilaisuus} {
       // Tilaisuuden tila (dia, teema, jaetut tulokset): kaikki lukevat, vain juontaja kirjoittaa.

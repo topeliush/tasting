@@ -4,12 +4,12 @@
 // juontajat: sähköpostit, joilla voi kirjautua juontajaksi (sama lista on firestore.rules-tiedostossa).
 window.VT_ASETUKSET = {
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyCPjuSWUBtH9gUpI1uEHHdMJosEGWWNGMQ",
+    authDomain: "viinitasting-tasting.firebaseapp.com",
+    projectId: "viinitasting-tasting",
+    storageBucket: "viinitasting-tasting.firebasestorage.app",
+    messagingSenderId: "820618087305",
+    appId: "1:820618087305:web:fcbb1eb8f19998b12faf58"
   },
-  juontajat: [""]
+  juontajat: ["tophaavisto@icloud.com"]
 };
