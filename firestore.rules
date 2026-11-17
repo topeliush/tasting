@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function juontaja() {
+      return request.auth != null && request.auth.token.email in ['JUONTAJAN@SAHKOPOSTI.FI'];
+    }
+    match /tilaisuudet/{tilaisuus} {
+      // Tilaisuuden tila (dia, teema, jaetut tulokset): kaikki lukevat, vain juontaja kirjoittaa.
+      allow read: if true;
+      allow write: if juontaja();
+      match /vastaukset/{uid} {
+        // Jokainen osallistuja kirjoittaa vain omaa nimetöntä vastaustaan. Vain juontaja lukee kaikki.
+        allow read: if juontaja() || (request.auth != null && request.auth.uid == uid);
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['l', 'v', 'L', 'paivitetty'])
+          && request.resource.data.l in ['viini', 'alkoholiton']
+          && request.resource.data.v is map;
+        allow delete: if juontaja();
+      }
+    }
+  }
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fi" data-theme="vaalea">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Juhlakuohuvat · Viinitasting.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../app.css">
+
+<!-- =====================================================================
+     TILAISUUDEN SISÄLTÖ. Uusi tilaisuus: kopioi tämä kansio, vaihda id ja sisältö.
+     id: vastaukset tallentuvat tällä tunnuksella, joten jokaisella tilaisuudella oma id.
+     ===================================================================== -->
+<script>
+
+window.TASTING = {
+  id: "tek-juhlakuohuvat-2026-12-04",
+  nimi: "Juhlakuohuvat",
+  kuvaus: "Valitse, maistatko kuohuviinit vai alkoholittomat kuohuvat. Jokaisesta lasista valitset aromit, jotka löydät, ja annat 0–5 tähteä. Lopuksi katsotaan, mitä koko porukka löysi.",
+  juontaja: "Topias Haavisto",
+  osoite: "https://tasting.viinitasting.com/tek/",
+  kaytaPaljastussanaa: false,
+  naytaJuontajaLinkki: true,
+  logo: "../logo-vihrea.png",
+  logoValkoinen: "../logo-valkoinen.png",
+  varausLinkki: "https://viinitasting.com",
+  varausTeksti: "Tuon tastingin teille, te valitsette porukan.",
+
+  // Google-arvion linkki: Google-yritysprofiili → Pyydä arvioita → kopioi linkki tähän.
+  // Arviopyyntö näytetään kaikille, eikä siihen liity palkkiota.
+  googleArvioLinkki: "",
+
+  // Kiitoslahja: jokainen osallistuja saa lahjakortin ilman ehtoja.
+  // tunnus näkyy koodissa (esim. VT40-TEK-7K3M), joten näet mistä tilaisuudesta varaus tuli.
+  lahjakortti: {
+    kaytossa: true,
+    arvo: 40,
+    tunnus: "TEK",
+    voimassaKk: 12,
+    myontaja: "Il Top Oy"
+  },
+
+  // AROMIT: osallistuja valitsee jokaisesta lasista kaikki aromit, jotka löytää.
+  // Sama lista kaikille juomille. Juomakohtaisen listan voi antaa juomalle kentällä "aromit".
+  aromit: ["Vihreä omena", "Keltainen omena ja päärynä", "Sitrus", "Persikka ja aprikoosi", "Trooppiset hedelmät", "Punaiset marjat",
+           "Kukat", "Hunaja", "Paahtoleipä ja brioche", "Pähkinä", "Vanilja", "Yrtit ja tee"],
+
+  // Alkoholittomat: merkitse juoma "alkoholiton: true". Osallistuja valitsee alussa kuohuviinit tai alkoholittomat
+  // ja näkee vain omat juomansa. Lasit parittuvat järjestyksessä: 1. kuohuviini + 1. alkoholiton = lasi 1 jne.
+  viinit: [
+    {
+      nimi: "Pizzolato Valdobbiadene Prosecco Superiore Biologico Brut",
+      lyhyt: "Pizzolato Prosecco",
+      tyyppi: "kuohu",
+      tyyppiNimi: "Prosecco",
+      tuottaja: "La Cantina Pizzolato",
+      alue: "Valdobbiadene, Veneto",
+      maa: "Italia",
+      rypaleet: "Glera",
+      tarina: "Pizzolato on perheen viinitila Venetossa, ja nykyinen isäntä Settimo Pizzolato on suvun viidettä polvea. Tila viljelee luomuna. Valdobbiadene on Proseccon arvostettua ydinaluetta, josta tulevat Superiore-viinit. Kuplat syntyvät Charmat-menetelmällä: toinen käyminen tehdään isossa paineenkestävässä terässäiliössä, ei jokaisessa pullossa erikseen. Siksi viini on hedelmäinen ja raikas, ja hinta pysyy kohtuullisena.",
+      maistele: "Keltainen omena, sitrus ja hento kukkaisuus. Brut tarkoittaa kuivaa, joten tämä ei ole makea Prosecco.",
+      ruoaksi: "Aperitiivi, kevyet alkupalat, kala",
+      sokko: true,
+      paljastussana: "kupla",
+      juontajalle: "Kysy, kuka luuli Proseccon olevan aina makeaa. Kerro Charmat-säiliöstä vertailukohtana seuraaville pullossa käyneille."
+    },
+    {
+      nimi: "Langlois Crémant de Loire Brut Réserve",
+      lyhyt: "Langlois Crémant",
+      tyyppi: "kuohu",
+      tyyppiNimi: "Crémant",
+      tuottaja: "Langlois-Château",
+      alue: "Crémant de Loire, Saumur",
+      maa: "Ranska",
+      rypaleet: "Chenin Blanc, Chardonnay, Cabernet Franc",
+      tarina: "Langlois perustettiin Saumurissa vuonna 1885, ja vuodesta 1973 se on kuulunut samppanjatalo Bollingerin perheyhtiöön. Viini tehdään samalla perinteisellä menetelmällä kuin samppanja: toinen käyminen tapahtuu pullossa. Pullokypsytystä on vähintään 24 kuukautta, kun Crémant de Loire vaatii vain 12. Pääosassa on Loiren oma rypäle Chenin Blanc.",
+      maistele: "Vihreä omena, greippi ja ripaus hunajaa. Pullokäyminen tuo kuplaan pehmeyttä Proseccoon verrattuna.",
+      ruoaksi: "Aperitiivi, kala ja äyriäiset, kevyet kasvisruoat",
+      sokko: true,
+      paljastussana: "malja",
+      juontajalle: "Bollinger on James Bondin samppanja. Hyvä koukku: samppanjatalon osaamista Loiren hinnalla. Lasi 2: alkoholittomien lasissa on myös Chenin Blancia (Divin)."
+    },
+    {
+      nimi: "Devaux Cœur des Bar Blanc de Noirs Champagne Brut",
+      lyhyt: "Devaux Champagne",
+      tyyppi: "kuohu",
+      tyyppiNimi: "Samppanja",
+      tuottaja: "Champagne Devaux",
+      alue: "Champagne, Côte des Bar",
+      maa: "Ranska",
+      rypaleet: "Pinot Noir",
+      tarina: "Devaux perustettiin Épernayssä vuonna 1846 ja muutti myöhemmin Champagnen eteläosaan Côte des Barille. Nykyään Devaux on Union Auboise -osuuskunnan merkki, ja osuuskunnassa on noin 800 viljelijää. Côte des Bar on lähempänä Chablisia kuin Reimsiä, ja sitä pidetään Champagnen Pinot Noir -sydänmaana. Blanc de Noirs tarkoittaa valkoista viiniä tummista rypäleistä: mehu puristetaan nopeasti erilleen kuorista, joten väriä ei tule.",
+      maistele: "Pyöreä ja täyteläinen, makeaa sitrusta kuten pomeranssia ja klementiiniä. Tummat rypäleet antavat enemmän runkoa kuin edelliset viinit.",
+      ruoaksi: "Juhlan aperitiivi, kanaruoat, sieniruoat kuten kantarellit",
+      sokko: true,
+      paljastussana: "juhla",
+      juontajalle: "Pyydä vertaamaan runkoa Crémantiin. Kysy, kuka arvasi viinin tummista rypäleistä."
+    },
+    {
+      alkoholiton: true,
+      nimi: "Dr. Loosen Dr. Lo Riesling Sparkling Alcohol-Free",
+      lyhyt: "Dr. Lo Riesling",
+      tyyppi: "kuohu",
+      tyyppiNimi: "Alkoholiton kuohuva",
+      tuottaja: "Dr. Loosen",
+      alue: "Mosel",
+      maa: "Saksa",
+      rypaleet: "Riesling",
+      tarina: "Dr. Loosen on yksi Moselin tunnetuimmista Riesling-tiloista. Ernst Loosen teki Dr. Lo -sarjan näyttääkseen, että alkoholiton viini voi olla laadukas. Ensin tehdään tavallinen Riesling, josta alkoholi poistetaan tislaamalla alipaineessa noin 35 asteessa, jotta aromit säilyvät. Makeutta ei lisätä, sillä viinissä on valmiiksi rypäleen omaa sokeria. Lopuksi viiniin lisätään hiilidioksidi.",
+      maistele: "Sitruuna, mandariini ja trooppinen hedelmä. Moselin Rieslingin raikas happamuus pitää maun puhtaana.",
+      ruoaksi: "Aasialainen ruoka, salaatit, kevyet ruoat",
+      sokko: true,
+      paljastussana: "kipinä",
+      juontajalle: "Riesling on Moselin ylpeys. Kysy, kuka maistoi makeutta ja kuka happamuutta."
+    },
+    {
+      alkoholiton: true,
+      nimi: "Divin Vigneron Blanc de Blancs Chenin Blanc",
+      lyhyt: "Divin Chenin",
+      tyyppi: "kuohu",
+      tyyppiNimi: "Alkoholiton kuohuva",
+      tuottaja: "Divin",
+      alue: "Touraine, Loire",
+      maa: "Ranska",
+      rypaleet: "Chenin Blanc",
+      tarina: "Divin perustettiin vuonna 2019 Loiren laaksossa, ja se on alueen alkoholittomien viinien edelläkävijöitä. Ensin tehdään oikea viini, ja sen jälkeen siitä poistetaan alkoholi. Osa viinistä kypsytetään tammitynnyreissä, mikä tuo syvyyttä. Rypäle on Loiren oma Chenin Blanc.",
+      maistele: "Päärynä, persikka ja vihreä omena, taustalla hentoa vaniljaa tammesta.",
+      ruoaksi: "Aperitiivi, alkupalat, sekä suolaiset että makeat ruoat",
+      sokko: true,
+      paljastussana: "helmi",
+      juontajalle: "Lasi 2: Langlois ja Divin ovat molemmat Chenin Blancia, toinen alkoholilla ja toinen ilman. Pyydä pöytiä vertaamaan ääneen."
+    },
+    {
+      alkoholiton: true,
+      nimi: "Copenhagen Sparkling Tea Blå",
+      lyhyt: "Copenhagen teekuohu",
+      tyyppi: "kuohu",
+      tyyppiNimi: "Kuohuva tee, alkoholiton",
+      tuottaja: "Copenhagen Sparkling Tea Company",
+      alue: "Kööpenhamina",
+      maa: "Tanska",
+      rypaleet: "Ei viiniä: jasmiini-, valko- ja vihreää teetä sekä Darjeeling-teetä, lisäksi hieman rypäle- ja sitruunamehua",
+      tarina: "Tämä ei ole viiniä lainkaan. Sommelier Jacob Kocemba alkoi kokeilla kuohuvaa teetä vuonna 2010 työskennellessään Michelin-ravintolassa Kööpenhaminassa. Hän halusi alkoholittoman juoman, joka toimii ruoan kanssa yhtä hyvin kuin viini. Blå tehdään luomuteistä, eikä siinä ole alkoholia missään vaiheessa.",
+      maistele: "Jasmiini, kamomilla ja häivähdys sitrusta, sen jälkeen hunajainen guava ja kypsä päärynä. Darjeeling-tee kuivaa suuta kevyesti samaan tapaan kuin viinin tanniini.",
+      ruoaksi: "Alkupalat, kasvisruoat, kevyet pääruoat, jälkiruoat",
+      sokko: true,
+      paljastussana: "kuohu",
+      juontajalle: "Paljasta, ettei tässä ole rypäleviiniä lainkaan. Kysy, monellako meni vastaus oikein."
+    }
+  ],
+
+  // LOPUKSI 1–4 kysymystä illan juomista. Vaihtoehdot ovat osallistujan omat kolme juomaa.
+  // fakta näytetään vastaamisen jälkeen, linjakohtaisesti. Tähtien keskiarvot näytetään lopuksi automaattisesti.
+  lopuksi: [
+    { id: "makein", kysymys: "Mikä kolmesta tuntui makeimmalta?",
+      fakta: { viini: "Kaikki ovat bruteja, ja sokeria on 8–12 g/l. Makeuden tuntuun vaikuttavat happo ja hedelmäisyys.",
+               alkoholiton: "Copenhagen noin 50 g/l, Dr. Lo noin 45 g/l, Divin noin 25 g/l." } },
+    { id: "paras", kysymys: "Mikä kolmesta oli paras?" }
+  ]
+};
+
+</script>
+</head>
+<body>
+<div id="app"></div>
+<noscript>Tämä sivu tarvitsee JavaScriptin.</noscript>
+<script src="../asetukset.js"></script>
+<script src="../yhteys.js"></script>
+<script src="../app.js"></script>
+</body>
+</html>
