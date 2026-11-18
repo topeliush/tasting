@@ -196,6 +196,7 @@
       '<label class="h-valinta"><input type="checkbox" data-p="sokkotasting"' + (w.sokkotasting ? " checked" : "") + "> Sokkotasting (juomat paljastetaan vasta vastaamisen jälkeen)</label>" +
       '<label class="h-valinta"><input type="checkbox" data-p="lahjakortti.kaytossa"' + (w.lahjakortti.kaytossa ? " checked" : "") + "> Kiitoslahja lopussa (lahjakortti)</label>" +
       (w.lahjakortti.kaytossa ? '<div class="h-kaksi">' + kentta("lahjakortti.arvo", "Lahjakortin arvo (€)", w.lahjakortti.arvo, "number") + kentta("lahjakortti.tunnus", "Tunnus koodiin (esim. TEK)", w.lahjakortti.tunnus) + "</div>" : "") +
+      kentta("googleArvioLinkki", "Google-arvion linkki (tyhjä = arviopyyntöä ei näytetä)", w.googleArvioLinkki || "") +
       "</div></section>";
 
     // Aromit

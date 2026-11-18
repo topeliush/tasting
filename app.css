@@ -369,3 +369,77 @@ body.juontaja { background: #161614; overflow: hidden; }
 .o-aromit-kiinni { padding: var(--vali-4) var(--vali-5); }
 .o-kiinni-rivi { display: flex; align-items: baseline; justify-content: space-between; gap: var(--vali-3); }
 .o-kiinni-rivi .o-h2 { font-size: 22px; }
+/* Logo aloitussivulla */
+.o-aloituslogo img { display: block; height: 96px; width: auto; }
+.o-sanamerkki { display: none; font-family: var(--font-display); font-size: 26px; line-height: 1; color: var(--vihrea); }
+.o-aloituslogo.ei-kuvaa .o-sanamerkki { display: inline-block; }
+.o-linja { min-height: 64px; }
+
+/* Tiiviimpi lasinäkymä */
+.o-tabit { gap: 6px; margin-bottom: var(--vali-4); }
+.o-tab { min-width: 40px; height: 40px; font-size: 18px; }
+.o-tab--loppu { font-size: 12px; }
+.o-osio > :not(:first-child) { margin-top: var(--vali-4); }
+.o-osio .vt-pallo { width: 40px; height: 40px; font-size: 22px; }
+.o-osio > h1.o-viini__nimi { font-size: 26px; line-height: 1.12; }
+.o-kysymys { padding: var(--vali-4); border-radius: 22px; }
+.o-kysymys legend { font-size: 21px; margin-bottom: var(--vali-2); }
+.o-kysymys .o-vaimea { font-size: 14px; }
+.o-lisaa-oma .o-kentta, .o-lisaa-oma .vt-painike { min-height: 44px; }
+.o-lisaa-oma .o-kentta { font-size: 16px; padding: var(--vali-2) var(--vali-3); }
+.o-aromit { gap: 6px; }
+.o-aromi { min-height: 38px; padding: 6px 12px; font-size: 14.5px; }
+.o-emoji { margin-right: 0.35em; font-style: normal; }
+.o-aromit-valmis { margin-top: var(--vali-4); min-height: 48px; }
+.o-tahti { width: 40px; height: 44px; font-size: 32px; }
+.o-tahti--nolla { width: 40px; height: 40px; font-size: 18px; }
+.vt-kortti { padding: var(--vali-4); border-radius: 22px; }
+.o-porukka { margin-top: var(--vali-4); }
+.o-porukka .o-h2, .o-viini .o-h2 { font-size: 22px; }
+.o-kuvat { margin-left: calc(-1 * var(--vali-4)); margin-right: calc(-1 * var(--vali-4)); }
+
+/* Viimeinen sana */
+.o-vs > * + * { margin-top: var(--vali-2); }
+.o-vs__k { margin: 0; font-family: var(--font-otsikko); font-size: 22px; font-weight: 400; line-height: 1.2; }
+.o-vs__oma { margin: 0; font-size: 15px; color: var(--teksti-vaimea); }
+.o-vs__oma b { color: var(--sininen-syva); }
+.o-vs .o-jakauma { margin-top: var(--vali-3); }
+.o-vs .pk { gap: 0.65em; }
+.pk li.on-karki .pk-palkki i { background: var(--muste); }
+.pk li.on-oma .pk-palkki i { background: var(--sininen); }
+.pk li.on-oikea .pk-palkki i { background: var(--vihrea); }
+.o-vs__fakta { margin: var(--vali-3) 0 0 !important; padding: var(--vali-2) var(--vali-3); border-radius: var(--kulma-s); background: color-mix(in srgb, var(--vihrea) 12%, var(--pinta)); font-size: 14.5px; line-height: 1.45; }
+.o-vs__fakta b { color: var(--vihrea-syva); margin-right: 0.25em; }
+.o-vs__odota { margin-top: var(--vali-3) !important; }
+.o-tt > * + * { margin-top: var(--vali-2); }
+.o-tt__lista { margin: var(--vali-3) 0 0; padding: 0; list-style: none; }
+.o-tt__lista li { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: var(--vali-3); padding: var(--vali-3) 0; border-top: 1.5px dotted var(--viiva); }
+.o-tt__sija { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 999px; border: 2px solid var(--viiva); font-family: var(--font-display); font-size: 16px; }
+.o-tt__lista li.on-karki .o-tt__sija { background: var(--viini-kuohu); border-color: var(--viini-kuohu); color: #fff; }
+.o-tt__nimi b { display: block; font-size: 16px; line-height: 1.25; }
+.o-tt__nimi > span:not(.pk-palkki) { display: block; font-size: 13px; color: var(--teksti-vaimea); }
+.o-tt__nimi .pk-palkki { display: block; margin-top: 6px; height: 6px; }
+.o-tt__nimi .pk-palkki i { background: var(--viini-kuohu); }
+.o-tt__ka { font-family: var(--font-display); font-size: 22px; color: var(--teksti); white-space: nowrap; }
+
+/* Yhteenvedon juomalista */
+.o-lista--juomat li { align-items: center; padding: var(--vali-3) 0; border-bottom-width: 1.5px; }
+.o-lista--juomat li.o-alk { padding-left: var(--vali-3); padding-right: var(--vali-3); border-radius: var(--kulma-s); margin-top: 4px; border-bottom: 0; }
+.o-juoma__tiedot { flex: 1; min-width: 0; }
+.o-lista .o-juoma__tiedot b { font-size: 16px; }
+.o-juoma__tahdet { display: flex; gap: var(--vali-2); flex: none; }
+.o-lista .o-juoma__tahdet span { display: flex; flex-direction: column; align-items: center; min-width: 58px; padding: 4px 6px; border-radius: var(--kulma-s); background: var(--pinta); color: var(--teksti); font-family: var(--font-display); font-size: 17px; line-height: 1.1; }
+.o-juoma__tahdet small { font-family: var(--font-leipa); font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--teksti-vaimea); margin-bottom: 2px; }
+.o-lista--muu li { opacity: 0.75; padding: var(--vali-2) 0; }
+.o-lista--muu li.o-alk { padding: var(--vali-2) var(--vali-3); }
+.o-lista--muu b { font-size: 15px !important; }
+.o-lista--juomat .o-suosikki { display: inline-block !important; margin-top: 4px; }
+.o-tabit { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.o-tabit::-webkit-scrollbar { display: none; }
+.o-tabit li { flex: none; }
+.o-tab--loppu { padding: 0 10px; letter-spacing: 0.03em; font-size: 11.5px; }
+.o-tabit { gap: 5px; }
+.o-tab { min-width: 38px; height: 38px; font-size: 17px; }
+.o-tab--loppu { padding: 0 9px; letter-spacing: 0.02em; font-size: 11px; }
+.o-tabit { gap: 4px; }
+.o-tab--loppu { padding: 0 8px; }
