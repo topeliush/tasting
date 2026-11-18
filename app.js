@@ -264,12 +264,12 @@
       '<p class="o-ingressi">' + esc(T.kuvaus) + "</p>" +
       '<div><label class="o-label" for="nimimerkki">Nimimerkki (vapaaehtoinen, salanimet sallittu)</label>' +
       '<input class="o-kentta" id="nimimerkki" autocomplete="nickname" maxlength="30" value="' + esc(S.nimi) + '"></div>' +
-      (onLinjat() ? '<div><span class="o-label">Mitä lasiin tänään?</span><div class="o-linjat" role="group" aria-label="Mitä lasiin tänään?">' +
-        '<button class="o-linja" data-act="linja" data-v="viini" aria-pressed="' + (S.linja === "viini") + '">Kuohuviinit</button>' +
-        '<button class="o-linja o-linja--alk" data-act="linja" data-v="alkoholiton" aria-pressed="' + (S.linja === "alkoholiton") + '">Alkoholittomat</button>' +
+      (onLinjat() ? '<div><span class="o-label">Mitä lasiin tänään?</span><div class="o-linjat' + (S.linja ? " on-valittu" : "") + '" role="radiogroup" aria-label="Mitä lasiin tänään?">' +
+        '<button class="o-linja" role="radio" data-act="linja" data-v="viini" aria-checked="' + (S.linja === "viini") + '" aria-pressed="' + (S.linja === "viini") + '"><span class="o-linja__merkki" aria-hidden="true"></span>Kuohuviinit</button>' +
+        '<button class="o-linja o-linja--alk" role="radio" data-act="linja" data-v="alkoholiton" aria-checked="' + (S.linja === "alkoholiton") + '" aria-pressed="' + (S.linja === "alkoholiton") + '"><span class="o-linja__merkki" aria-hidden="true"></span>Alkoholittomat</button>' +
         "</div></div>" : "") +
       '<button class="vt-painike vt-painike--leveä" data-act="aloita"' + (onLinjat() && !S.linja ? " disabled" : "") + '>Aloitetaan</button>' +
-      (onLinjat() && !S.linja ? '<p class="o-vaimea">Valitse ensin kumpi setti, sitten mennään.</p>' : "") +
+      (onLinjat() ? '<p class="o-vaimea" id="linja-vihje"' + (S.linja ? ' style="visibility:hidden"' : "") + '>Valitse ensin kumpi setti, sitten mennään.</p>' : "") +
       '<p class="o-vaimea">Ei sovellusta, ei kirjautumista. Havaintosi lähtevät nimettöminä porukan yhteiseen pottiin.</p>' +
       "</section>" +
       (T.naytaJuontajaLinkki ? '<p class="o-alatunniste"><a class="vt-linkki" href="#juontaja">Juontajalle</a></p>' : "") +
@@ -446,6 +446,7 @@
       if (pk) h += '<div class="o-tulos"><span class="o-tulos__luku">' + ok + "/" + pk + '</span><span class="o-tulos__teksti">oikein vertailussa</span></div>';
       h += kortit;
       h += tahtitaulukko(omat()) || '<p class="o-vaimea">Illan tähtitaulukko paljastetaan ihan lopuksi. Jännitys säilyy.</p>';
+      h += arvioPyynto(true);
     }
     h += '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="siirry" data-v="loppu">Yhteenveto</button>';
     return h + "</section>";
@@ -500,9 +501,9 @@
       h += '<div class="o-tulos"><span class="o-tulos__luku">' + p.oikein + "/" + p.kaikki + '</span><span class="o-tulos__teksti">oikein sokkovisassa' +
         (p.yht < p.kaikki ? "<br>" + (p.kaikki - p.yht) + " kysymystä vielä paljastamatta" : "") + "</span></div>";
     }
+    h += arvioPyynto();
     var lahja = lahjaKaytossa();
     if (lahja) h += lahjaOsio();
-    h += arvioPyynto();
     h += '<div><h2 class="o-h2">' + (onLinjat() ? "Illan juomat" : "Illan viinit") + '</h2><p class="o-vaimea">Ota kuva tai kopioi lista, niin löydät suosikkisi myöhemmin.</p>' + lista + "</div>" +
       '<div><button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="kopioi">' + (onLinjat() ? "Kopioi juomalista" : "Kopioi viinilista") + "</button>" +
       '<p class="o-vaimea" id="kopio-tila" role="status" style="margin-top:var(--vali-2)"></p>' +
@@ -581,14 +582,16 @@
       '<p class="o-ehdot">Voimassa ' + pvm(l.voimassa) + " asti. Yksi lahjakortti tastingvarausta kohden. Kerro koodi varauksen yhteydessä. Ei vaihdeta rahaksi. Myöntäjä " + esc(L.myontaja) + ".</p></div>";
     return h;
   }
-  function arvioPyynto() {
-    var linkki = T.googleArvioLinkki;
-    if (!linkki) return "";
-    return '<div class="vt-kortti o-arviopyynto"><h2 class="o-h2">Oliko ilta mieleen?</h2>' +
-      "<p>Kerro siitä Googlessa. Arvio auttaa muita löytämään tastingin.</p>" +
-      (lahjaKaytossa() ? '<p class="o-vaimea">Kiitoslahja on sinun joka tapauksessa.</p>' : "") +
-      (linkki ? '<a class="vt-painike vt-painike--toissijainen vt-painike--leveä" href="' + esc(linkki) + '" target="_blank" rel="noopener">Kirjoita arvio Googleen</a>'
-              : "") +
+  function arvioLinkki() { return T.googleArvioLinkki || "https://g.page/r/Ccf877ZSMJM8ECE/review"; }
+  function arvioPyynto(pieni) {
+    var linkki = arvioLinkki();
+    if (pieni) return '<a class="o-garvio-pieni" href="' + esc(linkki) + '" target="_blank" rel="noopener"><span class="o-garvio__tahdet" aria-hidden="true">★★★★★</span><span><b>Tykkäsitkö illasta?</b>Anna tähdet Googlessa →</span></a>';
+    return '<div class="o-garvio">' +
+      '<span class="o-garvio__tahdet" aria-hidden="true">★★★★★</span>' +
+      '<h2 class="o-garvio__otsikko">Anna illalle tähdet</h2>' +
+      "<p>Kerro Googlessa, miltä ilta maistui. Se vie minuutin, ja jokainen arvio auttaa muita löytämään tastingit. Kiitos, että olit mukana!</p>" +
+      '<a class="vt-painike vt-painike--leveä o-garvio__nappi" href="' + esc(linkki) + '" target="_blank" rel="noopener">Arvioi Googlessa ★</a>' +
+      '<p class="o-garvio__allekirjoitus">– ' + esc(T.juontaja || "Topias") + ", juontaja</p>" +
       "</div>";
   }
 
@@ -681,9 +684,10 @@
       luokka = " j-lava--loppu";
       var vihrea = teema === "ilta" ? (T.logo || "/logo-vihrea.png") : (T.logoValkoinen || "/logo-valkoinen.png");
       h = logo(vihrea, "j-logo") + '<div class="j-palstat"><div class="j-palsta">' +
-        '<p class="j-display">kiitos</p><p class="j-ala">Yhteenveto, pisteet ja omat muistiinpanot jäävät puhelimeesi.</p>' +
+        '<p class="j-display">Kiitos!</p><p class="j-ala">Yhteenveto ja juomalista jäävät puhelimeesi.</p>' +
         (lahjaKaytossa() ? '<p class="j-ala">Puhelimessasi odottaa ' + T.lahjakortti.arvo + ' € kiitoslahja. Käytä se itse tai anna kaverille.</p>' : "") +
-        '<p class="j-ala" style="font-weight:800">Varaa oma tasting: ' + esc(lyhyt(T.varausLinkki)) + "</p></div></div>";
+        '<p class="j-ala" style="font-weight:800">Varaa oma tasting: ' + esc(lyhyt(T.varausLinkki)) + "</p></div>" +
+        '<div class="j-palsta j-palsta--kapea j-arvio">' + qrSvg(arvioLinkki(), "j-qr") + '<div class="j-arvio__tahdet">★★★★★</div><div class="j-ala" style="font-size:calc(36 * var(--u));font-weight:800">Anna tähdet Googlessa</div></div></div>';
     }
 
     app.innerHTML = '<div class="j-kehys"><div class="j-lava' + luokka + '" id="lava">' + h + "</div></div>" +
@@ -974,7 +978,7 @@
     } else if (d.k === "loppu") {
       h = '<h1 class="p-h1">Kiitos ja kiitoslahja</h1>' +
         (lahjaKaytossa() ? muistiinpano("Kiitoslahja", "Jokaisen puhelimessa on nyt " + T.lahjakortti.arvo + " € lahjakortti yhteenvedossa. Sen voi käyttää itse tai antaa kaverille.") : "") +
-        muistiinpano("Google-arvio", "Pyydä kaikilta arviota Googleen, ilman palkkiota. Älä yhdistä pyyntöä lahjakorttiin.") +
+        muistiinpano("Google-arvio", "Tärkein! Pyydä kaikilta arviota Googleen: QR-koodi on isolla näytöllä ja linkki jokaisen yhteenvedon ylimpänä. Älä yhdistä pyyntöä lahjakorttiin, lahja on kaikille joka tapauksessa.") +
         muistiinpano("Varaukset", "Oma tasting: " + lyhyt(T.varausLinkki));
     } else {
       var w = T.viinit[d.i], sokko = onSokko(w);
@@ -1061,7 +1065,12 @@
     switch (act) {
       case "linja":
         var nk = document.getElementById("nimimerkki"); if (nk) S.nimi = (nk.value || "").trim();
-        S.linja = t.dataset.v; tallenna(); renderOsallistuja(); break;
+        S.linja = t.dataset.v; tallenna();
+        Array.prototype.forEach.call(app.querySelectorAll('[data-act="linja"]'), function (b) { var on = b.dataset.v === S.linja; b.setAttribute("aria-pressed", on); b.setAttribute("aria-checked", on); });
+        var ry = app.querySelector(".o-linjat"); if (ry) ry.classList.add("on-valittu");
+        var al = app.querySelector('[data-act="aloita"]'); if (al) al.disabled = false;
+        var vh = document.getElementById("linja-vihje"); if (vh) vh.style.visibility = "hidden";
+        break;
       case "aloita":
         if (onLinjat() && !S.linja) return;
         S.nimi = (document.getElementById("nimimerkki").value || "").trim();

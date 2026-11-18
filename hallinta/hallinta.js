@@ -16,7 +16,7 @@
   var TYYPIT = [["kuohu", "Kuohuviini"], ["valkoinen", "Valkoviini"], ["rose", "Roséviini"], ["punainen", "Punaviini"]];
   var PERUS = {
     juontaja: "Topias Haavisto", sokkotasting: false, kaytaPaljastussanaa: false, naytaJuontajaLinkki: true,
-    varausLinkki: "https://viinitasting.com", varausTeksti: "Tuon tastingin teille, te valitsette porukan.", googleArvioLinkki: "",
+    varausLinkki: "https://viinitasting.com", varausTeksti: "Tuon tastingin teille, te valitsette porukan.", googleArvioLinkki: "https://g.page/r/Ccf877ZSMJM8ECE/review",
     lahjakortti: { kaytossa: true, arvo: 40, tunnus: "", voimassaKk: 12, myontaja: "Il Top Oy" }
   };
   var MAX_KUVAT = 4;
@@ -196,7 +196,7 @@
       '<label class="h-valinta"><input type="checkbox" data-p="sokkotasting"' + (w.sokkotasting ? " checked" : "") + "> Sokkotasting (juomat paljastetaan vasta vastaamisen jälkeen)</label>" +
       '<label class="h-valinta"><input type="checkbox" data-p="lahjakortti.kaytossa"' + (w.lahjakortti.kaytossa ? " checked" : "") + "> Kiitoslahja lopussa (lahjakortti)</label>" +
       (w.lahjakortti.kaytossa ? '<div class="h-kaksi">' + kentta("lahjakortti.arvo", "Lahjakortin arvo (€)", w.lahjakortti.arvo, "number") + kentta("lahjakortti.tunnus", "Tunnus koodiin (esim. TEK)", w.lahjakortti.tunnus) + "</div>" : "") +
-      kentta("googleArvioLinkki", "Google-arvion linkki (tyhjä = arviopyyntöä ei näytetä)", w.googleArvioLinkki || "") +
+      kentta("googleArvioLinkki", "Google-arvion linkki", w.googleArvioLinkki || "") +
       "</div></section>";
 
     // Aromit
