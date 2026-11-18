@@ -364,3 +364,8 @@ body.juontaja { background: #161614; overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .o-live { animation: none; } }
 .o-porukka .o-kuplat { margin-top: var(--vali-3); }
 .o-paivitetty { margin: var(--vali-1) 0 0 !important; font-size: 12px !important; }
+/* Aromiosion sulkeminen */
+.o-aromit-valmis { margin-top: var(--vali-5); }
+.o-aromit-kiinni { padding: var(--vali-4) var(--vali-5); }
+.o-kiinni-rivi { display: flex; align-items: baseline; justify-content: space-between; gap: var(--vali-3); }
+.o-kiinni-rivi .o-h2 { font-size: 22px; }
