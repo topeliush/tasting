@@ -4,7 +4,8 @@
   var A = window.VT_ASETUKSET || {};
   var app = document.getElementById("app");
   var Y = null, kayttaja = null, valmis = false;
-  var lista = null, pohjat = [], auki = {}, laskut = {};
+  var lista = null, pohjat = [], auki = {}, laskut = {}, koosteet = {};
+  function emoji(a) { var e = window.VTAromiEmoji ? window.VTAromiEmoji(a) : ""; return e ? e + " " : ""; }
   var muok = null, muokId = null, muutettu = false, juomaAuki = {}, kuvaVarasto = {};
   var uusiAuki = false, tallentaa = false;
 
@@ -170,7 +171,73 @@
       '<div class="h-rivi" style="margin-top:var(--vali-3)"><button class="h-pieni" data-act="laske" data-id="' + esc(t.id) + '">' + (n == null ? "Montako vastannut?" : "Vastanneita: " + n) + "</button>" +
       '<button class="h-pieni h-pieni--vaara" data-act="tyhjenna" data-id="' + esc(t.id) + '">Tyhjennä vastaukset</button></div>' +
       '<p class="h-ohje" style="margin-top:var(--vali-2)">Testauksen jälkeen tyhjennä vastaukset, niin tilaisuus alkaa puhtaalta pöydältä. Osallistujien omiin puhelimiin jäänyt tila nollautuu kohdasta Aloita alusta.</p>' +
-      "</div></div>";
+      '<button class="h-pieni" style="margin-top:var(--vali-3)" data-act="kooste" data-id="' + esc(t.id) + '">' + (koosteet[t.id] ? "Päivitä tilaisuuden yhteenveto" : "Tilaisuuden yhteenveto") + "</button>" +
+      "</div></div>" + (koosteet[t.id] ? koosteHtml(t, koosteet[t.id]) : "");
+  }
+
+  /* ---------- Tilaisuuden yhteenveto juontajalle ---------- */
+  function desi(x) { return x.toFixed(1).replace(".", ","); }
+  function kooste(t, k) {
+    var viinit = t.viinit || [], aromit = t.aromit || [], loppu = k.loppu || {};
+    var linjat = viinit.some(function (w) { return w.alkoholiton; }) ? ["viini", "alkoholiton"] : ["viini"];
+    function indeksit(l) { var r = []; viinit.forEach(function (w, i) { if ((l === "alkoholiton") === !!w.alkoholiton) r.push(i); }); return r; }
+    function nimi(i) { return viinit[i].lyhyt || viinit[i].nimi; }
+    var tulos = { mukana: Math.max(0, loppu.m || 0), linjat: [] };
+    linjat.forEach(function (l) {
+      var ii = indeksit(l), L = { l: l, tahdet: [], aromit: [], kysymykset: [] };
+      ii.forEach(function (i, n) {
+        var t5 = (loppu.t || {})[i] || {}, cnt = 0, sum = 0;
+        for (var s = 0; s <= 5; s++) { var c = Math.max(0, t5[s] || 0); cnt += c; sum += c * s; }
+        L.tahdet.push({ i: i, nro: n + 1, nimi: nimi(i), ka: cnt ? sum / cnt : null, n: cnt });
+        var v = k["v" + i] || {}, lst = [];
+        aromit.forEach(function (a, j) { var c = v.a && v.a[j] > 0 ? v.a[j] : 0; if (c) lst.push({ t: a, n: c }); });
+        Object.keys(v.o || {}).forEach(function (h) { var x = v.o[h]; if (x && x.t && x.n > 0) lst.push({ t: x.t, n: x.n, oma: true }); });
+        lst.sort(function (a, b) { return b.n - a.n; });
+        L.aromit.push({ nro: n + 1, nimi: nimi(i), lista: lst.slice(0, 6) });
+      });
+      L.tahdet.sort(function (a, b) { return (b.ka || 0) - (a.ka || 0); });
+      (t.lopuksi || []).forEach(function (q) {
+        var d = ((loppu.L || {})[q.id + "-" + l]) || {}, rivit = ii.map(function (i, n) { return { nimi: "Lasi " + (n + 1) + " · " + nimi(i), n: Math.max(0, d[n] || 0) }; });
+        var yht = rivit.reduce(function (a, b) { return a + b.n; }, 0);
+        L.kysymykset.push({ kysymys: q.kysymys, rivit: rivit, yht: yht });
+      });
+      tulos.linjat.push(L);
+    });
+    return tulos;
+  }
+  function koosteTeksti(t, K) {
+    var r = [(t.nimi || "Tasting") + (t.pvm ? " · " + pvmTeksti(t.pvm) : ""), K.mukana + " maistajaa mukana", ""];
+    K.linjat.forEach(function (L) {
+      if (K.linjat.length > 1) r.push(L.l === "alkoholiton" ? "ALKOHOLITTOMAT" : "KUOHUVIINIT");
+      r.push("Tähdet:");
+      L.tahdet.forEach(function (x) { r.push("  " + (x.ka == null ? "–" : "★ " + desi(x.ka)) + "  " + x.nimi + " (" + x.n + " arviota)"); });
+      r.push("Aromit:");
+      L.aromit.forEach(function (x) { r.push("  Lasi " + x.nro + " · " + x.nimi + ": " + (x.lista.length ? x.lista.map(function (a) { return a.t + " " + a.n; }).join(", ") : "–")); });
+      L.kysymykset.forEach(function (q) {
+        r.push(q.kysymys + " (" + q.yht + " vastausta)");
+        q.rivit.forEach(function (x) { r.push("  " + x.nimi + ": " + (q.yht ? Math.round(100 * x.n / q.yht) : 0) + " %"); });
+      });
+      r.push("");
+    });
+    return r.join("\n");
+  }
+  function koosteHtml(t, k) {
+    var K = kooste(t, k);
+    var h = '<section class="h-kooste"><h3>Tilaisuuden yhteenveto</h3><p class="h-kooste__iso"><b>' + K.mukana + "</b> maistajaa mukana</p>";
+    K.linjat.forEach(function (L) {
+      var tyhja = !L.tahdet.some(function (x) { return x.n; }) && !L.aromit.some(function (x) { return x.lista.length; });
+      if (tyhja) { h += '<div class="h-kooste__linja' + (L.l === "alkoholiton" ? " h-kooste__linja--alk" : "") + '"><h4>' + (L.l === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + '</h4><p class="h-ohje" style="margin:var(--vali-1) 0 0">Ei vielä vastauksia.</p></div>'; return; }
+      h += '<div class="h-kooste__linja' + (L.l === "alkoholiton" ? " h-kooste__linja--alk" : "") + '">' + (K.linjat.length > 1 ? "<h4>" + (L.l === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + "</h4>" : "") +
+        "<h5>Suosikit</h5><ol>" + L.tahdet.map(function (x) { return "<li><span>" + esc(x.nimi) + "</span><b>" + (x.ka == null ? "–" : "★ " + desi(x.ka)) + '</b><small>' + x.n + " arviota</small></li>"; }).join("") + "</ol>" +
+        "<h5>Yleisimmät aromit</h5>" + L.aromit.map(function (x) {
+          return '<p class="h-kooste__aromit"><b>Lasi ' + x.nro + " · " + esc(x.nimi) + "</b>" + (x.lista.length ? x.lista.map(function (a) { return '<span class="' + (a.oma ? "oma" : "") + '">' + emoji(a.t) + esc(a.t) + " <i>" + a.n + "</i></span>"; }).join("") : "<span>–</span>") + "</p>";
+        }).join("") +
+        L.kysymykset.map(function (q) {
+          return "<h5>" + esc(q.kysymys) + " · " + q.yht + " vastausta</h5><ul>" + q.rivit.map(function (x) { var p = q.yht ? Math.round(100 * x.n / q.yht) : 0; return "<li><span>" + esc(x.nimi) + "</span><b>" + p + ' %</b><i style="width:' + p + '%"></i></li>'; }).join("") + "</ul>";
+        }).join("") + "</div>";
+    });
+    return h + '<button class="vt-painike vt-painike--pieni vt-painike--toissijainen" data-act="kooste-kopioi" data-id="' + esc(t.id) + '">Kopioi tekstinä</button>' +
+      '<p class="h-ohje" style="margin-top:var(--vali-2)">Hyvä pohja Instagram-postaukseen tai asiakkaalle lähetettävään kiitosviestiin.</p></section>';
   }
 
   /* ---------- Muokkaus ---------- */
@@ -201,7 +268,7 @@
 
     // Aromit
     h += '<section class="h-osio"><h2 class="h-alaotsikko">Aromit</h2><p class="h-ohje">Osallistuja valitsee jokaisesta lasista kaikki aromit, jotka löytää. Sama lista kaikille juomille.</p>' +
-      '<div class="h-aromit">' + w.aromit.map(function (a, i) { return '<span class="h-aromi">' + esc(a) + '<button data-act="aromi-pois" data-i="' + i + '" aria-label="Poista ' + esc(a) + '">×</button></span>'; }).join("") + "</div>" +
+      '<div class="h-aromit">' + w.aromit.map(function (a, i) { return '<span class="h-aromi">' + emoji(a) + esc(a) + '<button data-act="aromi-pois" data-i="' + i + '" aria-label="Poista ' + esc(a) + '">×</button></span>'; }).join("") + "</div>" +
       '<div class="h-lisaa"><input class="o-kentta" id="aromi-uusi" placeholder="Uusi aromi, esim. Mineraalisuus" style="min-height:46px;font-size:16px"><button class="vt-painike vt-painike--pieni" data-act="aromi-lisaa">Lisää</button></div>' +
       '<div class="h-rivi"><span class="h-label" style="margin:0">Valmis lista:</span><button class="h-pieni" data-act="aromit-pohja" data-v="kuohu">Kuohuviinit</button><button class="h-pieni" data-act="aromit-pohja" data-v="valkoinen">Valkoviinit</button><button class="h-pieni" data-act="aromit-pohja" data-v="punainen">Punaviinit</button></div></section>';
 
@@ -234,6 +301,7 @@
 
     h += "</main>" +
       '<div class="h-palkki"><div class="h-palkki__sisus"><span class="h-palkki__tila' + (muutettu ? " on" : "") + '" id="tila">' + (muutettu ? "Tallentamattomia muutoksia" : "Kaikki tallennettu") + "</span>" +
+      '<button class="vt-painike vt-painike--toissijainen h-esikatsele" data-act="esikatsele">Esikatsele</button>' +
       '<button class="vt-painike" data-act="tallenna"' + (tallentaa ? " disabled" : "") + ">" + (tallentaa ? "Tallennetaan…" : "Tallenna") + "</button></div></div>";
     var y = window.scrollY;
     app.innerHTML = h;
@@ -365,7 +433,7 @@
       data.oletusTyyppi = laji;
     }
     data.nimi = nimi; data.pvm = pvm; data.asiakas = asiakas;
-    data.kuvaus = data.kuvaus || "Jokaisesta lasista valitset aromit, jotka löydät, ja annat 0–5 tähteä. Lopuksi katsotaan, mitä koko porukka löysi.";
+    data.kuvaus = data.kuvaus || "Löydä aromit, anna tähdet. Lopuksi nähdään, mitä porukka löysi.";
     data.lahjakortti = Object.assign({}, PERUS.lahjakortti, data.lahjakortti || {});
     if (!data.lahjakortti.tunnus) data.lahjakortti.tunnus = slug(asiakas || nimi).split("-")[0].toUpperCase().slice(0, 8);
     ilmoita("Luodaan…");
@@ -395,6 +463,20 @@
       case "linkit": auki[t.dataset.id] = !auki[t.dataset.id]; render(); break;
       case "kopioi":
         (navigator.clipboard ? navigator.clipboard.writeText(t.dataset.url) : Promise.reject()).then(function () { ilmoita("Linkki kopioitu"); }, function () { ilmoita(t.dataset.url); });
+        break;
+      case "kooste":
+        t.disabled = true;
+        window.VTData.haeKoonnit(t.dataset.id).then(function (k) { koosteet[t.dataset.id] = k || {}; render(); }, function () { t.disabled = false; ilmoita("Yhteenvedon haku epäonnistui."); });
+        break;
+      case "kooste-kopioi":
+        var kt = (lista || []).filter(function (x) { return x.id === t.dataset.id; })[0];
+        if (!kt) return;
+        var teksti = koosteTeksti(kt, kooste(kt, koosteet[kt.id] || {}));
+        (navigator.clipboard ? navigator.clipboard.writeText(teksti) : Promise.reject()).then(function () { ilmoita("Yhteenveto kopioitu"); }, function () { ilmoita("Kopiointi ei onnistunut"); });
+        break;
+      case "esikatsele":
+        try { localStorage.setItem("vt-esikatselu", JSON.stringify(muok)); } catch (err) { ilmoita("Esikatselu ei onnistunut."); return; }
+        window.open("/?esikatselu=" + encodeURIComponent(muokId), "_blank");
         break;
       case "laske":
         window.VTData.laskeVastaukset(t.dataset.id).then(function (n) { laskut[t.dataset.id] = n; render(); }, function () { ilmoita("Laskenta epäonnistui."); });

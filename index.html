@@ -4,25 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#e8d390">
 <title>Viinitasting.com · Tasting</title>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="/app.js?v=16" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=15">
+<link rel="stylesheet" href="/app.css?v=16">
 <style>
 .lataus { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--vali-6) var(--vali-5); }
 .lataus > div { max-width: 480px; }
 </style>
 </head>
 <body>
-<div id="app"><main class="lataus"><div><p class="o-display">tervetuloa</p><p class="o-ingressi" style="margin-top:var(--vali-4)" id="lataus-teksti">Ladataan tastingia…</p></div></main></div>
+<div id="app"><main class="lataus"><div><p class="o-display">Tervetuloa</p><p class="o-ingressi" style="margin-top:var(--vali-4)" id="lataus-teksti">Ladataan tastingia…</p></div></main></div>
 <noscript>Tämä sivu tarvitsee JavaScriptin.</noscript>
 <script src="/asetukset.js"></script>
-<script src="/yhteys.js?v=15"></script>
+<script src="/emojit.js?v=16"></script>
+<script src="/yhteys.js?v=16"></script>
 <script src="/qr.js"></script>
 <script>
 (function () {
-  var id = (new URLSearchParams(location.search).get("t") || "").trim().toLowerCase();
+  var haku = new URLSearchParams(location.search);
+  var id = (haku.get("t") || "").trim().toLowerCase();
+  var esikatselu = (haku.get("esikatselu") || "").trim().toLowerCase();
   var teksti = document.getElementById("lataus-teksti");
   function viesti(t, linkki) {
     teksti.textContent = t;
@@ -32,17 +39,29 @@
       teksti.parentNode.appendChild(p);
     }
   }
+  function kaynnista(t, tunnus) {
+    t.id = tunnus;
+    t.osoite = location.origin + "/?t=" + (t.esikatselu ? esikatselu : tunnus);
+    window.TASTING = t;
+    document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
+    var s = document.createElement("script"); s.src = "/app.js?v=16"; document.body.appendChild(s);
+  }
+  // Esikatselu hallinnasta: tallentamaton setti tulee selaimen muistista, eikä mitään tallenneta palvelimelle.
+  if (esikatselu && /^[a-z0-9-]{1,60}$/.test(esikatselu)) {
+    var data = null;
+    try { data = JSON.parse(localStorage.getItem("vt-esikatselu") || "null"); localStorage.removeItem("vt-tasting-esikatselu-" + esikatselu); } catch (e) {}
+    if (!data) { viesti("Esikatselu ei auennut. Avaa se uudelleen hallinnasta."); return; }
+    data.esikatselu = true;
+    kaynnista(data, "esikatselu-" + esikatselu);
+    return;
+  }
   if (!id) { viesti("Skannaa tilaisuuden QR-koodi, niin pääset illan tastingiin.", true); return; }
   if (!/^[a-z0-9-]{1,60}$/.test(id) || !window.VTData) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
   var aikaraja = setTimeout(function () { viesti("Yhteys on hidas. Odota hetki tai lataa sivu uudelleen."); }, 10000);
   window.VTData.haeTasting(id).then(function (t) {
     clearTimeout(aikaraja);
     if (!t) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
-    t.id = id;
-    t.osoite = location.origin + "/?t=" + id;
-    window.TASTING = t;
-    document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
-    var s = document.createElement("script"); s.src = "/app.js?v=15"; document.body.appendChild(s);
+    kaynnista(t, id);
   }, function () { clearTimeout(aikaraja); viesti("Tastingin lataus epäonnistui. Lataa sivu uudelleen."); });
 })();
 </script>

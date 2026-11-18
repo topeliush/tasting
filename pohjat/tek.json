@@ -1,9 +1,8 @@
 {
  "nimi": "Juhlakuohuvat",
- "kuvaus": "Valitse, maistatko kuohuviinit vai alkoholittomat kuohuvat. Jokaisesta lasista valitset aromit, jotka löydät, ja annat 0–5 tähteä. Lopuksi katsotaan, mitä koko porukka löysi.",
+ "kuvaus": "Valitse setti, löydä aromit, anna tähdet. Lopuksi nähdään, mitä porukka löysi.",
  "juontaja": "Topias Haavisto",
  "kaytaPaljastussanaa": false,
- "naytaJuontajaLinkki": true,
  "varausLinkki": "https://viinitasting.com",
  "varausTeksti": "Tuon tastingin teille, te valitsette porukan.",
  "googleArvioLinkki": "https://g.page/r/Ccf877ZSMJM8ECE/review",

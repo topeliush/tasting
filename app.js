@@ -66,20 +66,7 @@
   function lOikea(q, l) { return q.oikea && typeof q.oikea[l] === "number" ? q.oikea[l] : null; }
   function lFakta(q, l) { return (q.fakta && (typeof q.fakta === "string" ? q.fakta : q.fakta[l])) || ""; }
   function aromit(i) { var w = T.viinit[i]; return w.aromit || T.aromit || []; }
-  var EMOJIT = [[/vihre\S* omena/, "🍏"], [/omena|päärynä/, "🍐"], [/sitru|sitruuna|lime|greippi/, "🍋"], [/appelsiini|mandariini/, "🍊"],
-    [/persik|aprikoo/, "🍑"], [/troop|ananas|mango|passio/, "🍍"], [/kirsik/, "🍒"], [/mansik|vadelm|punai\S* marj|punaherukk|karpalo/, "🍓"],
-    [/mustik|mustaherukk|tum\S* marj/, "🫐"], [/rypäle|rusina|kuivahed|viikun/, "🍇"], [/melon/, "🍈"], [/kuk|ruusu|orvok|seljan/, "🌸"],
-    [/hunaj/, "🍯"], [/paahtoleip|brioche|leipä|leivo|hiiva|keksi/, "🍞"], [/pähkin|mantel/, "🌰"], [/vanilj|kerma/, "🍦"],
-    [/yrt|ruoho|heinä|minttu/, "🌿"], [/^tee|\stee\b/, "🍵"], [/minerä|kivi|liitu|suola/, "🪨"], [/mauste|pippuri|kaneli|neilik|inkiväär/, "🌶️"],
-    [/kahvi|savu|paahde/, "☕"], [/suklaa|kaakao/, "🍫"], [/tammi|setri|puu/, "🪵"], [/sieni|metsänpohj/, "🍄"], [/nahka|tupakka/, "🍂"],
-    [/karamel|kinuski|toffee/, "🍮"], [/voi$|voinen|voita/, "🧈"]];
-  function aromiEmoji(t) {
-    t = String(t || "");
-    if (/^[^A-Za-zÅÄÖåäöÉéÜü0-9]/.test(t)) return "";
-    var p = t.toLowerCase();
-    for (var k = 0; k < EMOJIT.length; k++) if (EMOJIT[k][0].test(p)) return EMOJIT[k][1];
-    return "";
-  }
+  function aromiEmoji(t) { return window.VTAromiEmoji ? window.VTAromiEmoji(t) : ""; }
   function aromiHtml(t) { var e = aromiEmoji(t); return (e ? '<span class="o-emoji" aria-hidden="true">' + e + "</span>" : "") + esc(t); }
   var ESIMERKIT = [
     ["Jos mieleen tulee mummolan omenapuu, kirjoita se.", "esim. märkä kivi"],
@@ -140,6 +127,7 @@
     var m = { t: {}, L: {} }, on = false;
     Object.keys(S.kirjattu.t).forEach(function (i) { var v = S.kirjattu.t[i]; if (v != null) { m.t[i] = {}; m.t[i][v] = -1; on = true; } });
     Object.keys(S.kirjattu.L).forEach(function (k) { var v = S.kirjattu.L[k]; if (v != null) { m.L[k] = {}; m.L[k][v] = -1; on = true; } });
+    if (S.kirjattu.m) { m.m = -1; on = true; }
     if (on) kirjaaLoppu(m);
     Object.keys(S.aromit || {}).forEach(function (i) {
       var a = {}, o = {}, onA = false, onO = false;
@@ -157,6 +145,11 @@
     if (!src || typeof src !== "object") return null;
     var a = []; for (var k = 0; k < n; k++) a.push(Math.max(0, typeof src[k] === "number" ? src[k] : 0));
     return summa(a) > 0 ? a : null;
+  }
+  function mukana() { var d = koonti.loppu; return d && typeof d.m === "number" ? Math.max(0, d.m) : null; }
+  function kirjaaMukaan() {
+    if (!koontiTila() || S.kirjattu.m) return;
+    S.kirjattu.m = 1; kirjaaLoppu({ m: 1 });
   }
   function naytettavat(avain, n) {
     var j = jaetut[avain];
@@ -184,7 +177,7 @@
   var loppuOdottaa = false;
   function kiinnostavat() {
     if (!koontiTila()) return [];
-    if (juontajaReitti()) { var d = diat()[dia]; return d && d.k === "paljastus" ? [d.i] : d && (d.k === "vertailu" || d.k === "vtulos" || d.k === "loppu") ? ["loppu"] : []; }
+    if (juontajaReitti()) { var d = diat()[dia]; return d && d.k === "paljastus" ? [d.i] : d && (d.k === "kansi" || d.k === "vertailu" || d.k === "vtulos" || d.k === "loppu") ? ["loppu"] : []; }
     if (!S.aloitettu) return [];
     if (typeof S.nakyma === "number") return [S.nakyma];
     if (S.nakyma === "loppu" || (S.nakyma === "vertailu" && S.loppu.lukittu)) return ["loppu"];
@@ -298,18 +291,21 @@
   function renderOsallistuja() {
     document.documentElement.dataset.theme = "vaalea";
     document.body.className = "osallistuja";
-    if (!S.aloitettu) { app.innerHTML = aloitus(); return; }
+    if (!S.aloitettu) { app.innerHTML = esikatseluPalkki() + aloitus(); return; }
     if (S.nakyma !== "loppu" && S.nakyma !== "vertailu" && !onOma(S.nakyma)) S.nakyma = omat()[0];
     if (S.nakyma === "vertailu" && !lopuksi().length) S.nakyma = "loppu";
     if (typeof S.nakyma === "number") varmistaKoonti(S.nakyma);
     var sisalto = S.nakyma === "loppu" ? yhteenveto() : S.nakyma === "vertailu" ? vertailuNakyma() : viiniNakyma(S.nakyma);
-    app.innerHTML = '<main class="o-kehys">' + ylapalkki() + sisalto + "</main>";
+    app.innerHTML = esikatseluPalkki() + '<main class="o-kehys">' + ylapalkki() + sisalto + "</main>";
+  }
+  function esikatseluPalkki() {
+    return T.esikatselu ? '<div class="o-esikatselupalkki">Esikatselu · mitään ei tallenneta <button class="vt-linkki" data-act="tyhjenna-esikatselu">Alusta</button></div>' : "";
   }
 
   function ylapalkki() {
     var tabit = omat().map(function (i) {
-      var w = T.viinit[i], valmis = onSokko(w) ? onAuki(i) : !!S.lukittu[i];
-      return '<li><button class="o-tab' + (valmis ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="' + i + '" aria-current="' + (S.nakyma === i) + '" aria-label="' + iso(sana(w)) + " " + nro(i) + '">' + nro(i) + "</button></li>";
+      var w = T.viinit[i], valmis = onSokko(w) ? onAuki(i) : (S.arviot[i] != null && ((S.aromit[i] || []).length + omatAromit(i).length) > 0);
+      return '<li><button class="o-tab' + (valmis ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="' + i + '" aria-current="' + (S.nakyma === i) + '" aria-label="' + iso(sana(w)) + " " + nro(i) + (valmis ? ", valmis" : "") + '">' + nro(i) + (valmis ? '<span class="o-tab__ok" aria-hidden="true">✓</span>' : "") + "</button></li>";
     }).join("");
     if (lopuksi().length) tabit += '<li><button class="o-tab o-tab--loppu' + (S.loppu.lukittu ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="vertailu" aria-current="' + (S.nakyma === "vertailu") + '">Viimeinen sana</button></li>';
     tabit += '<li><button class="o-tab o-tab--loppu" data-act="siirry" data-v="loppu" aria-current="' + (S.nakyma === "loppu") + '">Yhteenveto</button></li>';
@@ -323,8 +319,6 @@
       '<p class="o-display">Tervetuloa</p>' +
       '<div><h1 class="o-h1">' + esc(T.nimi) + '</h1><p class="o-vaimea" style="margin-top:var(--vali-2)">Juontajana ' + esc(T.juontaja) + "</p></div>" +
       '<p class="o-ingressi">' + esc(T.kuvaus) + "</p>" +
-      '<div><label class="o-label" for="nimimerkki">Nimimerkki (vapaaehtoinen, salanimet sallittu)</label>' +
-      '<input class="o-kentta" id="nimimerkki" autocomplete="nickname" maxlength="30" value="' + esc(S.nimi) + '"></div>' +
       (onLinjat() ? '<div><span class="o-label">Mitä lasiin tänään?</span><div class="o-linjat' + (S.linja ? " on-valittu" : "") + '" role="radiogroup" aria-label="Mitä lasiin tänään?">' +
         '<button class="o-linja" role="radio" data-act="linja" data-v="viini" aria-checked="' + (S.linja === "viini") + '" aria-pressed="' + (S.linja === "viini") + '"><span class="o-linja__merkki" aria-hidden="true"></span>Kuohuviinit</button>' +
         '<button class="o-linja o-linja--alk" role="radio" data-act="linja" data-v="alkoholiton" aria-checked="' + (S.linja === "alkoholiton") + '" aria-pressed="' + (S.linja === "alkoholiton") + '"><span class="o-linja__merkki" aria-hidden="true"></span>Alkoholittomat</button>' +
@@ -333,7 +327,6 @@
       (onLinjat() ? '<p class="o-vaimea" id="linja-vihje"' + (S.linja ? ' style="visibility:hidden"' : "") + '>Valitse ensin kumpi setti, sitten mennään.</p>' : "") +
       '<p class="o-vaimea">Ei sovellusta, ei kirjautumista. Havaintosi lähtevät nimettöminä porukan yhteiseen pottiin.</p>' +
       "</section>" +
-      (T.naytaJuontajaLinkki ? '<p class="o-alatunniste"><a class="vt-linkki" href="#juontaja">Juontajalle</a></p>' : "") +
       "</main>";
   }
 
@@ -686,9 +679,9 @@
     X.filter(function (x) { return !x.tahdet; }).forEach(function (x) {
       var j = x.moni && koontiTila() ? (koontiData(d.i).on ? true : null) : x.moni ? jaetut[x.avain] : naytettavat(x.avain, x.vaihtoehdot.length);
       kortit.push('<div class="j-tulos"><b>' + esc(x.kysymys) + "</b>" +
-        (j ? (x.moni ? kuplat(d.i, false, 22) : palkit(x.vaihtoehdot, j, x.oikea, null) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
+        (j ? (x.moni ? kuplat(d.i, false, 26) : palkit(x.vaihtoehdot, j, x.oikea, null) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
            : x.oikea != null ? '<span class="j-tulos__oikea">✓ ' + esc(x.vaihtoehdot[x.oikea]) + "</span>"
-           : '<span class="j-tulos__odota">Aromeja kerätään vielä…</span>') +
+           : '<span class="j-tulos__odota">' + (x.moni ? "Aromeja kerätään vielä…" : "Vastauksia kerätään vielä…") + "</span>") +
         (x.fakta ? '<span class="j-tulos__fakta">' + esc(x.fakta) + "</span>" : "") + "</div>");
     });
     if (d.k === "vtulos") kortit.push('<div class="j-tulos"><b>Illan tähtitaulukko</b>' + keskiarvoLista(linjanViinit(d.l), false) + "</div>");
@@ -709,14 +702,15 @@
         '<div class="j-palstat"><div class="j-palsta" style="justify-content:flex-end"><span class="j-ylatunniste">Juontajana ' + esc(T.juontaja) + "</span>" +
         '<p class="j-display" style="margin-top:calc(20 * var(--u))">Tervetuloa</p><p class="j-ala">' + esc(T.nimi) + "</p></div>" +
         '<div class="j-palsta j-palsta--kapea" style="align-items:center;justify-content:flex-end">' + qrSvg(url, "j-qr") +
-        (url ? '<div class="j-osoite">' + esc(lyhyt(url)) + '</div><div class="j-ala" style="margin-top:calc(8 * var(--u));font-size:calc(34 * var(--u))">Skannaa koodi puhelimella</div>'
+        (url ? '<div class="j-osoite">' + esc(lyhyt(url)) + '</div><div class="j-ala" style="margin-top:calc(8 * var(--u));font-size:calc(34 * var(--u))">Skannaa koodi puhelimella</div>' +
+          (mukana() ? '<div class="j-mukana"><b>' + mukana() + "</b> " + (mukana() === 1 ? "maistaja" : "maistajaa") + " mukana</div>" : "")
              : '<label class="j-asetus">Liitä osallistujien osoite<input id="j-osoite" placeholder="https://…" value=""></label>') +
         "</div></div>";
     } else if (d.k === "maistelu") {
       var lasi = d.pari ? d.lasi : nro(d.i);
       h = '<div class="j-rivi"><span class="j-pallo">' + lasi + '</span><span class="j-ylatunniste">Lasi ' + lasi + "</span></div>" +
         '<h1 class="j-otsikko">Haistele, maistele, anna tähdet</h1><p class="j-ala">Valitse puhelimessa kaikki aromit, jotka löydät, ja anna 0–5 tähteä.</p>' +
-        '<div class="j-aromit">' + (T.aromit || []).map(function (a) { return "<span>" + esc(a) + "</span>"; }).join("") + "</div>" +
+        '<div class="j-aromit">' + (T.aromit || []).map(function (a) { return "<span>" + aromiHtml(a) + "</span>"; }).join("") + "</div>" +
         (url ? '<div class="j-qr-pieni"><span>Myöhästyitkö?<br>' + esc(lyhyt(url)) + "</span>" + qrSvg(url, "") + "</div>" : "");
     } else if (d.k === "paljastus") {
       var v = T.viinit[d.i];
@@ -878,6 +872,7 @@
     } else if (!onJuontaja() && vastausKuuntelu) { vastausKuuntelu(); vastausKuuntelu = null; vastausDocs = []; }
   }
   function alustaYhteys() {
+    if (T.esikatselu) return;
     if (!window.VTYhteys || !A.firebase || !A.firebase.apiKey) return;
     try { Y = window.VTYhteys(A.firebase, T.id, !!A.emulaattori); } catch (e) { Y = null; return; }
     Y.onKayttaja(function (u) {
@@ -959,12 +954,50 @@
       (l.length ? '<div class="o-omat">' + l.map(function (x) { return "<span>" + esc(x.t) + (x.n > 1 ? " ×" + x.n : "") + "</span>"; }).join("") + "</div>" : '<p class="p-ohje" style="margin:0">Ei vielä omia havaintoja.</p>') +
       '<p class="p-ohje">Jaetaan samalla Näytä kaikille -painikkeella.</p></div>';
   }
+  var saannotOk = null, tyhjennysVarma = false;
+  function tarkistaSaannot() {
+    if (saannotOk !== null || !Y || !Y.koontiLisaa || !onJuontaja() || T.sokkotasting) return;
+    saannotOk = "kesken";
+    Y.koontiLisaa("loppu", { m: 0 }).then(function () { saannotOk = true; paivitaPian(); }, function () { saannotOk = false; paivitaPian(); });
+  }
+  function tarkistuslista() {
+    if (!Y || T.sokkotasting) return "";
+    tarkistaSaannot();
+    var n = vastausDocs.length, m = mukana() || 0;
+    function rivi(tila, teksti, ohje) {
+      return '<li class="p-tark p-tark--' + tila + '"><span class="p-tark__ikoni" aria-hidden="true">' + (tila === "ok" ? "✓" : tila === "ei" ? "!" : "…") + "</span><div><b>" + teksti + "</b>" + (ohje ? "<span>" + ohje + "</span>" : "") + "</div></li>";
+    }
+    var testi = store.get(KEY + "-testattu", false);
+    return '<div class="p-muisti p-tarkistus"><h3>Ennen aloitusta</h3><ul>' +
+      rivi(saannotOk === true ? "ok" : saannotOk === false ? "ei" : "odota", saannotOk === true ? "Tietokannan säännöt kunnossa" : saannotOk === false ? "Säännöt puuttuvat" : "Tarkistetaan sääntöjä…",
+        saannotOk === false ? "Julkaise uudet säännöt Firebase-konsolissa (Firestore → Rules), muuten tähdet ja vastaukset eivät päivity livenä." : "") +
+      rivi(n === 0 && m === 0 ? "ok" : "ei", n === 0 && m === 0 ? "Ei vanhoja vastauksia" : (n || m) + " vastausta tallessa",
+        n === 0 && m === 0 ? "" : "Jos nämä ovat testejä, tyhjennä ennen kuin vieraat skannaavat. Tyhjennä myös omasta puhelimesta kohta Aloita alusta.") +
+      rivi(testi ? "ok" : "odota", testi ? "Testattu omalla puhelimella" : "Testaa omalla puhelimella", testi ? "" : "Skannaa koodi, käy yksi lasi läpi ja katso, että aromit näkyvät isolla näytöllä.") +
+      "</ul>" +
+      '<div class="p-tark__napit">' +
+      (n || m ? '<button class="vt-painike vt-painike--pieni p-vaara" data-act="p-tyhjenna">' + (tyhjennysVarma ? "Varmasti? Paina uudelleen" : "Tyhjennä vastaukset") + "</button>" : "") +
+      '<button class="vt-painike vt-painike--pieni vt-painike--toissijainen" data-act="p-testattu">' + (testi ? "Merkitse testaamattomaksi" : "Testattu ✓") + "</button></div>" +
+      (m ? '<p class="p-ohje" style="margin:var(--vali-3) 0 0"><b>' + m + "</b> " + (m === 1 ? "maistaja" : "maistajaa") + " mukana</p>" : "") +
+      "</div>";
+  }
+  function aromiYhteenveto(i) {
+    varmistaKoonti(i);
+    return '<div class="p-muisti"><h3>Mitä aromeja porukka löysi?</h3><p class="p-ohje" style="margin:0 0 var(--vali-2)">Päivittyy kaikille itsestään, myös isolle näytölle. Sinun ei tarvitse tehdä mitään.</p>' + kuplat(i, false, 18) + "</div>";
+  }
   function laskurit(d) {
     var X = diaAvaimet(d);
     if (!X.length) return "";
     var jaettu = X.some(function (x) { return jaetut[x.avain]; });
     function kortti(x) {
       var n = x.vaihtoehdot.length, p = puhelinLuvut(x.avain, n), L = luvut(x.avain, n), j = jaetut[x.avain];
+      if (koontiTila()) {
+        var lv = liveLuvut(x.avain, n) || p;
+        return '<div class="p-laskuri p-laskuri--live"><h3>' + esc(x.kysymys) + "</h3><ul>" + x.vaihtoehdot.map(function (v, o) {
+          return '<li class="' + (o === x.oikea ? "on-oikea" : "") + '"><span>' + (o === x.oikea ? "✓ " : "") + (x.tahdet ? "★ " : "") + esc(v) + "</span><b>" + lv[o] + "</b></li>";
+        }).join("") + '</ul><span class="p-tila' + (j ? " on" : "") + '">' + (j ? "Näkyy kaikille" : "Piilossa") + " · " + summa(lv) + " vastausta" +
+          (x.tahdet && keskiarvo(lv) != null ? " · ★ " + desi(keskiarvo(lv)) : "") + "</span></div>";
+      }
       return '<div class="p-laskuri"><h3>' + esc(x.kysymys) + "</h3><ul>" + x.vaihtoehdot.map(function (v, o) {
         return '<li class="' + (o === x.oikea ? "on-oikea" : "") + '"><span>' + (o === x.oikea ? "✓ " : "") + (x.tahdet ? "★ " : "") + esc(v) + '</span><span class="p-puh">📱 ' + p[o] + "</span>" +
           '<button data-act="p-kasin" data-k="' + esc(x.avain) + '" data-o="' + o + '" data-d="-1" aria-label="Vähennä">−</button><b>' + L[o] + "</b>" +
@@ -975,11 +1008,12 @@
     var tav = X.filter(function (x) { return !x.tahdet; }), tah = X.filter(function (x) { return x.tahdet; });
     var liveRivi = (koontiTila() && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)"><b>Aromit päivittyvät kaikille itsestään</b>, vaikka tämä näkymä olisi kiinni. Laskurit alla ovat sinun käsiäänestystäsi varten.</p>' : (!T.sokkotasting && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)">' + (store.get(KEY + "-live", true) !== false ? "<b>Aromit livenä:</b> porukan aromit päivittyvät kaikille itsestään. Tähdet pysyvät piilossa. " : "<b>Live-jako pois.</b> Jaa aromit napista. ") +
       '<button class="vt-linkki" data-act="p-live">' + (store.get(KEY + "-live", true) !== false ? "Laita pois" : "Laita päälle") + "</button></p>" : "";
+    if (koontiTila()) liveRivi = '<p class="p-ohje" style="margin:0 0 var(--vali-2)">Luvut päivittyvät itsestään. Paina <b>Näytä kaikille</b>, kun haluat paljastaa tulokset puhelimiin ja isolle näytölle.</p>';
     return '<div class="p-muisti"><h3>Vastaukset · ' + (jaettu ? "näkyvät kaikille" : "eivät vielä näy") + "</h3>" + liveRivi +
-      '<p class="p-ohje" style="margin:0">📱 = puhelimista tulleet. Lisää käsiäänet + ja − napeilla.</p>' +
+      (koontiTila() ? "" : '<p class="p-ohje" style="margin:0">📱 = puhelimista tulleet. Lisää käsiäänet + ja − napeilla.</p>') +
       tav.map(kortti).join("") +
       (tah.length ? '<h3 style="margin-top:var(--vali-5)">Tähdet · ' + tah.map(function (x) { var ka = keskiarvo(luvut(x.avain, 6)); return ka == null ? "–" : "★ " + desi(ka); }).join(" · ") + "</h3>" + tah.map(kortti).join("") : "") +
-      '<div class="p-jaa"><button class="vt-painike" data-act="p-jaa">' + (jaettu ? "Päivitä kaikille" : "Näytä kaikille") + "</button>" +
+      '<div class="p-jaa"><button class="vt-painike" data-act="p-jaa">' + (jaettu && !koontiTila() ? "Päivitä kaikille" : "Näytä kaikille") + "</button>" +
       '<button class="vt-painike vt-painike--toissijainen" data-act="p-piilota"' + (jaettu ? "" : " disabled") + ">Piilota</button></div></div>";
   }
   function kirjautuminen() {
@@ -1008,7 +1042,8 @@
         '<div class="p-qr">' + qrSvg(url, "") + "<div>" + (url ? "<b>" + esc(lyhyt(url)) + "</b>" : "<b>Osoite puuttuu</b>") +
         '<button class="vt-painike vt-painike--pieni" data-act="p-iso" data-v="qr">Näytä QR isona</button></div></div>' +
         (url ? "" : '<label class="o-label" for="j-osoite">Osallistujien osoite</label><input class="o-kentta" id="j-osoite" placeholder="https://…">') +
-        muistiinpano("Muista", "Pyydä kaikkia skannaamaan koodi ja kirjoittamaan nimimerkki." + (onLinjat() ? " Jokainen valitsee alussa kuohuviinit tai alkoholittomat ja näkee vain omat juomansa." : "") + (lahjaKaytossa() ? " Kerro, että lopussa odottaa kiitoslahja." : ""));
+        tarkistuslista() +
+        muistiinpano("Muista", "Pyydä kaikkia skannaamaan koodi." + (onLinjat() ? " Jokainen valitsee alussa kuohuviinit tai alkoholittomat ja näkee vain omat juomansa." : "") + (lahjaKaytossa() ? " Kerro, että lopussa odottaa kiitoslahja." : ""));
     } else if (d.k === "vertailu") {
       h = '<h1 class="p-h1">Lopuksi</h1>' +
         muistiinpano("Ohje", "Osallistujat vastaavat puhelimessa kohdassa Lopuksi. Seuraavilla dioilla jaat vastaukset ja tähtien keskiarvot.") +
@@ -1032,7 +1067,8 @@
     } else if (d.k === "loppu") {
       h = '<h1 class="p-h1">Kiitos ja kiitoslahja</h1>' +
         (lahjaKaytossa() ? muistiinpano("Kiitoslahja", "Jokaisen puhelimessa on nyt " + T.lahjakortti.arvo + " € lahjakortti yhteenvedossa. Sen voi käyttää itse tai antaa kaverille.") : "") +
-        muistiinpano("Google-arvio", "Tärkein! Pyydä kaikilta arviota Googleen: QR-koodi on isolla näytöllä ja linkki jokaisen yhteenvedon ylimpänä. Älä yhdistä pyyntöä lahjakorttiin, lahja on kaikille joka tapauksessa.") +
+        muistiinpano("Sano näin", "Jos ilta oli hauska, kuva tai pari sanaa Googleen auttaa minua tosi paljon. Koodi on tuossa näytöllä, ja linkki löytyy myös puhelimen yhteenvedon ylimpänä.") +
+        muistiinpano("Google-arvio", "Tärkein! Älä yhdistä pyyntöä lahjakorttiin, lahja on kaikille joka tapauksessa.") +
         muistiinpano("Varaukset", "Oma tasting: " + lyhyt(T.varausLinkki));
     } else {
       var w = T.viinit[d.i], sokko = onSokko(w);
@@ -1042,7 +1078,7 @@
         h += '<div class="p-sana"><span>Paljastussana</span><b>' + esc(w.paljastussana) + "</b>" +
           '<button class="p-sana__nappi" data-act="p-iso" data-v="sana">Näytä isona</button></div>';
       }
-      if (d.k === "paljastus") h += laskurit(d) + omatLista(d.i);
+      if (d.k === "paljastus") h += koontiTila() ? aromiYhteenveto(d.i) : laskurit(d) + omatLista(d.i);
       if (d.k === "maistelu") {
         h += (T.kaytaPaljastussanaa ? '<p class="o-vaimea">Paljastussana seuraavassa vaiheessa: <b>' + esc(w.paljastussana) + "</b></p>" : "") +
           muistiinpano("Kiinnitä huomiota", w.maistele) + muistiinpano("Omat muistiinpanot", w.juontajalle);
@@ -1092,8 +1128,8 @@
     document.documentElement.dataset.theme = "vaalea";
     document.body.className = "kortti";
     var url = osallistujaUrl();
-    var kortti = '<div class="k-kortti">' + logo(T.logo || "/logo-vihrea.png", "logo") + "<h2>Skannaa ja tule mukaan</h2>" +
-      "<p>Viinien tiedot, sokkovisa ja omat muistiinpanot puhelimeesi. Ei sovellusta, ei kirjautumista.</p>" +
+    var kortti = '<div class="k-kortti">' + logo(T.logo || "/logo-vihrea.png", "logo") + '<span class="k-nimi">' + esc(T.nimi) + "</span><h2>Skannaa ja tule mukaan</h2>" +
+      "<p>" + (T.sokkotasting ? "Arvaa lasit, löydä aromit ja anna tähdet." : "Löydä aromit, anna tähdet ja katso, mitä porukka löysi.") + " Ei sovellusta, ei kirjautumista.</p>" +
       qrSvg(url, "") + (url ? '<div class="k-osoite">' + esc(lyhyt(url)) + "</div>" : "") + "</div>";
     app.innerHTML = '<div class="k-tyokalut"><p>Neljä A6-korttia A4-arkilla. Tulosta paksulle kartongille ja leikkaa katkoviivoja pitkin.' +
       (url ? "" : " Liitä ensin osallistujien osoite juontajan näkymän kanteen.") + "</p>" +
@@ -1118,7 +1154,6 @@
     var act = t.dataset.act, i = t.dataset.i != null ? +t.dataset.i : null;
     switch (act) {
       case "linja":
-        var nk = document.getElementById("nimimerkki"); if (nk) S.nimi = (nk.value || "").trim();
         S.linja = t.dataset.v; tallenna();
         Array.prototype.forEach.call(app.querySelectorAll('[data-act="linja"]'), function (b) { var on = b.dataset.v === S.linja; b.setAttribute("aria-pressed", on); b.setAttribute("aria-checked", on); });
         var ry = app.querySelector(".o-linjat"); if (ry) ry.classList.add("on-valittu");
@@ -1127,8 +1162,7 @@
         break;
       case "aloita":
         if (onLinjat() && !S.linja) return;
-        S.nimi = (document.getElementById("nimimerkki").value || "").trim();
-        S.aloitettu = true; S.nakyma = omat()[0]; tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
+        S.aloitettu = true; S.nakyma = omat()[0]; kirjaaMukaan(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
       case "siirry":
         S.nakyma = t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v; tallenna(); renderOsallistuja(); window.scrollTo(0, 0); kiinnostavat().forEach(haeKoonti); break;
       case "valitse":
@@ -1139,6 +1173,16 @@
         var kentta = document.getElementById("sana-" + i); if (kentta) kentta.scrollIntoView({ block: "center" });
         break;
       case "paljasta": paljasta(i); break;
+      case "p-testattu":
+        store.set(KEY + "-testattu", !store.get(KEY + "-testattu", false)); renderOhjaus(); break;
+      case "p-tyhjenna":
+        if (!tyhjennysVarma) { tyhjennysVarma = true; renderOhjaus(); return; }
+        tyhjennysVarma = false; t.disabled = true;
+        window.VTData.tyhjennaVastaukset(T.id).then(function () {
+          jaetut = {}; store.set(KEY + "-jaetut", jaetut); kasin = {}; store.set(KEY + "-kasin", kasin);
+          koonti = {}; saannotOk = null; vastausDocs = []; laheta(); renderOhjaus();
+        }, function () { t.disabled = false; alert("Tyhjennys epäonnistui. Kokeile hallinnasta."); });
+        break;
       case "p-kirjaudu":
         var em = (document.getElementById("k-email").value || "").trim(), pw = document.getElementById("k-salasana").value || "", ve = document.getElementById("k-virhe");
         t.disabled = true; t.textContent = "Kirjaudutaan…";
@@ -1222,6 +1266,8 @@
       case "lahja-jaa":
         try { navigator.share({ text: lahjaViesti() }).catch(function () {}); } catch (err) {}
         break;
+      case "tyhjenna-esikatselu":
+        S = uusiTila(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
       case "tyhjenna":
         if (!tyhjennysVarmistus) { tyhjennysVarmistus = true; t.textContent = "Varmasti? Vastaukset ja muistiinpanot poistuvat. Paina uudelleen."; return; }
         tyhjennysVarmistus = false; peruKirjaukset(); S = uusiTila(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;

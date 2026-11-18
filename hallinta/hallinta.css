@@ -64,3 +64,24 @@
 .h-palkki__tila { flex: 1; font-size: 14px; font-weight: 700; color: var(--teksti-vaimea); }
 .h-palkki__tila.on { color: var(--virhe); }
 .h-ilmoitus { position: fixed; left: 50%; top: calc(var(--vali-4) + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 9; padding: var(--vali-2) var(--vali-5); border-radius: var(--kulma-pilleri); background: var(--muste); color: #f3e9c6; font-size: 15px; font-weight: 700; box-shadow: var(--varjo-pehmea); }
+/* Esikatselu ja tilaisuuden yhteenveto */
+.h-esikatsele { margin-right: var(--vali-2); }
+.h-kooste { margin-top: var(--vali-4); padding: var(--vali-4); border: 2px solid var(--viiva); border-radius: var(--kulma-m); background: var(--pinta); }
+.h-kooste h3 { margin: 0; font-family: var(--font-otsikko); font-weight: 400; font-size: 22px; }
+.h-kooste h4 { margin: var(--vali-3) 0 0; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.h-kooste h5 { margin: var(--vali-3) 0 var(--vali-1); font-size: 14px; font-weight: 800; }
+.h-kooste__iso { margin: var(--vali-1) 0 0; font-size: 15px; }
+.h-kooste__iso b { font-family: var(--font-display); font-weight: 400; font-size: 26px; color: var(--vihrea-syva); }
+.h-kooste__linja { margin-top: var(--vali-3); padding-top: var(--vali-2); border-top: 1.5px dotted var(--viiva); }
+.h-kooste__linja--alk h4 { color: var(--sininen-syva); }
+.h-kooste ol, .h-kooste ul { margin: 0; padding: 0; list-style: none; }
+.h-kooste ol li { display: grid; grid-template-columns: 1fr auto; gap: 0 var(--vali-2); padding: 3px 0; font-size: 14px; }
+.h-kooste ol li small { grid-column: 1 / -1; color: var(--teksti-vaimea); font-size: 12px; }
+.h-kooste ul li { position: relative; display: flex; justify-content: space-between; padding: 3px 0 7px; font-size: 14px; }
+.h-kooste ul li i { position: absolute; left: 0; bottom: 2px; height: 4px; border-radius: 999px; background: var(--vihrea); }
+.h-kooste__aromit { margin: 0 0 var(--vali-2); font-size: 13.5px; line-height: 1.6; }
+.h-kooste__aromit b { display: block; }
+.h-kooste__aromit span { display: inline-block; margin: 2px 6px 0 0; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--vihrea) 15%, var(--pinta)); }
+.h-kooste__aromit span.oma { background: color-mix(in srgb, var(--sininen) 15%, var(--pinta)); font-style: italic; }
+.h-kooste__aromit i { font-style: normal; font-weight: 800; }
+.h-kooste .vt-painike { margin-top: var(--vali-3); }

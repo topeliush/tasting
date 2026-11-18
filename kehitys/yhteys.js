@@ -80,5 +80,9 @@ window.VTData = {
       }).then(function () { return deleteDoc(doc(db, "tilaisuudet", id)); }).then(function () { return r.length; });
     });
   },
+  haeKoonnit: function (id) {
+    var db = perus().db;
+    return getDocs(collection(db, "tilaisuudet", id, "koonti")).then(function (qs) { var r = {}; qs.docs.forEach(function (d) { r[d.id] = d.data(); }); return r; });
+  },
   laskeVastaukset: function (id) { var db = perus().db; return getDocs(collection(db, "tilaisuudet", id, "vastaukset")).then(function (qs) { return qs.size; }); }
 };

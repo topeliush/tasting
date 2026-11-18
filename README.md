@@ -3,11 +3,13 @@
 - **Hallinta:** https://tasting.viinitasting.com/hallinta/ – tastingien luonti, muokkaus, linkit ja QR-koodit, vastausten tyhjennys.
 - **Osallistujat:** `https://tasting.viinitasting.com/?t=<tunnus>` – lisäksi `#ohjaus` (juontajan puhelin), `#naytto` (iso näyttö), `#poytakortti`.
 
-Tastingien sisältö ja kuvat ovat Firestoressa (`tastingit/{tunnus}`, `tastingit/{tunnus}/kuvat`). Vastaukset ovat polussa `tilaisuudet/{tunnus}/vastaukset`.
+Tastingien sisältö ja kuvat ovat Firestoressa (`tastingit/{tunnus}`, `tastingit/{tunnus}/kuvat`). Vastaukset ovat polussa `tilaisuudet/{tunnus}/vastaukset`. Osallistujien yhteiset laskurit (aromit `koonti/v{n}`, tähdet, loppukysymykset ja osallistujamäärä `koonti/loppu`) päivittyvät suoraan puhelimista.
 
 ## Tiedostot
 - `index.html` – lataa tastingin tunnuksella ja käynnistää sovelluksen.
 - `app.js`, `app.css`, `qr.js` – osallistujan, juontajan ja ison näytön sovellus.
+- `emojit.js` – aromien emojit (yhteinen sovellukselle ja hallinnalle).
+- `/?esikatselu=<tunnus>` – hallinnan Esikatsele-nappi: tallentamaton setti, ei tallennuksia.
 - `hallinta/` – hallintanäkymä.
 - `pohjat/` – Clauden valmistelemat setit, jotka tuodaan hallinnasta painikkeella "Tuo setti".
 - `asetukset.js` – Firebase-yhteys ja juontajan sähköposti.
