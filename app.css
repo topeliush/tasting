@@ -545,3 +545,10 @@ html[data-siirto="kiinni"]::view-transition-new(aromit) { animation: vt-esiin 0.
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .o-sisaan, .o-liuku { animation: none; }
 }
+/* Setin vaihto yläpalkissa */
+.o-yla__nimi { text-align: left; }
+.o-linjavaihto { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border: 2px solid var(--vihrea); border-radius: 999px; background: var(--vihrea); color: #fff; font-size: 12.5px; font-weight: 800; letter-spacing: 0.03em; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.o-linjavaihto--alk { background: var(--sininen); border-color: var(--sininen); }
+.o-linjavaihto span[aria-hidden] { font-size: 14px; }
+.o-linjavaihto:active { transform: scale(0.96); }
+.o-piilo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

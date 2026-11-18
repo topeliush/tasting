@@ -335,7 +335,9 @@
     }).join("");
     if (lopuksi().length) tabit += '<li><button class="o-tab o-tab--loppu' + (S.loppu.lukittu ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="vertailu" aria-current="' + (S.nakyma === "vertailu") + '">Viimeinen sana</button></li>';
     tabit += '<li><button class="o-tab o-tab--loppu" data-act="siirry" data-v="loppu" aria-current="' + (S.nakyma === "loppu") + '">Yhteenveto</button></li>';
-    return '<header class="o-yla">' + logo(T.logo, "logo") + '<span class="o-yla__nimi">' + esc(T.nimi) + "</span></header>" +
+    var linjaNappi = onLinjat() && S.linja ? '<button class="o-linjavaihto' + (S.linja === "alkoholiton" ? " o-linjavaihto--alk" : "") + '" data-act="alkuun">' +
+      (S.linja === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + '<span aria-hidden="true">⇄</span><span class="o-piilo">, vaihda setti</span></button>' : "";
+    return '<header class="o-yla"><span class="o-yla__nimi">' + esc(T.nimi) + "</span>" + linjaNappi + "</header>" +
       '<nav aria-label="Viinit"><ul class="o-tabit">' + tabit + "</ul></nav>";
   }
 
@@ -1299,6 +1301,9 @@
       case "lahja-kopioi": kopioi(lahjaViesti(), "lahja-tila", "lahja-teksti", "Viesti kopioitu. Liitä se haluamaasi sovellukseen."); break;
       case "lahja-jaa":
         try { navigator.share({ text: lahjaViesti() }).catch(function () {}); } catch (err) {}
+        break;
+      case "alkuun":
+        siirtyma("taakse", function () { S.aloitettu = false; tallenna(); renderOsallistuja(); window.scrollTo(0, 0); });
         break;
       case "tyhjenna-esikatselu":
         S = uusiTila(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
