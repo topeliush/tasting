@@ -19,6 +19,16 @@
       kuunteleTila: function (cb) { return poll("/api/doc/tilaisuudet/" + t, cb); },
       kirjoitaTila: function (d) { return post("/api/doc/tilaisuudet/" + t, d); },
       kirjoitaJaetut: function (j, kuka) { return get("/api/doc/tilaisuudet/" + t).then(function (d) { d = d || {}; d.jaetut = j; d.julkaisija = kuka; d.julkaistuMs = Date.now(); return post("/api/doc/tilaisuudet/" + t, d); }); },
+      koontiMuutos: function (i, a, o) {
+        var u = "/api/doc/tilaisuudet/" + t + "/koonti/v" + i;
+        return get(u).then(function (d) {
+          d = d || {}; d.a = d.a || {}; d.o = d.o || {};
+          if (a) Object.keys(a).forEach(function (k) { d.a[k] = (d.a[k] || 0) + a[k]; });
+          if (o) Object.keys(o).forEach(function (k) { var x = d.o[k] || { t: o[k].t, n: 0 }; x.t = o[k].t; x.n += o[k].d; d.o[k] = x; });
+          return post(u, d);
+        });
+      },
+      haeKoonti: function (i) { return get("/api/doc/tilaisuudet/" + t + "/koonti/v" + i); },
       tallennaVastaus: function (uid, d) { return post("/api/doc/tilaisuudet/" + t + "/vastaukset/" + uid, d); },
       kuunteleVastaukset: function (cb) { return poll("/api/col/tilaisuudet/" + t + "/vastaukset", cb, function (l) { return l.map(function (x) { return x.data; }); }); }
     };

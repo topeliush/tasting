@@ -17,6 +17,13 @@ service cloud.firestore {
     match /tilaisuudet/{tilaisuus} {
       allow read: if true;
       allow write: if juontaja();
+      // Aromikoonti: osallistujat kasvattavat laskureita, kaikki lukevat. Vain juontaja poistaa.
+      match /koonti/{v} {
+        allow read: if true;
+        allow create, update: if request.auth != null && v.matches('v[0-9]+')
+          && request.resource.data.keys().hasOnly(['a', 'o']);
+        allow delete: if juontaja();
+      }
       match /vastaukset/{uid} {
         // Jokainen osallistuja kirjoittaa vain omaa nimetöntä vastaustaan. Vain juontaja lukee kaikki.
         allow read: if juontaja() || (request.auth != null && request.auth.uid == uid);

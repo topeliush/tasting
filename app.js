@@ -79,16 +79,55 @@
         '</span><span class="pk-palkki"><i style="width:' + Math.round(100 * r.n / max) + '%"></i></span></li>';
     }).join("") + "</ul>";
   }
+  var koonti = {}, koontiAika = 0;
+  function koontiTila() { return !T.sokkotasting && !!(Y && Y.koontiMuutos); }
+  function avainT(t) { var s = String(t).toLowerCase(), x = 5381; for (var k = 0; k < s.length; k++) x = ((x << 5) + x + s.charCodeAt(k)) | 0; return "h" + (x >>> 0).toString(36); }
+  function kirjaaKoonti(i, a, o) {
+    if (!koontiTila()) return;
+    Y.koontiMuutos(i, a, o).then(function () { setTimeout(function () { haeKoonti(i); }, 300); }, function () {});
+  }
+  function koontiData(i) {
+    var k = koonti[i] || {}, a = [], o = [];
+    aromit(i).forEach(function (v, j) { var n = k.a && typeof k.a[j] === "number" ? k.a[j] : 0; a.push(Math.max(0, n)); });
+    Object.keys(k.o || {}).forEach(function (key) { var x = k.o[key]; if (x && typeof x.t === "string" && typeof x.n === "number" && x.n > 0) o.push({ t: x.t.slice(0, 40), n: x.n }); });
+    o.sort(function (x, y) { return y.n - x.n; });
+    return { a: a, o: o.slice(0, 40), on: summa(a) > 0 || o.length > 0 };
+  }
+  function haeKoonti(i) {
+    if (!koontiTila() || !Y.haeKoonti) return;
+    Y.haeKoonti(i).then(function (d) {
+      var uusi = JSON.stringify(d || {}) !== JSON.stringify(koonti[i] || {});
+      koonti[i] = d || {}; koontiAika = Date.now();
+      paivitaKoontiNakyma(i, uusi);
+    }, function () {});
+  }
+  function varmistaKoonti(i) {
+    if (koontiTila() && !koonti[i]) { koonti[i] = {}; setTimeout(function () { haeKoonti(i); }, 0); }
+  }
+  function kiinnostavat() {
+    if (!koontiTila()) return [];
+    if (juontajaReitti()) { var d = diat()[dia]; return d && d.k === "paljastus" ? [d.i] : []; }
+    return S.aloitettu && typeof S.nakyma === "number" ? [S.nakyma] : [];
+  }
+  function paivitaKoontiNakyma(i, uusi) {
+    if (juontajaReitti()) { if (uusi) { if (juontajaTila() === "ohjaus") paivitaPian(); else reitti(); } return; }
+    var pk = document.getElementById("porukka-" + i);
+    if (pk) pk.innerHTML = porukkaHtml(i);
+  }
+  setInterval(function () { if (!document.hidden) kiinnostavat().forEach(haeKoonti); }, 8000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) kiinnostavat().forEach(haeKoonti); });
   function porukkaHtml(i) {
-    var on = jaetut["a" + i] || jaetut["o" + i];
-    var aika = jaetutAika ? new Date(jaetutAika) : null;
+    var on = koontiTila() ? koontiData(i).on : (jaetut["a" + i] || jaetut["o" + i]);
+    var hetki = koontiTila() ? koontiAika : jaetutAika;
+    var aika = hetki ? new Date(hetki) : null;
     var tila = aika ? '<p class="o-vaimea o-paivitetty">Päivittyy itsestään · viimeksi klo ' + aika.getHours() + "." + ("0" + aika.getMinutes()).slice(-2) + "." + ("0" + aika.getSeconds()).slice(-2) + "</p>" : "";
     return '<div class="vt-kortti o-havainto o-porukka"><h2 class="o-h2">Porukan nenät <span class="o-live" title="Päivittyy itsestään"></span></h2>' + tila +
       (on ? kuplat(i, true) + '<p class="o-vaimea o-selite"><span class="o-pallukka o-pallukka--oma"></span>sinun havaintosi <span class="o-pallukka o-pallukka--vapaa"></span>omin sanoin</p>'
           : '<p class="o-vaimea">Muiden havainnot ilmestyvät tähän sitä mukaa kuin niitä tulee. Tähdet pysyvät salaisina loppuun asti.</p>') + "</div>";
   }
   function kuplat(i, omat, maksimi) {
-    var vaiht = aromit(i), a = jaetut["a" + i] || [], o = jaetut["o" + i] || [], l = [];
+    var kd = koontiTila() ? koontiData(i) : null;
+    var vaiht = aromit(i), a = kd ? kd.a : jaetut["a" + i] || [], o = kd ? kd.o : jaetut["o" + i] || [], l = [];
     vaiht.forEach(function (v, k) { if (a[k] > 0) l.push({ t: v, n: a[k], vapaa: false, oma: omat && (S.aromit[i] || []).indexOf(k) >= 0 }); });
     var omaPienet = omat ? omatAromit(i).map(function (x) { return x.toLowerCase(); }) : [];
     o.forEach(function (x) { if (x && x.t) l.push({ t: x.t, n: x.n || 1, vapaa: true, oma: omaPienet.indexOf(String(x.t).toLowerCase()) >= 0 }); });
@@ -162,6 +201,7 @@
     if (!S.aloitettu) { app.innerHTML = aloitus(); return; }
     if (S.nakyma !== "loppu" && S.nakyma !== "vertailu" && !onOma(S.nakyma)) S.nakyma = omat()[0];
     if (S.nakyma === "vertailu" && !lopuksi().length) S.nakyma = "loppu";
+    if (typeof S.nakyma === "number") varmistaKoonti(S.nakyma);
     var sisalto = S.nakyma === "loppu" ? yhteenveto() : S.nakyma === "vertailu" ? vertailuNakyma() : viiniNakyma(S.nakyma);
     app.innerHTML = '<main class="o-kehys">' + ylapalkki() + sisalto + "</main>";
   }
@@ -530,7 +570,7 @@
   function tulosKortit(d, luokka) {
     var X = diaAvaimet(d), kortit = [];
     X.filter(function (x) { return !x.tahdet; }).forEach(function (x) {
-      var j = jaetut[x.avain];
+      var j = x.moni && koontiTila() ? (koontiData(d.i).on ? true : null) : jaetut[x.avain];
       kortit.push('<div class="j-tulos"><b>' + esc(x.kysymys) + "</b>" +
         (j ? (x.moni ? kuplat(d.i, false, 22) : palkit(x.vaihtoehdot, j, x.oikea, null) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
            : x.oikea != null ? '<span class="j-tulos__oikea">✓ ' + esc(x.vaihtoehdot[x.oikea]) + "</span>"
@@ -541,6 +581,7 @@
     return '<div class="j-tulokset' + luokka + '" style="grid-template-columns:repeat(' + kortit.length + ', 1fr)">' + kortit.join("") + "</div>";
   }
   function renderJuontaja() {
+    var dk = diat()[dia]; if (dk && dk.k === "paljastus") varmistaKoonti(dk.i);
     var D = diat();
     dia = Math.max(0, Math.min(dia, D.length - 1));
     var d = D[dia], url = osallistujaUrl(), h = "", luokka = "";
@@ -689,7 +730,7 @@
   function johtaja() { return !julkaisija || julkaisija.id === laiteId || Date.now() - julkaisija.aika > 20000; }
   function liveKaytossa() {
     var tila = juontajaReitti() ? juontajaTila() : "";
-    return !T.sokkotasting && onJuontaja() && (tila === "ohjaus" || tila === "naytto") && store.get(KEY + "-live", true) !== false && johtaja();
+    return !T.sokkotasting && !koontiTila() && onJuontaja() && (tila === "ohjaus" || tila === "naytto") && store.get(KEY + "-live", true) !== false && johtaja();
   }
   function livePaivitys() {
     if (!liveKaytossa() || liveAjastin) return;
@@ -728,7 +769,7 @@
       kayttaja = u;
       if (!u && !juontajaReitti()) Y.anonyymi().catch(function () {});
       viimeksiLahetetty = "";
-      if (u) asetaPresence();
+      if (u) { asetaPresence(); kiinnostavat().forEach(haeKoonti); }
       kuunteleVastaukset();
       if (juontajaReitti()) reitti();
       paivitaYhteys();
@@ -817,7 +858,7 @@
         (x.tahdet && keskiarvo(L) != null ? " · nyt ★ " + desi(keskiarvo(L)) : "") + "</span></div>";
     }
     var tav = X.filter(function (x) { return !x.tahdet; }), tah = X.filter(function (x) { return x.tahdet; });
-    var liveRivi = (!T.sokkotasting && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)">' + (store.get(KEY + "-live", true) !== false ? "<b>Aromit livenä:</b> porukan aromit päivittyvät kaikille itsestään. Tähdet pysyvät piilossa. " : "<b>Live-jako pois.</b> Jaa aromit napista. ") +
+    var liveRivi = (koontiTila() && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)"><b>Aromit päivittyvät kaikille itsestään</b>, vaikka tämä näkymä olisi kiinni. Laskurit alla ovat sinun käsiäänestystäsi varten.</p>' : (!T.sokkotasting && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)">' + (store.get(KEY + "-live", true) !== false ? "<b>Aromit livenä:</b> porukan aromit päivittyvät kaikille itsestään. Tähdet pysyvät piilossa. " : "<b>Live-jako pois.</b> Jaa aromit napista. ") +
       '<button class="vt-linkki" data-act="p-live">' + (store.get(KEY + "-live", true) !== false ? "Laita pois" : "Laita päälle") + "</button></p>" : "";
     return '<div class="p-muisti"><h3>Vastaukset · ' + (jaettu ? "näkyvät kaikille" : "eivät vielä näy") + "</h3>" + liveRivi +
       '<p class="p-ohje" style="margin:0">📱 = puhelimista tulleet. Lisää käsiäänet + ja − napeilla.</p>' +
@@ -840,6 +881,7 @@
   }
   function renderOhjaus() {
     if (Y && !onJuontaja()) { kirjautuminen(); return; }
+    var dk = diat()[dia]; if (dk && dk.k === "paljastus") varmistaKoonti(dk.i);
     var D = diat();
     dia = Math.max(0, Math.min(dia, D.length - 1));
     var d = D[dia], url = osallistujaUrl(), teema = store.get("vt-teema", "vaalea"), h = "";
@@ -988,15 +1030,17 @@
         if (Y) Y.ulos().then(reitti); break;
       case "oma-lisaa":
         var oi = document.getElementById("oma-" + i);
-        if (oi && lisaaOma(i, oi.value)) { vastattu(i); tallenna(); renderOsallistuja(); var n2 = document.getElementById("oma-" + i); if (n2) n2.focus(); }
+        if (oi && lisaaOma(i, oi.value)) { var uo = omatAromit(i)[omatAromit(i).length - 1], om = {}; om[avainT(uo)] = { t: uo, d: 1 }; kirjaaKoonti(i, null, om); vastattu(i); tallenna(); renderOsallistuja(); var n2 = document.getElementById("oma-" + i); if (n2) n2.focus(); }
         else if (oi) { oi.select(); }
         break;
       case "oma-pois":
         if (lukossa(i)) return;
-        var lo = omatAromit(i).slice(); lo.splice(+t.dataset.j, 1); S.omaAromi[i] = lo; tallenna(); renderOsallistuja(); break;
+        var lo = omatAromit(i).slice(), pois = lo.splice(+t.dataset.j, 1)[0]; S.omaAromi[i] = lo;
+        if (pois) { var om2 = {}; om2[avainT(pois)] = { t: pois, d: -1 }; kirjaaKoonti(i, null, om2); }
+        tallenna(); renderOsallistuja(); break;
       case "seuraava":
         var ii = +t.dataset.i, kesken = document.getElementById("oma-" + ii);
-        if (kesken && kesken.value.trim()) lisaaOma(ii, kesken.value);
+        if (kesken && kesken.value.trim() && lisaaOma(ii, kesken.value)) { var uo2 = omatAromit(ii)[omatAromit(ii).length - 1], om3 = {}; om3[avainT(uo2)] = { t: uo2, d: 1 }; kirjaaKoonti(ii, null, om3); }
         if (!S.lukittu[ii] && (S.arviot[ii] != null || (S.aromit[ii] || []).length || omatAromit(ii).length)) { S.lukittu[ii] = true; S.paljastettu[ii] = true; }
         S.nakyma = t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v;
         tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
@@ -1008,6 +1052,7 @@
         if (lukossa(i)) return;
         vastattu(i);
         var va = S.aromit[i] || [], ao = +t.dataset.o, ix = va.indexOf(ao);
+        var muutos = {}; muutos[ao] = ix >= 0 ? -1 : 1; kirjaaKoonti(i, muutos, null);
         if (ix >= 0) va.splice(ix, 1); else { va.push(ao); poppaa = "a-" + i + "-" + ao; }
         S.aromit[i] = va; tallenna(); renderOsallistuja(); break;
       case "tahti":

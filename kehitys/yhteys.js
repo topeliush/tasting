@@ -1,7 +1,7 @@
 // Viinitasting tasting: Firebase-yhteys. Bundlataan esbuildilla tiedostoksi yhteys.js.
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, collection, serverTimestamp, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, collection, serverTimestamp, increment, connectFirestoreEmulator } from "firebase/firestore";
 
 var P = null;
 function perus() {
@@ -32,6 +32,16 @@ window.VTYhteys = function (config, tilaisuus) {
       var d = { jaetut: jaetut, julkaisija: julkaisija, julkaistuMs: Date.now() };
       return updateDoc(tilaDoc, d).catch(function () { return setDoc(tilaDoc, d, { merge: true }); });
     },
+    // Aromikoonti: osallistujat kasvattavat laskureita suoraan, joten yhteenveto päivittyy ilman juontajan laitetta.
+    koontiMuutos: function (i, a, o) {
+      var d = {};
+      if (a) { d.a = {}; Object.keys(a).forEach(function (k) { d.a[k] = increment(a[k]); }); }
+      if (o) { d.o = {}; Object.keys(o).forEach(function (k) { d.o[k] = { t: o[k].t, n: increment(o[k].d) }; }); }
+      return setDoc(doc(db, "tilaisuudet", tilaisuus, "koonti", "v" + i), d, { merge: true });
+    },
+    haeKoonti: function (i) {
+      return getDoc(doc(db, "tilaisuudet", tilaisuus, "koonti", "v" + i)).then(function (s) { return s.exists() ? s.data() : null; });
+    },
     tallennaVastaus: function (uid, data) {
       return setDoc(doc(db, "tilaisuudet", tilaisuus, "vastaukset", uid), { l: data.l, v: data.v, L: data.L, paivitetty: serverTimestamp() });
     },
@@ -59,7 +69,11 @@ window.VTData = {
     var db = perus().db;
     return getDocs(collection(db, "tilaisuudet", id, "vastaukset")).then(function (qs) {
       return Promise.all(qs.docs.map(function (d) { return deleteDoc(d.ref); }));
-    }).then(function (r) { return deleteDoc(doc(db, "tilaisuudet", id)).then(function () { return r.length; }); });
+    }).then(function (r) {
+      return getDocs(collection(db, "tilaisuudet", id, "koonti")).then(function (qs) {
+        return Promise.all(qs.docs.map(function (d) { return deleteDoc(d.ref); }));
+      }).then(function () { return deleteDoc(doc(db, "tilaisuudet", id)); }).then(function () { return r.length; });
+    });
   },
   laskeVastaukset: function (id) { var db = perus().db; return getDocs(collection(db, "tilaisuudet", id, "vastaukset")).then(function (qs) { return qs.size; }); }
 };
