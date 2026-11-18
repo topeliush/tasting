@@ -40,7 +40,12 @@ window.VTYhteys = function (config, tilaisuus) {
       return setDoc(doc(db, "tilaisuudet", tilaisuus, "koonti", "v" + i), d, { merge: true });
     },
     haeKoonti: function (i) {
-      return getDoc(doc(db, "tilaisuudet", tilaisuus, "koonti", "v" + i)).then(function (s) { return s.exists() ? s.data() : null; });
+      return getDoc(doc(db, "tilaisuudet", tilaisuus, "koonti", typeof i === "string" ? i : "v" + i)).then(function (s) { return s.exists() ? s.data() : null; });
+    },
+    // Tähdet ja loppukysymykset: osallistujat päivittävät laskureita (+1 uusi, -1 vanha) dokumenttiin koonti/loppu.
+    koontiLisaa: function (id, muutos) {
+      function inc(o) { var r = {}; Object.keys(o).forEach(function (k) { r[k] = typeof o[k] === "number" ? increment(o[k]) : inc(o[k]); }); return r; }
+      return setDoc(doc(db, "tilaisuudet", tilaisuus, "koonti", id), inc(muutos), { merge: true });
     },
     tallennaVastaus: function (uid, data) {
       return setDoc(doc(db, "tilaisuudet", tilaisuus, "vastaukset", uid), { l: data.l, v: data.v, L: data.L, paivitetty: serverTimestamp() });
