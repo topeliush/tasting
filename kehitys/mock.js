@@ -18,6 +18,7 @@
       ulos: function () { aseta(null); return Promise.resolve(); },
       kuunteleTila: function (cb) { return poll("/api/doc/tilaisuudet/" + t, cb); },
       kirjoitaTila: function (d) { return post("/api/doc/tilaisuudet/" + t, d); },
+      kirjoitaJaetut: function (j, kuka) { return get("/api/doc/tilaisuudet/" + t).then(function (d) { d = d || {}; d.jaetut = j; d.julkaisija = kuka; d.julkaistuMs = Date.now(); return post("/api/doc/tilaisuudet/" + t, d); }); },
       tallennaVastaus: function (uid, d) { return post("/api/doc/tilaisuudet/" + t + "/vastaukset/" + uid, d); },
       kuunteleVastaukset: function (cb) { return poll("/api/col/tilaisuudet/" + t + "/vastaukset", cb, function (l) { return l.map(function (x) { return x.data; }); }); }
     };

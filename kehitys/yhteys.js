@@ -1,7 +1,7 @@
 // Viinitasting tasting: Firebase-yhteys. Bundlataan esbuildilla tiedostoksi yhteys.js.
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, signInWithEmailAndPassword, signOut, onAuthStateChanged, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, doc, getDoc, getDocs, setDoc, deleteDoc, onSnapshot, collection, serverTimestamp, connectFirestoreEmulator } from "firebase/firestore";
+import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, collection, serverTimestamp, connectFirestoreEmulator } from "firebase/firestore";
 
 var P = null;
 function perus() {
@@ -28,6 +28,10 @@ window.VTYhteys = function (config, tilaisuus) {
     ulos: function () { return signOut(auth); },
     kuunteleTila: function (cb, virhe) { return onSnapshot(tilaDoc, function (s) { cb(s.exists() ? s.data() : null); }, virhe); },
     kirjoitaTila: function (data) { return setDoc(tilaDoc, { dia: data.dia, teema: data.teema, jaetut: data.jaetut, paivitetty: serverTimestamp() }); },
+    kirjoitaJaetut: function (jaetut, julkaisija) {
+      var d = { jaetut: jaetut, julkaisija: julkaisija, julkaistuMs: Date.now() };
+      return updateDoc(tilaDoc, d).catch(function () { return setDoc(tilaDoc, d, { merge: true }); });
+    },
     tallennaVastaus: function (uid, data) {
       return setDoc(doc(db, "tilaisuudet", tilaisuus, "vastaukset", uid), { l: data.l, v: data.v, L: data.L, paivitetty: serverTimestamp() });
     },

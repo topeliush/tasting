@@ -363,3 +363,4 @@ body.juontaja { background: #161614; overflow: hidden; }
 @keyframes o-live { 0% { box-shadow: 0 0 0 0 rgba(65, 133, 60, 0.55); } 80%, 100% { box-shadow: 0 0 0 10px rgba(65, 133, 60, 0); } }
 @media (prefers-reduced-motion: reduce) { .o-live { animation: none; } }
 .o-porukka .o-kuplat { margin-top: var(--vali-3); }
+.o-paivitetty { margin: var(--vali-1) 0 0 !important; font-size: 12px !important; }

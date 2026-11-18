@@ -81,7 +81,9 @@
   }
   function porukkaHtml(i) {
     var on = jaetut["a" + i] || jaetut["o" + i];
-    return '<div class="vt-kortti o-havainto o-porukka"><h2 class="o-h2">Porukan nenät <span class="o-live" title="Päivittyy itsestään"></span></h2>' +
+    var aika = jaetutAika ? new Date(jaetutAika) : null;
+    var tila = aika ? '<p class="o-vaimea o-paivitetty">Päivittyy itsestään · viimeksi klo ' + aika.getHours() + "." + ("0" + aika.getMinutes()).slice(-2) + "." + ("0" + aika.getSeconds()).slice(-2) + "</p>" : "";
+    return '<div class="vt-kortti o-havainto o-porukka"><h2 class="o-h2">Porukan nenät <span class="o-live" title="Päivittyy itsestään"></span></h2>' + tila +
       (on ? kuplat(i, true) + '<p class="o-vaimea o-selite"><span class="o-pallukka o-pallukka--oma"></span>sinun havaintosi <span class="o-pallukka o-pallukka--vapaa"></span>omin sanoin</p>'
           : '<p class="o-vaimea">Muiden havainnot ilmestyvät tähän sitä mukaa kuin niitä tulee. Tähdet pysyvät salaisina loppuun asti.</p>') + "</div>";
   }
@@ -592,7 +594,7 @@
       '<button data-act="j-seur" aria-label="Seuraava dia">›</button>' +
       '<button data-act="j-teema">' + (teema === "ilta" ? "Vaalea" : "Ilta") + "</button>" +
       '<button data-act="j-koko">Koko näyttö</button>' +
-      '<a href="#ohjaus">Puhelinohjaus</a><a href="#poytakortti">Pöytäkortti</a><a href="#">Osallistujan näkymä</a>' +
+      '<a href="#ohjaus">' + (Y && !onJuontaja() ? "Kirjaudu juontajana" : "Puhelinohjaus") + '</a><a href="#poytakortti">Pöytäkortti</a><a href="#">Osallistujan näkymä</a>' +
       '<span id="yhteys" data-luokka="j-chip"></span></nav>';
     skaalaa();
     paivitaYhteys();
@@ -650,7 +652,7 @@
     var ok = !!Y && yhteysTila === "yhdistetty", tila = juontajaTila();
     if (tila === "ohjaus") ok = ok && onJuontaja();
     el.className = el.dataset.luokka + (ok ? " on" : "");
-    el.textContent = !Y ? "Paikallinen tila" : tila === "ohjaus" ? (ok ? "Yhdistetty · " + vastausDocs.length + " puhelinta" : onJuontaja() ? "Ei yhteyttä" : "Ei kirjautunut") : (ok ? "Yhdistetty" : "Ei yhteyttä");
+    el.textContent = !Y ? "Paikallinen tila" : tila === "ohjaus" ? (ok ? "Yhdistetty · " + vastausDocs.length + " puhelinta" : onJuontaja() ? "Ei yhteyttä" : "Ei kirjautunut") : (ok ? (onJuontaja() ? "Yhdistetty · live · " + vastausDocs.length + " puhelinta" : "Yhdistetty") : "Ei yhteyttä");
     var ohje = document.getElementById("yhteys-ohje");
     if (ohje) ohje.hidden = ok;
   }
@@ -681,8 +683,14 @@
       if (location.hash.slice(1) !== "poytakortti") renderOsallistuja();
     }, 400);
   }
-  var liveAjastin = null;
-  function liveKaytossa() { return !T.sokkotasting && onJuontaja() && juontajaReitti() && juontajaTila() === "ohjaus" && store.get(KEY + "-live", true) !== false; }
+  var liveAjastin = null, julkaisija = null, jaetutAika = 0;
+  var laiteId = store.get("vt-laite", null);
+  if (!laiteId) { laiteId = "l" + Math.random().toString(36).slice(2, 10); store.set("vt-laite", laiteId); }
+  function johtaja() { return !julkaisija || julkaisija.id === laiteId || Date.now() - julkaisija.aika > 20000; }
+  function liveKaytossa() {
+    var tila = juontajaReitti() ? juontajaTila() : "";
+    return !T.sokkotasting && onJuontaja() && (tila === "ohjaus" || tila === "naytto") && store.get(KEY + "-live", true) !== false && johtaja();
+  }
   function livePaivitys() {
     if (!liveKaytossa() || liveAjastin) return;
     liveAjastin = setTimeout(function () {
@@ -695,7 +703,12 @@
         if (JSON.stringify(a) !== JSON.stringify(jaetut["a" + i])) { jaetut["a" + i] = a; muuttui = true; }
         if (JSON.stringify(o) !== JSON.stringify(jaetut["o" + i] || [])) { jaetut["o" + i] = o; muuttui = true; }
       });
-      if (muuttui) { store.set(KEY + "-jaetut", jaetut); laheta(); paivitaPian(); }
+      if (muuttui && Y) {
+        store.set(KEY + "-jaetut", jaetut);
+        julkaisija = { id: laiteId, aika: Date.now() };
+        if (Y.kirjoitaJaetut) Y.kirjoitaJaetut(jaetut, laiteId).catch(function () {}); else laheta();
+        paivitaPian();
+      }
     }, 2500);
   }
   function kuunteleVastaukset() {
@@ -726,8 +739,9 @@
       if (d) {
         if (typeof d.dia === "number" && juontajaReitti()) { dia = Math.max(0, Math.min(d.dia, diat().length - 1)); store.set(KEY + "-juontaja", dia); }
         if (d.teema === "ilta" || d.teema === "vaalea") store.set("vt-teema", d.teema);
+        if (typeof d.julkaisija === "string" && typeof d.julkaistuMs === "number") julkaisija = { id: d.julkaisija, aika: d.julkaisija === laiteId ? Date.now() : d.julkaistuMs };
         var uudet = oikeatJaetut(d.jaetut || {});
-        if (uudet) { muuttui = JSON.stringify(uudet) !== JSON.stringify(jaetut); jaetut = uudet; store.set(KEY + "-jaetut", jaetut); }
+        if (uudet) { muuttui = JSON.stringify(uudet) !== JSON.stringify(jaetut); jaetut = uudet; store.set(KEY + "-jaetut", jaetut); if (muuttui) jaetutAika = Date.now(); }
       }
       if (juontajaReitti()) reitti(); else if (muuttui) paivitaPian();
       paivitaYhteys();
