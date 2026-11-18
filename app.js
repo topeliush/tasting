@@ -565,10 +565,10 @@
     h += arvioPyynto();
     var lahja = lahjaKaytossa();
     if (lahja) h += lahjaOsio();
-    h += '<div><h2 class="o-h2">' + (onLinjat() ? "Illan juomat" : "Illan viinit") + '</h2><p class="o-vaimea">Ota kuva tai kopioi lista, niin löydät suosikkisi myöhemmin.</p>' + lista + "</div>" +
-      '<div><button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="kopioi">' + (onLinjat() ? "Kopioi juomalista" : "Kopioi viinilista") + "</button>" +
+    h += '<section class="vt-kortti o-juomakortti"><h2 class="o-h2">' + (onLinjat() ? "Illan juomat" : "Illan viinit") + '</h2><p class="o-vaimea">Ota kuva tai kopioi lista, niin löydät suosikkisi myöhemmin.</p>' + lista +
+      '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä o-juomakortti__kopioi" data-act="kopioi">' + (onLinjat() ? "Kopioi juomalista" : "Kopioi viinilista") + "</button>" +
       '<p class="o-vaimea" id="kopio-tila" role="status" style="margin-top:var(--vali-2)"></p>' +
-      '<textarea class="o-kentta o-kopio" id="kopio-teksti" readonly hidden></textarea></div>';
+      '<textarea class="o-kentta o-kopio" id="kopio-teksti" readonly hidden></textarea></section>';
     if (!lahja) {
       h += '<div class="vt-vinkki"><span class="vt-vinkki__nimi">Oma tasting?</span><p style="margin:0 0 var(--vali-4)">' + esc(T.varausTeksti) + "</p>" +
         '<a class="vt-painike vt-painike--leveä" href="' + esc(T.varausLinkki) + '" target="_blank" rel="noopener">Varaa tasting</a></div>';
@@ -623,12 +623,6 @@
     var j = jakoLinkit(), lahjaksi = l.valinta === "lahja";
     h += '<div class="vt-kortti o-koodi" id="lahjakortti"><div><span class="o-koodi__nimi">Lahjakortin koodi</span>' +
       '<span class="o-koodi__koodi">' + esc(l.koodi) + '</span><span class="o-vaimea">Voimassa ' + pvm(l.voimassa) + " asti</span></div>";
-    if (lahjaksi) {
-      h += '<div><label class="o-label" for="l-kenelle">Kenelle? (etunimi, vapaaehtoinen)</label>' +
-        '<input class="o-kentta" id="l-kenelle" data-lahja="kenelle" maxlength="40" autocomplete="off" value="' + esc(l.kenelle) + '"></div>' +
-        '<div><label class="o-label" for="l-tervehdys">Oma tervehdys (vapaaehtoinen)</label>' +
-        '<textarea class="o-kentta" id="l-tervehdys" data-lahja="tervehdys" maxlength="300" placeholder="Tämä pitää kokea porukalla.">' + esc(l.tervehdys) + "</textarea></div>";
-    }
     h += '<h2 class="o-h2" style="font-size:24px">' + (lahjaksi ? "Lähetä lahjakortti" : "Tallenna itsellesi") + "</h2>" +
       '<div class="o-esikatselu" id="l-esikatselu">' + esc(j.teksti) + "</div>" +
       '<div class="o-jaa">' +
@@ -639,7 +633,6 @@
       (navigator.share ? '<button class="vt-painike vt-painike--leveä" data-act="lahja-jaa">' + (lahjaksi ? "Lähetä muulla tavalla" : "Jaa muulla tavalla") + "</button>" : "") +
       '<p class="o-vaimea" id="lahja-tila" role="status"></p>' +
       '<textarea class="o-kentta o-kopio" id="lahja-teksti" readonly hidden></textarea>' +
-      (lahjaksi ? "" : '<a class="vt-painike vt-painike--leveä" href="' + esc(T.varausLinkki) + '" target="_blank" rel="noopener">Varaa tasting</a>') +
       '<p class="o-ehdot">Voimassa ' + pvm(l.voimassa) + " asti. Yksi lahjakortti tastingvarausta kohden. Kerro koodi varauksen yhteydessä. Ei vaihdeta rahaksi. Myöntäjä " + esc(L.myontaja) + ".</p></div>";
     return h;
   }
@@ -650,7 +643,7 @@
     return '<div class="o-garvio">' +
       '<span class="o-garvio__tahdet" aria-hidden="true">★★★★★</span>' +
       '<h2 class="o-garvio__otsikko">Anna illalle tähdet</h2>' +
-      "<p>Kerro Googlessa, miltä ilta maistui. Se vie minuutin, ja jokainen arvio auttaa muita löytämään tastingit. Kiitos, että olit mukana!</p>" +
+      "<p>Kerro Googlessa, miltä ilta maistui. Pari sanaa riittää, tai lisää vaikka vain kuva siitä, miltä tastingissa näytti. Jokainen arvio auttaa muita löytämään tastingit. Kiitos, että olit mukana!</p>" +
       '<a class="vt-painike vt-painike--leveä o-garvio__nappi" href="' + esc(linkki) + '" target="_blank" rel="noopener">Arvioi Googlessa ★</a>' +
       '<p class="o-garvio__allekirjoitus">– ' + esc(T.juontaja || "Topias") + ", juontaja</p>" +
       "</div>";

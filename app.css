@@ -465,3 +465,16 @@ body.juontaja { background: #161614; overflow: hidden; }
 .j-arvio { justify-content: center; }
 .o-linja, .o-linja--alk { gap: 8px; padding: var(--vali-2); font-size: 16px; }
 .o-linja__merkki { width: 20px; height: 20px; font-size: 12px; }
+/* Illan juomat kortissa */
+.o-juomakortti > * + * { margin-top: var(--vali-2); }
+.o-juomakortti .o-ryhma { margin-top: var(--vali-4); }
+.o-juomakortti .o-lista--juomat li:last-child { border-bottom: 0; }
+.o-juomakortti .o-juoma__tahdet span { background: color-mix(in srgb, var(--voi) 45%, var(--pinta)) !important; }
+.o-juomakortti__kopioi { margin-top: var(--vali-4) !important; }
+.o-juomakortti .o-lista--juomat li { flex-wrap: wrap; align-items: flex-start; }
+.o-juomakortti .o-lista--juomat .vt-pallo { margin-top: 2px; }
+.o-juomakortti .o-juoma__tiedot { flex: 1 1 0; }
+.o-juomakortti .o-juoma__tahdet { flex-basis: 100%; padding-left: 48px; margin-top: 2px; }
+.o-juomakortti .o-lista .o-juoma__tahdet span { flex-direction: row; align-items: baseline; gap: 6px; min-width: 0; padding: 3px 10px; font-size: 16px; }
+.o-juomakortti .o-juoma__tahdet small { margin: 0; }
+.o-juomakortti .o-juoma__tahdet { padding-left: 52px; }
