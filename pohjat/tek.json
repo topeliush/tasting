@@ -150,5 +150,6 @@
     }
   ],
   "pvm": "2026-12-04",
-  "asiakas": "TEK, Helsinki"
+  "asiakas": "TEK, Helsinki",
+  "sokkotasting": false
 }

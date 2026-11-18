@@ -315,9 +315,16 @@ body.juontaja { background: #161614; overflow: hidden; }
 @media (max-width: 860px) { .k-sivu { transform: scale(0.45); transform-origin: top left; margin-bottom: calc(-297mm * 0.55); margin-left: var(--vali-4); } }
 
 /* Kuvat */
-.o-kuvat { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--vali-2); margin: 0 0 var(--vali-4); }
-.o-kuva { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--kulma-m); border: 2px solid var(--viiva); background: rgba(45, 45, 42, 0.08); }
-.o-kuvat .o-kuva:only-child { aspect-ratio: auto; max-height: 420px; object-fit: contain; }
+.o-kuvat { display: grid; gap: var(--vali-3); margin: var(--vali-2) calc(-1 * var(--vali-5)) var(--vali-5); }
+.o-kuva { display: block; width: 100%; height: auto; max-height: 82vh; max-height: 82svh; object-fit: cover; background: rgba(45, 45, 42, 0.08); cursor: zoom-in; }
+.o-kuva:not([src]) { min-height: 60vh; }
+.o-kuva-iso { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--vali-3); padding: var(--vali-3); background: rgba(16, 16, 14, 0.94); color: #f3e9c6; font-size: 14px; font-weight: 700; cursor: zoom-out; }
+.o-kuva-iso img { max-width: 100%; max-height: calc(100vh - 60px); max-height: calc(100svh - 60px); object-fit: contain; border-radius: var(--kulma-s); }
 .j-kuva { display: block; width: 100%; height: calc(260 * var(--u)); object-fit: contain; border-radius: calc(20 * var(--u)); background: rgba(45, 45, 42, 0.06); }
 .j-kuva:not([src]) { display: none; }
-.o-kuva:not([src]) { visibility: hidden; }
+/* Omat havainnot */
+.o-oma { clear: both; }
+.o-omat { display: flex; flex-wrap: wrap; gap: var(--vali-2); }
+.o-omat span { padding: var(--vali-1) var(--vali-3); border-radius: var(--kulma-pilleri); background: var(--alk-tausta); color: var(--sininen-syva); font-size: 14px; font-weight: 700; line-height: 1.3; }
+.j-omat { margin-top: calc(20 * var(--u)); gap: calc(12 * var(--u)); }
+.j-omat span { font-size: calc(24 * var(--u)); padding: calc(6 * var(--u)) calc(18 * var(--u)); }
