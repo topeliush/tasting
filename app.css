@@ -552,3 +552,8 @@ html[data-siirto="kiinni"]::view-transition-new(aromit) { animation: vt-esiin 0.
 .o-linjavaihto span[aria-hidden] { font-size: 14px; }
 .o-linjavaihto:active { transform: scale(0.96); }
 .o-piilo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Vieritettävä välilehtirivi */
+.o-tabit { padding-top: 6px; margin-top: -6px; padding-right: 6px; }
+.o-tabit.on-oikealla { -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); mask-image: linear-gradient(to right, #000 82%, transparent); }
+.o-tabit.on-vasemmalla { -webkit-mask-image: linear-gradient(to left, #000 82%, transparent); mask-image: linear-gradient(to left, #000 82%, transparent); }
+.o-tabit.on-oikealla.on-vasemmalla { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 82%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 82%, transparent); }

@@ -298,6 +298,22 @@
     var sisalto = S.nakyma === "loppu" ? yhteenveto() : S.nakyma === "vertailu" ? vertailuNakyma() : viiniNakyma(S.nakyma);
     app.innerHTML = esikatseluPalkki() + '<main class="o-kehys">' + ylapalkki() + '<div class="o-vt-sisalto' + (sisaanAnimaatio ? " o-sisaan" : "") + '">' + sisalto + "</div></main>";
     sisaanAnimaatio = false;
+    sovitaTabit();
+  }
+  // Pitkä välilehtirivi: aktiivinen välilehti näkyviin ja reunan häivytys vihjeeksi vieritettävästä.
+  function sovitaTabit() {
+    var ul = app.querySelector(".o-tabit"); if (!ul) return;
+    var nyt = ul.querySelector('[aria-current="true"]');
+    if (nyt && ul.scrollWidth > ul.clientWidth) {
+      var li = nyt.parentNode, vasen = li.offsetLeft - ul.offsetLeft;
+      if (vasen + li.offsetWidth > ul.scrollLeft + ul.clientWidth * 0.8 || vasen < ul.scrollLeft) ul.scrollLeft = Math.max(0, vasen + li.offsetWidth - ul.clientWidth * 0.78);
+    }
+    function reunat() {
+      ul.classList.toggle("on-oikealla", ul.scrollLeft + ul.clientWidth < ul.scrollWidth - 4);
+      ul.classList.toggle("on-vasemmalla", ul.scrollLeft > 4);
+    }
+    reunat();
+    if (!ul.dataset.kuuntelee) { ul.dataset.kuuntelee = "1"; ul.addEventListener("scroll", reunat, { passive: true }); }
   }
   // Siirtymät: View Transitions -rajapinta, jos selain tukee; muuten kevyt CSS-animaatio.
   var sisaanAnimaatio = false;

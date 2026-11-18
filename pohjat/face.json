@@ -1,0 +1,143 @@
+{
+ "nimi": "Samppanja ja haastajat",
+ "kuvaus": "Samppanja saa tänään neljä haastajaa Loirelta, Espanjasta ja Italiasta. Löydä aromit, anna tähdet. Lopuksi nähdään, mitä porukka löysi.",
+ "juontaja": "Topias Haavisto",
+ "kaytaPaljastussanaa": false,
+ "varausLinkki": "https://viinitasting.com",
+ "varausTeksti": "Tuon tastingin teille, te valitsette porukan.",
+ "googleArvioLinkki": "https://g.page/r/Ccf877ZSMJM8ECE/review",
+ "lahjakortti": {
+  "kaytossa": true,
+  "arvo": 40,
+  "tunnus": "FACE",
+  "voimassaKk": 12,
+  "myontaja": "Il Top Oy"
+ },
+ "aromit": [
+  "Vihreä omena",
+  "Keltainen omena ja päärynä",
+  "Sitrus",
+  "Persikka ja aprikoosi",
+  "Punaiset marjat",
+  "Kukat",
+  "Hunaja",
+  "Paahtoleipä ja brioche",
+  "Manteli ja pähkinä",
+  "Voi ja kerma",
+  "Mineraalisuus ja liitu",
+  "Yrtit"
+ ],
+ "lopuksi": [
+  {
+   "id": "paras",
+   "kysymys": "Mikä viidestä oli paras?"
+  },
+  {
+   "id": "hintalaatu",
+   "kysymys": "Mikä oli illan hinta–laatuvoittaja?",
+   "fakta": {
+    "viini": "Hinnat Alkossa: Langlois 21,99 €, Antica Fratta 34,98 €, Kripta Icònic 28,90 €, Cocchi 47,29 € ja Drappier 48,98 €."
+   }
+  },
+  {
+   "id": "kuivin",
+   "kysymys": "Mikä tuntui kuivimmalta?",
+   "fakta": {
+    "viini": "Kripta Icònic on Brut Nature, eli siihen ei lisätä lainkaan sokeria. Muut ovat bruteja, joissa annostelusokeria on alle 12 g/l."
+   },
+   "oikea": {
+    "viini": 2
+   }
+  }
+ ],
+ "pvm": "2026-11-21",
+ "asiakas": "Face Helsinki (Marika)",
+ "sokkotasting": false,
+ "viinit": [
+  {
+   "nimi": "Langlois Crémant de Loire Brut Réserve",
+   "lyhyt": "Langlois Crémant",
+   "tyyppi": "kuohu",
+   "tyyppiNimi": "Crémant",
+   "tuottaja": "Langlois-Château",
+   "alue": "Crémant de Loire, Saumur",
+   "maa": "Ranska",
+   "rypaleet": "Chenin Blanc, Chardonnay, Cabernet Franc",
+   "tarina": "Langlois perustettiin Saumurissa vuonna 1885, ja vuodesta 1973 se on kuulunut samppanjatalo Bollingerin perheyhtiöön. Viini tehdään samalla perinteisellä menetelmällä kuin samppanja: toinen käyminen tapahtuu pullossa. Pullokypsytystä on vähintään 24 kuukautta, kun Crémant de Loire vaatii vain 12. Pääosassa on Loiren oma rypäle Chenin Blanc.",
+   "maistele": "Vihreä omena, greippi ja ripaus hunajaa. Pullokäyminen tuo kuplaan pehmeyttä Proseccoon verrattuna.",
+   "ruoaksi": "Aperitiivi, kala ja äyriäiset, kevyet kasvisruoat",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Bollinger omistaa Langlois'n: samppanjatalon osaamista Loiren hinnalla. Hyvä aloitus haastajille. Kysy, maistuuko Chenin Blancin hunajaisuus.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Antica Fratta Franciacorta Brut Cuvée Real",
+   "lyhyt": "Antica Fratta",
+   "tyyppi": "kuohu",
+   "tyyppiNimi": "Franciacorta",
+   "tuottaja": "Antica Fratta",
+   "alue": "Franciacorta, Lombardia",
+   "maa": "Italia",
+   "rypaleet": "Chardonnay, Pinot Nero",
+   "tarina": "Antica Fratta sijaitsee Monticelli Brusatissa, Franciacortan sydämessä. 1800-luvun puolivälissä kauppias Luigi Rossetti louhi huvilan taakse kallioon valtavat kellarit, joita paikalliset kutsuivat nimellä el cantinù, iso kellari. Vuonna 1979 tilan herätti henkiin Franco Ziliani, Guido Berlucchi -talon perustajiin kuulunut viinintekijä, joka teki 1960-luvulla ensimmäiset Franciacorta-kuohuviinit. Franciacorta tehdään samalla menetelmällä kuin samppanja, ja vuosikerrattoman viinin on kypsyttävä pohjasakan päällä vähintään 18 kuukautta.",
+   "maistele": "Keltainen omena, valkoinen hedelmä ja leivänkuori. Raikas hapokkuus, ja sokeria vain noin 5 g/l.",
+   "ruoaksi": "Aperitiivi, alkupalat, kala ja vaalea liha",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Franciacorta on Italian vastaus samppanjalle: sama menetelmä, mutta Iseo-järven lämpimämpi ilmasto tuo kypsempää hedelmää. Kysy, erottaako joku eron Crémantiin.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Celler Kripta Icònic Corpinnat Gran Reserva Brut Nature 2018",
+   "lyhyt": "Kripta Icònic",
+   "tyyppi": "kuohu",
+   "tyyppiNimi": "Corpinnat",
+   "tuottaja": "Agustí Torelló Mata · Celler Kripta",
+   "alue": "Corpinnat, Penedès, Katalonia",
+   "maa": "Espanja",
+   "rypaleet": "Parellada, Macabeo, Xarel·lo",
+   "tarina": "Celler Kripta on Agustí Torelló Matan kuohuviinitalo Penedèsissä, Barcelonan lähellä. Talo kuuluu Corpinnatin perustajiin: huippukuohuviinien tekijät erosivat Cava-alkuperänimityksestä ja sopivat tiukemmista säännöistä. Corpinnatissa rypäleet ovat luomua ja käsin poimittuja. Icònic on kypsynyt pullossa pohjasakan päällä kuusi vuotta, ja se on Brut Nature eli pulloon ei lisätä lainkaan sokeria. Rypäleet ovat Katalonian omia lajikkeita yli 20-vuotiailta köynnöksiltä.",
+   "maistele": "Sitrus, vihreä omena ja hento paahteisuus. Kuiva ja raikas, ja pitkä kypsytys tekee kuplasta hyvin hienon.",
+   "ruoaksi": "Äyriäiset, osterit, sushi, suolaiset tapakset",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Kuusi vuotta sakan päällä on enemmän kuin useimmissa samppanjoissa: vuosikerraton samppanja vaatii vain 15 kuukautta. Illan kuivin viini, nolla annostelusokeria. Talon kuuluisin viini on Kripta amforan muotoisessa pullossa, jota ei voi laskea pystyyn.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Cocchi Alta Langa Bianc 'd Bianc Brut 2017",
+   "lyhyt": "Cocchi Alta Langa",
+   "tyyppi": "kuohu",
+   "tyyppiNimi": "Alta Langa",
+   "tuottaja": "Giulio Cocchi",
+   "alue": "Alta Langa, Piemonte",
+   "maa": "Italia",
+   "rypaleet": "Chardonnay",
+   "tarina": "Firenzeläinen konditori Giulio Cocchi perusti talonsa Astiin vuonna 1891, ja Cocchi tunnetaan yhä vermuteistaan. Vuodesta 1978 omistajana on ollut piemontelainen Bavan viinisuku, ja talo oli mukana luomassa Alta Langa -alkuperänimitystä. Alta Langa on Piemonten kukkuloiden perinteisen menetelmän kuohuviini: aina vuosikertaviini, ja kypsytystä pohjasakan päällä vähintään 30 kuukautta. Bianc 'd Bianc on Piemonten murretta ja tarkoittaa Blanc de Blancsia, eli viini on tehty pelkästä Chardonnaysta. Vuosikerta 2017 on illan vanhin.",
+   "maistele": "Valkoinen hedelmä, aprikoosi ja ripaus valkosuklaata. Pitkä kypsytys tuo kermaisuutta ja paahteisuutta.",
+   "ruoaksi": "Kala, vaalea liha, risotto, tryffelipasta",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Sama talo kuin baarien Cocchi Americano ja Storico-vermutti. Ainoa pelkästä Chardonnaysta tehty viini illassa: vertaa Drappierin Pinot Noir -painotteiseen tyyliin.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Drappier Carte d'Or Champagne Brut",
+   "lyhyt": "Drappier Champagne",
+   "tyyppi": "kuohu",
+   "tyyppiNimi": "Samppanja",
+   "tuottaja": "Champagne Drappier",
+   "alue": "Champagne, Côte des Bar",
+   "maa": "Ranska",
+   "rypaleet": "Pinot Noir, Chardonnay, Meunier",
+   "tarina": "Drappier on ollut saman perheen hallussa vuodesta 1808, ja kotikylä Urville on Champagnen eteläosassa Côte des Barilla. Talo tunnetaan Pinot Noirista: Carte d'Orissa sitä on 80 prosenttia, loput Chardonnayta ja Meunieria. Mukana on runsaasti reserviviinejä aiemmilta vuosilta, mikä tuo syvyyttä. Kenraali Charles de Gaulle asui naapurikylässä Colombey-les-Deux-Églisesissä, ja Drappier oli hänen suosikkisamppanjansa.",
+   "maistele": "Persikka, hunajainen omena ja valkoiset kukat, taustalla kypsää punaista hedelmää. Tummat rypäleet tuovat runkoa ja pyöreyttä.",
+   "ruoaksi": "Aperitiivi, vaalea liha, kiinteä kala, Chaource-juusto",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Illan samppanja ja vertailukohta kaikille haastajille. De Gaulle -tarina toimii aina. Kysy lopuksi, kuka olisi tunnistanut samppanjan sokkona.",
+   "kuvat": []
+  }
+ ]
+}
