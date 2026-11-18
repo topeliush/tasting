@@ -505,3 +505,43 @@ body.juontaja { background: #161614; overflow: hidden; }
 .p-vaara { background: var(--virhe); border-color: var(--virhe); }
 .p-laskuri--live li { grid-template-columns: 1fr auto; }
 .p-muisti .o-kuplat { margin-top: var(--vali-2); }
+/* ---------- Siirtymät ---------- */
+.o-yla, .o-tabit { view-transition-name: none; }
+.o-kehys > nav { view-transition-name: tabit; }
+.o-vt-sisalto { view-transition-name: sisalto; }
+::view-transition-group(*) { animation-duration: 0.42s; animation-timing-function: cubic-bezier(0.22, 0.8, 0.24, 1); }
+/* Sivulta toiselle: sisältö liukuu suuntaan, välilehdet pysyvät paikallaan */
+@keyframes vt-ulos-vas { to { opacity: 0; transform: translateX(-28px); } }
+@keyframes vt-sisaan-oik { from { opacity: 0; transform: translateX(36px); } }
+@keyframes vt-ulos-oik { to { opacity: 0; transform: translateX(28px); } }
+@keyframes vt-sisaan-vas { from { opacity: 0; transform: translateX(-36px); } }
+html[data-siirto="eteen"]::view-transition-old(sisalto) { animation: vt-ulos-vas 0.14s ease-in both; }
+html[data-siirto="eteen"]::view-transition-new(sisalto) { animation: vt-sisaan-oik 0.34s cubic-bezier(0.22, 0.8, 0.24, 1) 0.12s both; }
+html[data-siirto="taakse"]::view-transition-old(sisalto) { animation: vt-ulos-oik 0.14s ease-in both; }
+html[data-siirto="taakse"]::view-transition-new(sisalto) { animation: vt-sisaan-vas 0.34s cubic-bezier(0.22, 0.8, 0.24, 1) 0.12s both; }
+html[data-siirto="eteen"]::view-transition-group(sisalto), html[data-siirto="taakse"]::view-transition-group(sisalto) { animation: none; }
+/* Aromiosion sulkeminen ja avaaminen: kortit muuttavat kokoa ja liukuvat paikoilleen */
+html[data-siirto="kiinni"] .o-vt-aromit { view-transition-name: aromit; }
+html[data-siirto="kiinni"] .o-vt-porukka { view-transition-name: porukka; }
+html[data-siirto="kiinni"] .o-vt-tahdet { view-transition-name: tahdet; }
+html[data-siirto="kiinni"] .o-vt-tarina { view-transition-name: tarina; }
+html[data-siirto="kiinni"] .o-vt-sisalto { view-transition-name: none; }
+html[data-siirto="kiinni"]::view-transition-group(aromit) { overflow: hidden; border-radius: 22px; }
+html[data-siirto="kiinni"]::view-transition-old(aromit) { animation: vt-hiivu 0.22s ease both; }
+html[data-siirto="kiinni"]::view-transition-new(aromit) { animation: vt-esiin 0.3s ease 0.12s both; }
+@keyframes vt-hiivu { to { opacity: 0; } }
+@keyframes vt-esiin { from { opacity: 0; } }
+/* Varasiirtymät selaimille ilman View Transitions -tukea */
+@keyframes o-sisaan { from { opacity: 0; transform: translateY(10px); } }
+.o-sisaan { animation: o-sisaan 0.32s cubic-bezier(0.22, 0.8, 0.24, 1) both; }
+@keyframes o-liuku { from { opacity: 0; transform: translateY(18px); } }
+.o-liuku { animation: o-liuku 0.38s cubic-bezier(0.22, 0.8, 0.24, 1) both; }
+.o-porukka.o-liuku { animation-delay: 0.06s; }
+/* Napautuksen tuntuma */
+.vt-painike, .o-aromi, .o-tab, .o-linja, .o-vaihtoehto, .o-tahti { transition: transform 0.12s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; -webkit-tap-highlight-color: transparent; }
+.vt-painike:active:not(:disabled), .o-aromi:active, .o-tab:active, .o-vaihtoehto:active { transform: scale(0.97); }
+.o-tahti:active { transform: scale(1.15); }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .o-sisaan, .o-liuku { animation: none; }
+}

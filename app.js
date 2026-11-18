@@ -296,8 +296,34 @@
     if (S.nakyma === "vertailu" && !lopuksi().length) S.nakyma = "loppu";
     if (typeof S.nakyma === "number") varmistaKoonti(S.nakyma);
     var sisalto = S.nakyma === "loppu" ? yhteenveto() : S.nakyma === "vertailu" ? vertailuNakyma() : viiniNakyma(S.nakyma);
-    app.innerHTML = esikatseluPalkki() + '<main class="o-kehys">' + ylapalkki() + sisalto + "</main>";
+    app.innerHTML = esikatseluPalkki() + '<main class="o-kehys">' + ylapalkki() + '<div class="o-vt-sisalto' + (sisaanAnimaatio ? " o-sisaan" : "") + '">' + sisalto + "</div></main>";
+    sisaanAnimaatio = false;
   }
+  // Siirtymät: View Transitions -rajapinta, jos selain tukee; muuten kevyt CSS-animaatio.
+  var sisaanAnimaatio = false;
+  var vahennaLiiketta = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function siirtyma(tyyppi, fn, jalkeen) {
+    var juuri = document.documentElement;
+    if (document.startViewTransition && !vahennaLiiketta) {
+      juuri.dataset.siirto = tyyppi;
+      var vt = document.startViewTransition(fn);
+      vt.finished.then(function () { delete juuri.dataset.siirto; if (jalkeen) jalkeen(); }, function () { delete juuri.dataset.siirto; if (jalkeen) jalkeen(); });
+      return;
+    }
+    if (!vahennaLiiketta && (tyyppi === "eteen" || tyyppi === "taakse")) sisaanAnimaatio = true;
+    fn();
+    if (!vahennaLiiketta && tyyppi === "kiinni") { var k = app.querySelector(".o-aromit-kiinni"), pk = app.querySelector(".o-porukka"); [k, pk].forEach(function (x) { if (x) x.classList.add("o-liuku"); }); }
+    if (jalkeen) jalkeen();
+  }
+  function jarjestysNro(v) { if (v === "vertailu") return 1000; if (v === "loppu") return 1001; var o = omat().indexOf(v); return o < 0 ? -1 : o; }
+  function vaihdaNakyma(uusi, ennen) {
+    var suunta = S.aloitettu && jarjestysNro(uusi) < jarjestysNro(S.nakyma) ? "taakse" : "eteen";
+    siirtyma(suunta, function () {
+      if (ennen) ennen();
+      S.nakyma = uusi; tallenna(); renderOsallistuja(); window.scrollTo(0, 0);
+    });
+  }
+  function vieNakyviin(el, rako) { if (el) window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - rako)); }
   function esikatseluPalkki() {
     return T.esikatselu ? '<div class="o-esikatselupalkki">Esikatselu · mitään ei tallenneta <button class="vt-linkki" data-act="tyhjenna-esikatselu">Alusta</button></div>' : "";
   }
@@ -346,21 +372,21 @@
     if (!lukittu && S.aromiKiinni && S.aromiKiinni[i]) {
       var yht = valitut.map(function (o) { return '<span class="o-kupla o-kupla--oma">' + aromiHtml(aromit(i)[o]) + "</span>"; }).join("") +
         omat.map(function (x) { return '<span class="o-kupla o-kupla--oma">' + esc(x) + "</span>"; }).join("");
-      return '<section class="o-kysymys o-aromit-kiinni"><div class="o-kiinni-rivi"><h2 class="o-h2">Sinun aromisi</h2>' +
+      return '<section class="o-kysymys o-aromit-kiinni o-vt-aromit"><div class="o-kiinni-rivi"><h2 class="o-h2">Sinun aromisi</h2>' +
         '<button class="vt-linkki" data-act="aromit-auki" data-i="' + i + '">Muokkaa</button></div>' +
         (yht ? '<div class="o-kuplat o-kuplat--pienet">' + yht + "</div>" : '<p class="o-vaimea">Ei vielä aromeja. Mysteerilasi.</p>') + "</section>" +
-        (onSokko(T.viinit[i]) ? "" : '<div id="porukka-' + i + '">' + porukkaHtml(i) + "</div>") +
-        '<fieldset class="o-kysymys"><legend>Montako tähteä?</legend><div class="o-tahdet">' + tahdet + '</div><p class="o-vaimea o-tahtisana" style="margin-top:var(--vali-2)">' + esc(tahtiSana) + "</p></fieldset>";
+        (onSokko(T.viinit[i]) ? "" : '<div class="o-vt-porukka" id="porukka-' + i + '">' + porukkaHtml(i) + "</div>") +
+        '<fieldset class="o-kysymys o-vt-tahdet"><legend>Montako tähteä?</legend><div class="o-tahdet">' + tahdet + '</div><p class="o-vaimea o-tahtisana" style="margin-top:var(--vali-2)">' + esc(tahtiSana) + "</p></fieldset>";
     }
     var valmisNappi = (!lukittu && !onSokko(T.viinit[i])) ? '<button class="vt-painike vt-painike--leveä o-aromit-valmis" data-act="aromit-kiinni" data-i="' + i + '">Valmis, nämä löysin</button>' : "";
-    return '<fieldset class="o-kysymys"><legend>Mitä aromeja löydät?</legend>' +
+    return '<fieldset class="o-kysymys o-vt-aromit"><legend>Mitä aromeja löydät?</legend>' +
       '<p class="o-vaimea" style="clear:both;margin-bottom:var(--vali-3)">Vääriä vastauksia ei ole. ' + esimerkki(i)[0] + "</p>" +
       (lukittu ? "" : '<div class="o-lisaa-oma"><input class="o-kentta" id="oma-' + i + '" data-oma-input="' + i + '" maxlength="40" autocomplete="off" enterkeyhint="send" placeholder="Oma havainto, ' + esimerkki(i)[1] + '" aria-label="Oma havainto">' +
         '<button class="vt-painike vt-painike--pieni" data-act="oma-lisaa" data-i="' + i + '">Lisää</button></div>') +
       (omat.length ? '<div class="o-omat-lista">' + omatChipit + "</div>" : "") +
       '<p class="o-vaimea" style="margin:var(--vali-4) 0 var(--vali-3)">…tai napauta tuttuja. Saa valita monta.</p><div class="o-aromit">' + chipit + "</div>" + valmisNappi + "</fieldset>" +
-      (onSokko(T.viinit[i]) ? "" : '<div id="porukka-' + i + '">' + porukkaHtml(i) + "</div>") +
-      '<fieldset class="o-kysymys"><legend>Montako tähteä?</legend><div class="o-tahdet">' + tahdet + '</div><p class="o-vaimea o-tahtisana" style="margin-top:var(--vali-2)">' + esc(tahtiSana) + "</p></fieldset>";
+      (onSokko(T.viinit[i]) ? "" : '<div class="o-vt-porukka" id="porukka-' + i + '">' + porukkaHtml(i) + "</div>") +
+      '<fieldset class="o-kysymys o-vt-tahdet"><legend>Montako tähteä?</legend><div class="o-tahdet">' + tahdet + '</div><p class="o-vaimea o-tahtisana" style="margin-top:var(--vali-2)">' + esc(tahtiSana) + "</p></fieldset>";
   }
 
   var kuvaVarasto = {};
@@ -391,7 +417,7 @@
     var tiedot = [["Tuottaja", w.tuottaja], ["Alue", w.alue], ["Maa", w.maa], ["Rypäleet", w.rypaleet]]
       .filter(function (r) { return r[1]; })
       .map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("");
-    return '<article class="vt-kortti o-viini">' + (ilmanOtsikkoa ? '<h2 class="o-h2" style="margin-bottom:var(--vali-2)">' + (w.alkoholiton ? "Juoman tarina" : "Viinin tarina") + "</h2>" : tyyppi(w) +
+    return '<article class="vt-kortti o-viini o-vt-tarina">' + (ilmanOtsikkoa ? '<h2 class="o-h2" style="margin-bottom:var(--vali-2)">' + (w.alkoholiton ? "Juoman tarina" : "Viinin tarina") + "</h2>" : tyyppi(w) +
       '<h2 class="o-viini__nimi">' + esc(w.nimi) + "</h2>") +
       '<dl class="o-tiedot">' + tiedot + "</dl>" +
       (w.tarina ? "<p>" + esc(w.tarina) + "</p>" : "") +
@@ -1162,9 +1188,13 @@
         break;
       case "aloita":
         if (onLinjat() && !S.linja) return;
-        S.aloitettu = true; S.nakyma = omat()[0]; kirjaaMukaan(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
+        kirjaaMukaan();
+        siirtyma("eteen", function () { S.aloitettu = true; S.nakyma = omat()[0]; tallenna(); renderOsallistuja(); window.scrollTo(0, 0); });
+        break;
       case "siirry":
-        S.nakyma = t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v; tallenna(); renderOsallistuja(); window.scrollTo(0, 0); kiinnostavat().forEach(haeKoonti); break;
+        var sv = t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v;
+        if (sv === S.nakyma) { window.scrollTo({ top: 0, behavior: "smooth" }); break; }
+        vaihdaNakyma(sv); kiinnostavat().forEach(haeKoonti); break;
       case "valitse":
         if (S.lukittu[i]) return;
         S.vastaukset[i] = S.vastaukset[i] || {}; S.vastaukset[i][+t.dataset.q] = +t.dataset.o; tallenna(); renderOsallistuja(); break;
@@ -1200,13 +1230,17 @@
       case "aromit-kiinni":
         var keskenK = document.getElementById("oma-" + i);
         if (keskenK && keskenK.value.trim() && lisaaOma(i, keskenK.value)) { var uoK = omatAromit(i)[omatAromit(i).length - 1], omK = {}; omK[avainT(uoK)] = { t: uoK, d: 1 }; kirjaaKoonti(i, null, omK); vastattu(i); }
-        S.aromiKiinni[i] = true; tallenna(); renderOsallistuja(); haeKoonti(i);
-        var pkK = document.getElementById("porukka-" + i);
-        if (pkK) { var yK = pkK.getBoundingClientRect().top + window.scrollY - 90; window.scrollTo({ top: Math.max(0, yK), behavior: "smooth" }); }
+        siirtyma("kiinni", function () {
+          S.aromiKiinni[i] = true; tallenna(); renderOsallistuja();
+          vieNakyviin(app.querySelector(".o-aromit-kiinni"), 16);
+        });
+        haeKoonti(i);
         break;
       case "aromit-auki":
-        S.aromiKiinni[i] = false; tallenna(); renderOsallistuja();
-        var fs = app.querySelector(".o-kysymys"); if (fs) window.scrollTo({ top: Math.max(0, fs.getBoundingClientRect().top + window.scrollY - 20), behavior: "smooth" });
+        siirtyma("kiinni", function () {
+          S.aromiKiinni[i] = false; tallenna(); renderOsallistuja();
+          vieNakyviin(app.querySelector(".o-vt-aromit"), 16);
+        });
         break;
       case "oma-pois":
         if (lukossa(i)) return;
@@ -1217,8 +1251,8 @@
         var ii = +t.dataset.i, kesken = document.getElementById("oma-" + ii);
         if (kesken && kesken.value.trim() && lisaaOma(ii, kesken.value)) { var uo2 = omatAromit(ii)[omatAromit(ii).length - 1], om3 = {}; om3[avainT(uo2)] = { t: uo2, d: 1 }; kirjaaKoonti(ii, null, om3); }
         if (!S.lukittu[ii] && (S.arviot[ii] != null || (S.aromit[ii] || []).length || omatAromit(ii).length)) { S.lukittu[ii] = true; S.paljastettu[ii] = true; }
-        S.nakyma = t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v;
-        tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
+        vaihdaNakyma(t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v);
+        kiinnostavat().forEach(haeKoonti); break;
       case "kuva-iso":
         var ov = document.createElement("div"); ov.className = "o-kuva-iso"; ov.setAttribute("role", "dialog");
         ov.innerHTML = '<img alt="" src="' + t.getAttribute("src") + '"><span>Sulje napauttamalla</span>';
