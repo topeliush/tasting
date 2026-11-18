@@ -28,6 +28,8 @@
   if (!S.omaAromi) S.omaAromi = {};
   Object.keys(S.omaAromi).forEach(function (k) { if (typeof S.omaAromi[k] === "string") S.omaAromi[k] = S.omaAromi[k] ? [S.omaAromi[k]] : []; });
   var poppaa = null;
+  function lukossa(i) { return onSokko(T.viinit[i]) && !!S.lukittu[i]; }
+  function vastattu(i) { if (!onSokko(T.viinit[i])) { S.lukittu[i] = true; S.paljastettu[i] = true; } }
   function omatAromit(i) { return Array.isArray(S.omaAromi[i]) ? S.omaAromi[i] : []; }
   function lisaaOma(i, teksti) {
     var t = String(teksti || "").replace(/\s+/g, " ").trim().slice(0, 40), l = omatAromit(i).slice();
@@ -188,7 +190,7 @@
   }
 
   function maistelu(i) {
-    var lukittu = !!S.lukittu[i], valitut = S.aromit[i] || [], t = S.arviot[i], omat = omatAromit(i);
+    var lukittu = lukossa(i), valitut = S.aromit[i] || [], t = S.arviot[i], omat = omatAromit(i);
     var chipit = aromit(i).map(function (a, o) {
       return '<button class="o-aromi' + (poppaa === "a-" + i + "-" + o ? " o-pop" : "") + '" data-act="aromi" data-i="' + i + '" data-o="' + o + '" aria-pressed="' + (valitut.indexOf(o) >= 0) + '"' + (lukittu ? " disabled" : "") + ">" + esc(a) + "</button>";
     }).join("");
@@ -273,7 +275,9 @@
       var seurNb = omat()[omat().indexOf(i) + 1], loppuNb = lopuksi().length ? "vertailu" : "loppu";
       h += '<h1 class="o-viini__nimi" style="margin-top:0">' + esc(w.nimi) + "</h1>" +
         '<p class="o-vaimea">' + esc([w.tuottaja, [w.alue, w.maa].filter(Boolean).join(", ")].filter(Boolean).join(" · ")) + "</p>";
-      h += S.lukittu[i] ? tulos(w, i) : maistelu(i);
+      h += maistelu(i);
+      if (jaetut["a" + i] || jaetut["o" + i]) h += '<div class="vt-kortti o-havainto"><h2 class="o-h2">Mitä porukan nenät löysivät</h2>' + kuplat(i, true) +
+        '<p class="o-vaimea o-selite"><span class="o-pallukka o-pallukka--oma"></span>sinun havaintosi <span class="o-pallukka o-pallukka--vapaa"></span>omin sanoin</p></div>';
       h += viiniKortti(w, true);
       h += '<button class="vt-painike vt-painike--leveä" data-act="seuraava" data-i="' + i + '" data-v="' + (seurNb == null ? loppuNb : seurNb) + '">' +
         (seurNb == null ? (lopuksi().length ? "Viimeinen sana →" : "Yhteenveto →") : "Seuraava lasi →") + "</button>";
@@ -943,11 +947,11 @@
         if (Y) Y.ulos().then(reitti); break;
       case "oma-lisaa":
         var oi = document.getElementById("oma-" + i);
-        if (oi && lisaaOma(i, oi.value)) { tallenna(); renderOsallistuja(); var n2 = document.getElementById("oma-" + i); if (n2) n2.focus(); }
+        if (oi && lisaaOma(i, oi.value)) { vastattu(i); tallenna(); renderOsallistuja(); var n2 = document.getElementById("oma-" + i); if (n2) n2.focus(); }
         else if (oi) { oi.select(); }
         break;
       case "oma-pois":
-        if (S.lukittu[i]) return;
+        if (lukossa(i)) return;
         var lo = omatAromit(i).slice(); lo.splice(+t.dataset.j, 1); S.omaAromi[i] = lo; tallenna(); renderOsallistuja(); break;
       case "seuraava":
         var ii = +t.dataset.i, kesken = document.getElementById("oma-" + ii);
@@ -960,12 +964,14 @@
         ov.innerHTML = '<img alt="" src="' + t.getAttribute("src") + '"><span>Sulje napauttamalla</span>';
         ov.addEventListener("click", function () { ov.remove(); }); document.body.appendChild(ov); break;
       case "aromi":
-        if (S.lukittu[i]) return;
+        if (lukossa(i)) return;
+        vastattu(i);
         var va = S.aromit[i] || [], ao = +t.dataset.o, ix = va.indexOf(ao);
         if (ix >= 0) va.splice(ix, 1); else { va.push(ao); poppaa = "a-" + i + "-" + ao; }
         S.aromit[i] = va; tallenna(); renderOsallistuja(); break;
       case "tahti":
-        if (S.lukittu[i]) return;
+        if (lukossa(i)) return;
+        vastattu(i);
         S.arviot[i] = +t.dataset.v; poppaa = "t-" + i; tallenna(); renderOsallistuja(); break;
       case "l-valitse":
         if (S.loppu.lukittu) return;

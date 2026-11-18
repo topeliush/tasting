@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=5">
+<link rel="stylesheet" href="/app.css?v=6">
 <style>
 .lataus { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--vali-6) var(--vali-5); }
 .lataus > div { max-width: 480px; }
@@ -42,7 +42,7 @@
     t.osoite = location.origin + "/?t=" + id;
     window.TASTING = t;
     document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
-    var s = document.createElement("script"); s.src = "/app.js?v=5"; document.body.appendChild(s);
+    var s = document.createElement("script"); s.src = "/app.js?v=6"; document.body.appendChild(s);
   }, function () { clearTimeout(aikaraja); viesti("Tastingin lataus epäonnistui. Lataa sivu uudelleen."); });
 })();
 </script>
