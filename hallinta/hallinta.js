@@ -1,0 +1,502 @@
+/* Viinitasting tasting: hallintanäkymä. Tastingit tallentuvat Firestoreen (tastingit/{id}), kuvat alikokoelmaan kuvat. */
+(function () {
+  "use strict";
+  var A = window.VT_ASETUKSET || {};
+  var app = document.getElementById("app");
+  var Y = null, kayttaja = null, valmis = false;
+  var lista = null, pohjat = [], auki = {}, laskut = {};
+  var muok = null, muokId = null, muutettu = false, juomaAuki = {}, kuvaVarasto = {};
+  var uusiAuki = false, tallentaa = false;
+
+  var AROMIT = {
+    kuohu: ["Vihreä omena", "Keltainen omena ja päärynä", "Sitrus", "Persikka ja aprikoosi", "Trooppiset hedelmät", "Punaiset marjat", "Kukat", "Hunaja", "Paahtoleipä ja brioche", "Pähkinä", "Vanilja", "Yrtit ja tee"],
+    valkoinen: ["Sitrus", "Vihreä omena", "Päärynä", "Persikka ja aprikoosi", "Trooppiset hedelmät", "Kukat", "Yrtit ja ruoho", "Hunaja", "Voi ja kerma", "Vanilja ja tammi", "Mineraalisuus", "Mausteet"],
+    punainen: ["Kirsikka", "Vadelma ja mansikka", "Mustaherukka ja karhunvatukka", "Luumu", "Orvokki ja kukat", "Pippuri ja mausteet", "Vanilja ja tammi", "Tupakka ja nahka", "Maa ja sieni", "Yrtit", "Lakritsi", "Suklaa ja kahvi"]
+  };
+  var TYYPIT = [["kuohu", "Kuohuviini"], ["valkoinen", "Valkoviini"], ["rose", "Roséviini"], ["punainen", "Punaviini"]];
+  var PERUS = {
+    juontaja: "Topias Haavisto", kaytaPaljastussanaa: false, naytaJuontajaLinkki: true,
+    varausLinkki: "https://viinitasting.com", varausTeksti: "Tuon tastingin teille, te valitsette porukan.", googleArvioLinkki: "",
+    lahjakortti: { kaytossa: true, arvo: 40, tunnus: "", voimassaKk: 12, myontaja: "Il Top Oy" }
+  };
+  var MAX_KUVAT = 4;
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  }
+  function kopio(x) { return JSON.parse(JSON.stringify(x)); }
+  function onJuontaja() {
+    return !!(kayttaja && !kayttaja.anon && kayttaja.email && (A.juontajat || []).map(function (x) { return String(x).toLowerCase(); }).indexOf(kayttaja.email) >= 0);
+  }
+  function osoite(id) { return location.origin + "/?t=" + encodeURIComponent(id); }
+  function pvmTeksti(p) { if (!p) return "ei päivää"; var o = String(p).split("-"); return o.length === 3 ? (+o[2]) + "." + (+o[1]) + "." + o[0] : p; }
+  function tanaan() { var d = new Date(); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function slug(s) {
+    return String(s || "").toLowerCase().replace(/[åä]/g, "a").replace(/ö/g, "o").normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "tasting";
+  }
+  function ilmoita(t) {
+    var el = document.createElement("div"); el.className = "h-ilmoitus"; el.textContent = t; document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, 2600);
+  }
+  function qrSvg(text) {
+    if (!text || typeof qrcode !== "function") return '<div class="qr-tyhja">QR</div>';
+    var q = qrcode(0, "M"); q.addData(text); q.make();
+    var n = q.getModuleCount(), m = 2, d = "";
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (q.isDark(r, c)) d += "M" + (c + m) + " " + (r + m) + "h1v1h-1z";
+    return '<svg viewBox="0 0 ' + (n + 2 * m) + " " + (n + 2 * m) + '" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges" role="img" aria-label="QR-koodi"><rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#2d2d2a"/></svg>';
+  }
+
+  /* ---------- Data ---------- */
+  function lataaLista() {
+    return window.VTData.listaa().then(function (l) {
+      lista = l.sort(function (a, b) { return String(b.pvm || "").localeCompare(String(a.pvm || "")); });
+      render();
+    }, function () { lista = []; ilmoita("Tastingien lataus epäonnistui. Tarkista Firestoren säännöt."); render(); });
+  }
+  function lataaPohjat() {
+    return fetch("/pohjat/index.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (p) { pohjat = Array.isArray(p) ? p : []; render(); }, function () { pohjat = []; });
+  }
+  function vapaaId(perus) {
+    var olemassa = (lista || []).map(function (t) { return t.id; }), id = perus, n = 2;
+    while (olemassa.indexOf(id) >= 0) id = perus + "-" + n++;
+    return id;
+  }
+  function puhdista(t) {
+    var d = kopio(t); delete d.id; delete d.osoite;
+    d.aromit = (d.aromit || []).map(function (a) { return String(a).trim(); }).filter(Boolean);
+    d.viinit = (d.viinit || []).map(function (w) {
+      Object.keys(w).forEach(function (k) { if (w[k] === "" && k !== "nimi") delete w[k]; });
+      w.kuvat = (w.kuvat || []).filter(Boolean);
+      if (!w.alkoholiton) delete w.alkoholiton;
+      w.sokko = true;
+      return w;
+    });
+    d.lopuksi = (d.lopuksi || []).filter(function (q) { return q.kysymys && q.kysymys.trim(); }).map(function (q) {
+      var f = {}, o = {};
+      ["viini", "alkoholiton"].forEach(function (l) {
+        if (q.fakta && q.fakta[l]) f[l] = q.fakta[l];
+        if (q.oikea && typeof q.oikea[l] === "number") o[l] = q.oikea[l];
+      });
+      var x = { id: q.id || "q" + Math.random().toString(36).slice(2, 7), kysymys: q.kysymys.trim() };
+      if (Object.keys(f).length) x.fakta = f;
+      if (Object.keys(o).length) x.oikea = o;
+      return x;
+    });
+    return d;
+  }
+  function normalisoi(t) {
+    var d = kopio(t);
+    d.aromit = d.aromit || [];
+    d.viinit = d.viinit || [];
+    d.lopuksi = (d.lopuksi || []).map(function (q) {
+      var f = q.fakta;
+      if (typeof f === "string") f = { viini: f, alkoholiton: f };
+      return { id: q.id, kysymys: q.kysymys || "", fakta: f || {}, oikea: q.oikea || {} };
+    });
+    d.lahjakortti = Object.assign({}, PERUS.lahjakortti, d.lahjakortti || {});
+    return d;
+  }
+
+  /* ---------- Näkymät ---------- */
+  function render() {
+    if (!valmis) return;
+    if (!Y) { app.innerHTML = '<main class="h-kehys"><h1 class="h-otsikko">Tastingit</h1><p class="h-ohje">Yhteysasetukset puuttuvat (asetukset.js).</p></main>'; return; }
+    if (!onJuontaja()) { kirjautuminen(); return; }
+    var h = location.hash.slice(1);
+    if (h.indexOf("muokkaa-") === 0) { muokkausNakyma(h.slice(8)); return; }
+    listaNakyma();
+  }
+  function yla(oikea) {
+    return '<div class="h-yla"><span class="h-yla__nimi">viinitasting</span><div class="h-rivi">' + oikea + "</div></div>";
+  }
+
+  function kirjautuminen() {
+    app.innerHTML = '<main class="h-kehys">' + yla("") + '<h1 class="h-otsikko">Tastingien hallinta</h1>' +
+      '<div class="h-lomake"><div class="h-kentta"><label for="k-email">Sähköposti</label><input class="o-kentta" id="k-email" type="email" autocomplete="username" value="' + esc((A.juontajat || [])[0] || "") + '"></div>' +
+      '<div class="h-kentta"><label for="k-salasana">Salasana</label><input class="o-kentta" id="k-salasana" type="password" autocomplete="current-password"></div>' +
+      '<button class="vt-painike vt-painike--leveä" data-act="kirjaudu">Kirjaudu</button><p class="o-virhe" id="k-virhe" hidden></p></div></main>';
+  }
+
+  function listaNakyma() {
+    var h = '<main class="h-kehys">' + yla('<button class="vt-linkki" data-act="ulos">Kirjaudu ulos</button>') +
+      '<h1 class="h-otsikko">Tastingit</h1>';
+    if (lista === null) { app.innerHTML = h + '<p class="h-ohje">Ladataan…</p></main>'; return; }
+    h += uusiAuki ? uusiLomake() : '<button class="vt-painike vt-painike--leveä" data-act="uusi-auki">+ Uusi tasting</button>';
+    var ids = lista.map(function (t) { return t.id; });
+    var tuotavat = pohjat.filter(function (p) { return p && p.id && ids.indexOf(p.id) < 0; });
+    tuotavat.forEach(function (p) {
+      h += '<div class="h-kortti h-kortti--tuo"><h2>' + esc(p.nimi || p.id) + '</h2><div class="h-meta">' + esc(pvmTeksti(p.pvm)) + (p.asiakas ? " · " + esc(p.asiakas) : "") +
+        '</div><p class="h-ohje">Claude on valmistellut tämän setin. Tuo se hallintaan, niin voit muokata ja käyttää sitä.</p>' +
+        '<button class="vt-painike" data-act="tuo" data-id="' + esc(p.id) + '">Tuo setti</button></div>';
+    });
+    if (!lista.length && !tuotavat.length) h += '<p class="h-ohje">Ei vielä tastingeja. Aloita painamalla Uusi tasting.</p>';
+    var nyt = tanaan();
+    lista.forEach(function (t) {
+      var alk = (t.viinit || []).filter(function (w) { return w.alkoholiton; }).length, juomia = (t.viinit || []).length;
+      var tuleva = !t.pvm || t.pvm >= nyt;
+      h += '<article class="h-kortti"><div class="h-rivi"><span class="h-merkki ' + (tuleva ? "h-merkki--tuleva" : "h-merkki--mennyt") + '">' + (tuleva ? "Tuleva" : "Pidetty") + "</span>" +
+        (alk ? '<span class="h-merkki h-merkki--alk">Alkoholittomat</span>' : "") + "</div>" +
+        "<h2>" + esc(t.nimi || t.id) + '</h2><div class="h-meta">' + esc(pvmTeksti(t.pvm)) + (t.asiakas ? " · " + esc(t.asiakas) : "") + " · " + juomia + " juomaa · " + (t.lopuksi || []).length + " loppukysymystä</div>" +
+        '<div class="h-rivi"><button class="vt-painike vt-painike--pieni" data-act="linkit" data-id="' + esc(t.id) + '">' + (auki[t.id] ? "Piilota linkit" : "Linkit ja QR") + "</button>" +
+        '<a class="vt-painike vt-painike--pieni vt-painike--toissijainen" href="#muokkaa-' + esc(t.id) + '">Muokkaa</a></div>' +
+        (auki[t.id] ? linkit(t) : "") + "</article>";
+    });
+    app.innerHTML = h + "</main>";
+  }
+
+  function uusiLomake() {
+    var vaihtoehdot = '<option value="tyhja:kuohu">Tyhjä · kuohuviinit</option><option value="tyhja:valkoinen">Tyhjä · valkoviinit</option><option value="tyhja:punainen">Tyhjä · punaviinit</option>' +
+      (lista || []).map(function (t) { return '<option value="kopio:' + esc(t.id) + '">Kopio: ' + esc(t.nimi || t.id) + " (" + esc(pvmTeksti(t.pvm)) + ")</option>"; }).join("");
+    return '<section class="h-osio"><h2 class="h-alaotsikko">Uusi tasting</h2><div class="h-lomake">' +
+      '<div class="h-kentta"><label for="u-nimi">Nimi (näkyy osallistujille)</label><input class="o-kentta" id="u-nimi" placeholder="esim. Joulun tärpit"></div>' +
+      '<div class="h-kaksi"><div class="h-kentta"><label for="u-pvm">Päivämäärä</label><input class="o-kentta" id="u-pvm" type="date" value="' + tanaan() + '"></div>' +
+      '<div class="h-kentta"><label for="u-asiakas">Asiakas (vain sinulle)</label><input class="o-kentta" id="u-asiakas" placeholder="esim. Snowflake, Helsinki"></div></div>' +
+      '<div class="h-kentta"><label for="u-pohja">Pohja</label><select class="o-kentta" id="u-pohja">' + vaihtoehdot + "</select></div>" +
+      '<div class="h-rivi"><button class="vt-painike" data-act="luo">Luo ja muokkaa</button><button class="vt-linkki" data-act="uusi-kiinni">Peruuta</button></div></div></section>';
+  }
+
+  function linkit(t) {
+    var u = osoite(t.id);
+    var n = laskut[t.id];
+    return '<div class="h-linkit">' + qrSvg(u) + '<div><span class="h-label">Osallistujien linkki ja QR</span><span class="h-url">' + esc(u) + "</span>" +
+      '<div class="h-rivi" style="margin:var(--vali-2) 0 var(--vali-3)"><button class="h-pieni" data-act="kopioi" data-url="' + esc(u) + '">Kopioi linkki</button>' +
+      '<a class="h-pieni" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit" href="' + esc(u) + '" target="_blank" rel="noopener">Testaa osallistujana</a></div>' +
+      "<ul>" +
+      '<li><a class="vt-linkki" href="' + esc(u) + '#ohjaus" target="_blank" rel="noopener">Puhelinohjaus</a></li>' +
+      '<li><a class="vt-linkki" href="' + esc(u) + '#naytto" target="_blank" rel="noopener">Iso näyttö</a></li>' +
+      '<li><a class="vt-linkki" href="' + esc(u) + '#poytakortti" target="_blank" rel="noopener">Pöytäkortit tulostettavaksi</a></li></ul>' +
+      '<div class="h-rivi" style="margin-top:var(--vali-3)"><button class="h-pieni" data-act="laske" data-id="' + esc(t.id) + '">' + (n == null ? "Montako vastannut?" : "Vastanneita: " + n) + "</button>" +
+      '<button class="h-pieni h-pieni--vaara" data-act="tyhjenna" data-id="' + esc(t.id) + '">Tyhjennä vastaukset</button></div>' +
+      '<p class="h-ohje" style="margin-top:var(--vali-2)">Testauksen jälkeen tyhjennä vastaukset, niin tilaisuus alkaa puhtaalta pöydältä. Osallistujien omiin puhelimiin jäänyt tila nollautuu kohdasta Aloita alusta.</p>' +
+      "</div></div>";
+  }
+
+  /* ---------- Muokkaus ---------- */
+  function muokkausNakyma(id) {
+    if (muokId !== id) {
+      var t = (lista || []).filter(function (x) { return x.id === id; })[0];
+      if (!t) {
+        if (lista === null) { app.innerHTML = '<main class="h-kehys"><p class="h-ohje">Ladataan…</p></main>'; return; }
+        app.innerHTML = '<main class="h-kehys">' + yla("") + '<p class="h-ohje">Tastingia ei löytynyt.</p><a class="vt-linkki" href="#">Takaisin listaan</a></main>'; return;
+      }
+      muok = normalisoi(t); muokId = id; muutettu = false; juomaAuki = {};
+    }
+    var w = muok, alkOn = w.viinit.some(function (x) { return x.alkoholiton; });
+    var h = '<main class="h-kehys">' + yla('<a class="vt-linkki" href="#" data-act="takaisin">← Tastingit</a>') +
+      '<h1 class="h-otsikko">' + esc(w.nimi || "Nimetön tasting") + "</h1>" +
+      '<p class="h-ohje">Osallistujien linkki: <b>' + esc(osoite(id)) + "</b></p>";
+
+    // Perustiedot
+    h += '<section class="h-osio"><h2 class="h-alaotsikko">Perustiedot</h2><div class="h-lomake">' +
+      kentta("nimi", "Nimi (näkyy osallistujille)", w.nimi) +
+      '<div class="h-kaksi">' + kentta("pvm", "Päivämäärä", w.pvm, "date") + kentta("asiakas", "Asiakas (vain sinulle)", w.asiakas) + "</div>" +
+      kentta("kuvaus", "Esittelyteksti aloitusnäkymään", w.kuvaus, "textarea") +
+      '<label class="h-valinta"><input type="checkbox" data-p="lahjakortti.kaytossa"' + (w.lahjakortti.kaytossa ? " checked" : "") + "> Kiitoslahja lopussa (lahjakortti)</label>" +
+      (w.lahjakortti.kaytossa ? '<div class="h-kaksi">' + kentta("lahjakortti.arvo", "Lahjakortin arvo (€)", w.lahjakortti.arvo, "number") + kentta("lahjakortti.tunnus", "Tunnus koodiin (esim. TEK)", w.lahjakortti.tunnus) + "</div>" : "") +
+      "</div></section>";
+
+    // Aromit
+    h += '<section class="h-osio"><h2 class="h-alaotsikko">Aromit</h2><p class="h-ohje">Osallistuja valitsee jokaisesta lasista kaikki aromit, jotka löytää. Sama lista kaikille juomille.</p>' +
+      '<div class="h-aromit">' + w.aromit.map(function (a, i) { return '<span class="h-aromi">' + esc(a) + '<button data-act="aromi-pois" data-i="' + i + '" aria-label="Poista ' + esc(a) + '">×</button></span>'; }).join("") + "</div>" +
+      '<div class="h-lisaa"><input class="o-kentta" id="aromi-uusi" placeholder="Uusi aromi, esim. Mineraalisuus" style="min-height:46px;font-size:16px"><button class="vt-painike vt-painike--pieni" data-act="aromi-lisaa">Lisää</button></div>' +
+      '<div class="h-rivi"><span class="h-label" style="margin:0">Valmis lista:</span><button class="h-pieni" data-act="aromit-pohja" data-v="kuohu">Kuohuviinit</button><button class="h-pieni" data-act="aromit-pohja" data-v="valkoinen">Valkoviinit</button><button class="h-pieni" data-act="aromit-pohja" data-v="punainen">Punaviinit</button></div></section>';
+
+    // Juomat
+    var nV = 0, nA = 0;
+    h += '<section class="h-osio"><h2 class="h-alaotsikko">Juomat</h2><p class="h-ohje">Järjestys on maistelujärjestys. Jos mukana on alkoholittomia, lasit parittuvat järjestyksessä: 1. viini ja 1. alkoholiton ovat lasi 1, ja niin edelleen.</p><div>' +
+      w.viinit.map(function (v, i) {
+        var nro = v.alkoholiton ? ++nA : ++nV;
+        return juomaLomake(v, i, nro);
+      }).join("") + "</div>" +
+      '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="juoma-lisaa">+ Lisää juoma</button></section>';
+
+    // Lopuksi
+    var V = w.viinit.filter(function (x) { return !x.alkoholiton; }), Al = w.viinit.filter(function (x) { return x.alkoholiton; });
+    h += '<section class="h-osio"><h2 class="h-alaotsikko">Lopuksi-kysymykset</h2><p class="h-ohje">1–4 kysymystä kaikista lasien juomista. Vastausvaihtoehdot ovat osallistujan omat juomat. Tähtien keskiarvot näytetään lopuksi automaattisesti.</p>' +
+      w.lopuksi.map(function (q, i) {
+        return '<div class="h-kysymys">' + kentta("lopuksi." + i + ".kysymys", "Kysymys " + (i + 1), q.kysymys) +
+          kentta("lopuksi." + i + ".fakta.viini", alkOn ? "Fakta vastauksen jälkeen · viinit" : "Fakta vastauksen jälkeen (valinnainen)", q.fakta.viini, "textarea") +
+          (alkOn ? kentta("lopuksi." + i + ".fakta.alkoholiton", "Fakta · alkoholittomat", q.fakta.alkoholiton, "textarea") : "") +
+          '<div class="h-kaksi">' + oikeaValinta(i, "viini", V, alkOn ? "Oikea vastaus · viinit" : "Oikea vastaus (antaa pisteen)") +
+          (alkOn ? oikeaValinta(i, "alkoholiton", Al, "Oikea vastaus · alkoholittomat") : "") + "</div>" +
+          '<div class="h-rivi"><button class="h-pieni h-pieni--vaara" data-act="kysymys-pois" data-i="' + i + '">Poista kysymys</button></div></div>';
+      }).join("") +
+      (w.lopuksi.length < 4 ? '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="kysymys-lisaa">+ Lisää kysymys</button>' : "") + "</section>";
+
+    // Muut toiminnot
+    h += '<section class="h-osio"><h2 class="h-alaotsikko">Muut</h2><div class="h-rivi">' +
+      '<a class="h-pieni" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit" href="' + esc(osoite(id)) + '" target="_blank" rel="noopener">Avaa osallistujana</a>' +
+      '<button class="h-pieni h-pieni--vaara" data-act="poista-tasting">Poista tasting</button></div></section>';
+
+    h += "</main>" +
+      '<div class="h-palkki"><div class="h-palkki__sisus"><span class="h-palkki__tila' + (muutettu ? " on" : "") + '" id="tila">' + (muutettu ? "Tallentamattomia muutoksia" : "Kaikki tallennettu") + "</span>" +
+      '<button class="vt-painike" data-act="tallenna"' + (tallentaa ? " disabled" : "") + ">" + (tallentaa ? "Tallennetaan…" : "Tallenna") + "</button></div></div>";
+    var y = window.scrollY;
+    app.innerHTML = h;
+    window.scrollTo(0, y);
+    taytaKuvat();
+  }
+  function kentta(polku, otsikko, arvo, tyyppi) {
+    var id = "f-" + polku.replace(/\./g, "-");
+    var a = arvo == null ? "" : arvo;
+    var input = tyyppi === "textarea"
+      ? '<textarea class="o-kentta" id="' + id + '" data-p="' + polku + '">' + esc(a) + "</textarea>"
+      : '<input class="o-kentta" id="' + id + '" data-p="' + polku + '" type="' + (tyyppi || "text") + '" value="' + esc(a) + '">';
+    return '<div class="h-kentta"><label for="' + id + '">' + otsikko + "</label>" + input + "</div>";
+  }
+  function valinta(polku, otsikko, arvo, vaihtoehdot) {
+    var id = "f-" + polku.replace(/\./g, "-");
+    return '<div class="h-kentta"><label for="' + id + '">' + otsikko + '</label><select class="o-kentta" id="' + id + '" data-p="' + polku + '">' +
+      vaihtoehdot.map(function (v) { return '<option value="' + esc(v[0]) + '"' + (String(v[0]) === String(arvo) ? " selected" : "") + ">" + esc(v[1]) + "</option>"; }).join("") + "</select></div>";
+  }
+  function oikeaValinta(i, l, juomat, otsikko) {
+    var arvo = muok.lopuksi[i].oikea[l];
+    return valinta("lopuksi." + i + ".oikea." + l, otsikko, typeof arvo === "number" ? arvo : "",
+      [["", "Ei oikeaa vastausta"]].concat(juomat.map(function (x, k) { return [k, "Lasi " + (k + 1) + " · " + (x.lyhyt || x.nimi || "nimetön")]; })));
+  }
+  function juomaLomake(v, i, nro) {
+    var p = "viinit." + i + ".";
+    var kuvat = (v.kuvat || []);
+    return '<details class="h-juoma' + (v.alkoholiton ? " h-juoma--alk" : "") + '" data-juoma="' + i + '"' + (juomaAuki[i] ? " open" : "") + ">" +
+      '<summary><span class="h-pallo">' + nro + "</span><b>" + esc(v.nimi || "Uusi juoma") + "<small>" + (v.alkoholiton ? "Alkoholiton · " : "") + esc([v.alue, v.maa].filter(Boolean).join(", ") || "Täydennä tiedot") + "</small></b></summary>" +
+      '<div class="h-juoma__sisus">' +
+      kentta(p + "nimi", "Nimi", v.nimi) +
+      '<div class="h-kaksi">' + kentta(p + "lyhyt", "Lyhyt nimi (vertailukysymyksiin)", v.lyhyt) +
+      valinta(p + "tyyppi", "Tyyppi", v.tyyppi || "kuohu", TYYPIT) + "</div>" +
+      '<label class="h-valinta"><input type="checkbox" data-p="' + p + 'alkoholiton"' + (v.alkoholiton ? " checked" : "") + "> Alkoholiton</label>" +
+      kentta(p + "tyyppiNimi", "Tyypin nimi paljastuksen jälkeen (esim. Samppanja, Crémant)", v.tyyppiNimi) +
+      '<div class="h-kaksi">' + kentta(p + "tuottaja", "Tuottaja", v.tuottaja) + kentta(p + "rypaleet", "Rypäleet", v.rypaleet) + "</div>" +
+      '<div class="h-kaksi">' + kentta(p + "alue", "Alue", v.alue) + kentta(p + "maa", "Maa", v.maa) + "</div>" +
+      kentta(p + "tarina", "Infokortti: tarina", v.tarina, "textarea") +
+      kentta(p + "maistele", "Infokortti: kiinnitä huomiota", v.maistele, "textarea") +
+      kentta(p + "ruoaksi", "Infokortti: ruoaksi", v.ruoaksi) +
+      kentta(p + "juontajalle", "Omat muistiinpanot (vain ohjauspaneelissa)", v.juontajalle, "textarea") +
+      '<div><span class="h-label">Kuvat infokorttiin (enintään ' + MAX_KUVAT + ")</span><div class=\"h-kuvat\">" +
+      kuvat.map(function (k, j) {
+        return '<div class="h-kuva"><img data-kuva="' + esc(k) + '" alt=""><button data-act="kuva-pois" data-i="' + i + '" data-j="' + j + '" aria-label="Poista kuva">×</button></div>';
+      }).join("") +
+      (kuvat.length < MAX_KUVAT ? '<label class="h-kuva h-kuva--lisaa">+ Lisää kuva<input type="file" accept="image/*" data-kuva-input="' + i + '"></label>' : "") +
+      "</div></div>" +
+      '<div class="h-rivi"><button class="h-pieni" data-act="juoma-ylos" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ">↑ Ylös</button>" +
+      '<button class="h-pieni" data-act="juoma-alas" data-i="' + i + '"' + (i === muok.viinit.length - 1 ? " disabled" : "") + ">↓ Alas</button>" +
+      '<button class="h-pieni h-pieni--vaara" data-act="juoma-pois" data-i="' + i + '">Poista juoma</button></div>' +
+      "</div></details>";
+  }
+
+  function aseta(polku, arvo) {
+    var o = polku.split("."), x = muok;
+    for (var i = 0; i < o.length - 1; i++) {
+      var k = /^\d+$/.test(o[i]) ? +o[i] : o[i];
+      if (x[k] == null) x[k] = {};
+      x = x[k];
+    }
+    x[o[o.length - 1]] = arvo;
+  }
+  function merkitse() {
+    muutettu = true;
+    var t = document.getElementById("tila");
+    if (t) { t.textContent = "Tallentamattomia muutoksia"; t.className = "h-palkki__tila on"; }
+  }
+  function rakenne() { merkitse(); muokkausNakyma(muokId); }
+
+  function taytaKuvat() {
+    Array.prototype.forEach.call(document.querySelectorAll("img[data-kuva]:not([src])"), function (img) {
+      var p = img.getAttribute("data-kuva");
+      if (kuvaVarasto[p]) { img.src = kuvaVarasto[p]; return; }
+      window.VTData.haeKuva(p).then(function (src) { if (src) { kuvaVarasto[p] = src; img.src = src; } });
+    });
+  }
+  function pienenna(tiedosto) {
+    return new Promise(function (ok, virhe) {
+      var url = URL.createObjectURL(tiedosto), img = new Image();
+      img.onload = function () {
+        var max = 1100, s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * s); c.height = Math.round(img.naturalHeight * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        var q = 0.78, d = c.toDataURL("image/jpeg", q);
+        while (d.length > 700000 && q > 0.4) { q -= 0.1; d = c.toDataURL("image/jpeg", q); }
+        ok(d);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); virhe(new Error("kuva")); };
+      img.src = url;
+    });
+  }
+
+  function tallenna() {
+    if (tallentaa) return;
+    if (!muok.nimi || !String(muok.nimi).trim()) { ilmoita("Anna tastingille nimi."); return; }
+    tallentaa = true; muokkausNakyma(muokId);
+    var data = puhdista(muok);
+    window.VTData.tallenna(muokId, data).then(function () {
+      tallentaa = false; muutettu = false;
+      lista = (lista || []).filter(function (t) { return t.id !== muokId; }).concat([Object.assign({ id: muokId }, data)])
+        .sort(function (a, b) { return String(b.pvm || "").localeCompare(String(a.pvm || "")); });
+      muok = normalisoi(data);
+      ilmoita("Tallennettu");
+      muokkausNakyma(muokId);
+    }, function () { tallentaa = false; ilmoita("Tallennus epäonnistui. Tarkista yhteys ja Firestoren säännöt."); muokkausNakyma(muokId); });
+  }
+
+  function luo() {
+    var nimi = (document.getElementById("u-nimi").value || "").trim();
+    var pvm = document.getElementById("u-pvm").value || "";
+    var asiakas = (document.getElementById("u-asiakas").value || "").trim();
+    var pohja = document.getElementById("u-pohja").value;
+    if (!nimi) { ilmoita("Anna nimi."); return; }
+    var id = vapaaId(slug(nimi) + (pvm ? "-" + pvm.slice(8, 10) + pvm.slice(5, 7) : ""));
+    var data, kuvaKopiot = Promise.resolve();
+    if (pohja.indexOf("kopio:") === 0) {
+      var lahde = (lista || []).filter(function (t) { return t.id === pohja.slice(6); })[0];
+      data = puhdista(lahde || {});
+      kuvaKopiot = Promise.all(data.viinit.map(function (w) {
+        return Promise.all((w.kuvat || []).map(function (k) {
+          return window.VTData.haeKuva(k).then(function (src) { return src ? window.VTData.tallennaKuva(id, src) : null; });
+        })).then(function (uudet) { w.kuvat = uudet.filter(Boolean); });
+      }));
+    } else {
+      var laji = pohja.split(":")[1] || "kuohu";
+      data = Object.assign(kopio(PERUS), { aromit: AROMIT[laji].slice(), viinit: [], lopuksi: [
+        { id: "makein", kysymys: "Mikä tuntui makeimmalta?" }, { id: "paras", kysymys: "Mikä oli paras?" }] });
+      data.oletusTyyppi = laji;
+    }
+    data.nimi = nimi; data.pvm = pvm; data.asiakas = asiakas;
+    data.kuvaus = data.kuvaus || "Jokaisesta lasista valitset aromit, jotka löydät, ja annat 0–5 tähteä. Lopuksi katsotaan, mitä koko porukka löysi.";
+    data.lahjakortti = Object.assign({}, PERUS.lahjakortti, data.lahjakortti || {});
+    if (!data.lahjakortti.tunnus) data.lahjakortti.tunnus = slug(asiakas || nimi).split("-")[0].toUpperCase().slice(0, 8);
+    ilmoita("Luodaan…");
+    kuvaKopiot.then(function () { return window.VTData.tallenna(id, data); }).then(function () {
+      lista = (lista || []).concat([Object.assign({ id: id }, data)]);
+      uusiAuki = false;
+      location.hash = "muokkaa-" + id;
+    }, function () { ilmoita("Luonti epäonnistui."); });
+  }
+
+  /* ---------- Tapahtumat ---------- */
+  app.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-act]");
+    if (!t) return;
+    var act = t.dataset.act, i = +t.dataset.i;
+    switch (act) {
+      case "kirjaudu":
+        var em = document.getElementById("k-email").value.trim(), pw = document.getElementById("k-salasana").value, ve = document.getElementById("k-virhe");
+        t.disabled = true;
+        Y.kirjaudu(em, pw).then(function () { if (!onJuontaja()) { ve.hidden = false; ve.textContent = "Tunnus ei ole juontajan tunnus."; t.disabled = false; } },
+          function () { ve.hidden = false; ve.textContent = "Kirjautuminen ei onnistunut. Tarkista sähköposti ja salasana."; t.disabled = false; });
+        break;
+      case "ulos": Y.ulos(); break;
+      case "uusi-auki": uusiAuki = true; render(); setTimeout(function () { var n = document.getElementById("u-nimi"); if (n) n.focus(); }, 0); break;
+      case "uusi-kiinni": uusiAuki = false; render(); break;
+      case "luo": luo(); break;
+      case "linkit": auki[t.dataset.id] = !auki[t.dataset.id]; render(); break;
+      case "kopioi":
+        (navigator.clipboard ? navigator.clipboard.writeText(t.dataset.url) : Promise.reject()).then(function () { ilmoita("Linkki kopioitu"); }, function () { ilmoita(t.dataset.url); });
+        break;
+      case "laske":
+        window.VTData.laskeVastaukset(t.dataset.id).then(function (n) { laskut[t.dataset.id] = n; render(); }, function () { ilmoita("Laskenta epäonnistui."); });
+        break;
+      case "tyhjenna":
+        if (!window.confirm("Tyhjennetäänkö kaikki tämän tastingin vastaukset ja jaetut tulokset?")) return;
+        window.VTData.tyhjennaVastaukset(t.dataset.id).then(function (n) { laskut[t.dataset.id] = 0; ilmoita("Poistettu " + n + " vastausta"); render(); }, function () { ilmoita("Tyhjennys epäonnistui."); });
+        break;
+      case "tuo":
+        var pid = t.dataset.id; t.disabled = true;
+        fetch("/pohjat/" + encodeURIComponent(pid) + ".json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+          d.lahjakortti = Object.assign({}, PERUS.lahjakortti, d.lahjakortti || {});
+          return window.VTData.tallenna(pid, puhdista(Object.assign(kopio(PERUS), d)));
+        }).then(function () { ilmoita("Setti tuotu"); return lataaLista(); }, function () { t.disabled = false; ilmoita("Tuonti epäonnistui."); });
+        break;
+      case "takaisin":
+        if (muutettu && !window.confirm("Sinulla on tallentamattomia muutoksia. Poistutaanko silti?")) { e.preventDefault(); return; }
+        muokId = null; muutettu = false; break;
+      case "tallenna": tallenna(); break;
+      case "aromi-pois": muok.aromit.splice(i, 1); rakenne(); break;
+      case "aromi-lisaa":
+        var inp = document.getElementById("aromi-uusi"), a = (inp.value || "").trim();
+        if (a && muok.aromit.indexOf(a) < 0) { muok.aromit.push(a); rakenne(); setTimeout(function () { var n = document.getElementById("aromi-uusi"); if (n) n.focus(); }, 0); }
+        break;
+      case "aromit-pohja":
+        if (muok.aromit.length && !window.confirm("Korvataanko nykyiset aromit valmiilla listalla?")) return;
+        muok.aromit = AROMIT[t.dataset.v].slice(); rakenne(); break;
+      case "juoma-lisaa":
+        muok.viinit.push({ nimi: "", tyyppi: muok.oletusTyyppi || (muok.viinit[muok.viinit.length - 1] || {}).tyyppi || "kuohu", sokko: true, kuvat: [] });
+        juomaAuki[muok.viinit.length - 1] = true; rakenne(); break;
+      case "juoma-pois":
+        if (!window.confirm("Poistetaanko juoma " + (muok.viinit[i].nimi || "") + "?")) return;
+        (muok.viinit[i].kuvat || []).forEach(function (k) { if (k.indexOf(muokId + "/") === 0) window.VTData.poistaKuva(k).catch(function () {}); });
+        muok.viinit.splice(i, 1); juomaAuki = {}; rakenne(); break;
+      case "juoma-ylos": case "juoma-alas":
+        var j = act === "juoma-ylos" ? i - 1 : i + 1;
+        if (j < 0 || j >= muok.viinit.length) return;
+        var tmp = muok.viinit[i]; muok.viinit[i] = muok.viinit[j]; muok.viinit[j] = tmp;
+        juomaAuki = {}; juomaAuki[j] = true; rakenne(); break;
+      case "kuva-pois":
+        var kp = muok.viinit[i].kuvat.splice(+t.dataset.j, 1)[0];
+        if (kp && kp.indexOf(muokId + "/") === 0) window.VTData.poistaKuva(kp).catch(function () {});
+        juomaAuki[i] = true; rakenne(); break;
+      case "kysymys-lisaa": muok.lopuksi.push({ id: "q" + Date.now().toString(36), kysymys: "", fakta: {}, oikea: {} }); rakenne(); break;
+      case "kysymys-pois": muok.lopuksi.splice(i, 1); rakenne(); break;
+      case "poista-tasting":
+        if (!window.confirm("Poistetaanko tasting " + (muok.nimi || muokId) + " pysyvästi? Linkki lakkaa toimimasta.")) return;
+        window.VTData.poista(muokId).then(function () {
+          lista = (lista || []).filter(function (x) { return x.id !== muokId; }); muokId = null; muutettu = false; location.hash = ""; ilmoita("Poistettu");
+        }, function () { ilmoita("Poisto epäonnistui."); });
+        break;
+    }
+  });
+  app.addEventListener("toggle", function (e) {
+    var d = e.target;
+    if (d.dataset && d.dataset.juoma != null) juomaAuki[+d.dataset.juoma] = d.open;
+  }, true);
+  app.addEventListener("input", function (e) {
+    var t = e.target, p = t.dataset && t.dataset.p;
+    if (!p || !muok || t.type === "checkbox" || t.tagName === "SELECT") return;
+    aseta(p, t.type === "number" ? (t.value === "" ? "" : +t.value) : t.value);
+    merkitse();
+    if (/^viinit\.\d+\.(nimi|alue|maa)$/.test(p)) {
+      var i = +p.split(".")[1], v = muok.viinit[i], s = document.querySelector('[data-juoma="' + i + '"] summary b');
+      if (s) s.innerHTML = esc(v.nimi || "Uusi juoma") + "<small>" + (v.alkoholiton ? "Alkoholiton · " : "") + esc([v.alue, v.maa].filter(Boolean).join(", ") || "Täydennä tiedot") + "</small>";
+    }
+  });
+  app.addEventListener("change", function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.kuvaInput != null && t.files && t.files[0]) {
+      var i = +t.dataset.kuvaInput;
+      ilmoita("Ladataan kuvaa…");
+      pienenna(t.files[0]).then(function (d) { return window.VTData.tallennaKuva(muokId, d).then(function (polku) { kuvaVarasto[polku] = d; return polku; }); })
+        .then(function (polku) { muok.viinit[i].kuvat = (muok.viinit[i].kuvat || []).concat([polku]); juomaAuki[i] = true; rakenne(); ilmoita("Kuva lisätty. Muista tallentaa."); },
+          function () { ilmoita("Kuvan lataus epäonnistui."); });
+      return;
+    }
+    var p = t.dataset && t.dataset.p;
+    if (!p || !muok) return;
+    if (t.type === "checkbox") { aseta(p, t.checked); if (/alkoholiton$/.test(p)) juomaAuki[+p.split(".")[1]] = true; rakenne(); return; }
+    if (t.tagName === "SELECT") {
+      var v = t.value;
+      aseta(p, /\.oikea\./.test(p) ? (v === "" ? null : +v) : v);
+      merkitse();
+    }
+  });
+  app.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    if (e.target.id === "aromi-uusi") { e.preventDefault(); app.querySelector('[data-act="aromi-lisaa"]').click(); }
+    if (e.target.id === "k-salasana") { e.preventDefault(); app.querySelector('[data-act="kirjaudu"]').click(); }
+  });
+  window.addEventListener("hashchange", function () {
+    if (location.hash.indexOf("#muokkaa-") !== 0) { muokId = null; }
+    render(); window.scrollTo(0, 0);
+  });
+  window.addEventListener("beforeunload", function (e) { if (muutettu) { e.preventDefault(); e.returnValue = ""; } });
+
+  /* ---------- Käynnistys ---------- */
+  if (!window.VTYhteys || !A.firebase || !A.firebase.apiKey) { valmis = true; render(); return; }
+  Y = window.VTYhteys(A.firebase, "_hallinta");
+  Y.onKayttaja(function (u) {
+    kayttaja = u; valmis = true;
+    if (onJuontaja()) { if (lista === null) { lataaLista(); lataaPohjat(); } }
+    else { lista = null; }
+    render();
+  });
+})();

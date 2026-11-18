@@ -313,3 +313,11 @@ body.juontaja { background: #161614; overflow: hidden; }
   .k-sivu { margin: 0; box-shadow: none; }
 }
 @media (max-width: 860px) { .k-sivu { transform: scale(0.45); transform-origin: top left; margin-bottom: calc(-297mm * 0.55); margin-left: var(--vali-4); } }
+
+/* Kuvat */
+.o-kuvat { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--vali-2); margin: 0 0 var(--vali-4); }
+.o-kuva { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--kulma-m); border: 2px solid var(--viiva); background: rgba(45, 45, 42, 0.08); }
+.o-kuvat .o-kuva:only-child { aspect-ratio: auto; max-height: 420px; object-fit: contain; }
+.j-kuva { display: block; width: 100%; height: calc(260 * var(--u)); object-fit: contain; border-radius: calc(20 * var(--u)); background: rgba(45, 45, 42, 0.06); }
+.j-kuva:not([src]) { display: none; }
+.o-kuva:not([src]) { visibility: hidden; }

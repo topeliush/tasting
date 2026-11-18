@@ -4,8 +4,17 @@ service cloud.firestore {
     function juontaja() {
       return request.auth != null && request.auth.token.email in ['tophaavisto@icloud.com'];
     }
+    // Tastingien sisältö ja kuvat: kaikki lukevat, vain juontaja muokkaa.
+    match /tastingit/{tasting} {
+      allow read: if true;
+      allow write: if juontaja();
+      match /kuvat/{kuva} {
+        allow read: if true;
+        allow write: if juontaja();
+      }
+    }
+    // Tilaisuuden tila (dia, teema, jaetut tulokset): kaikki lukevat, vain juontaja kirjoittaa.
     match /tilaisuudet/{tilaisuus} {
-      // Tilaisuuden tila (dia, teema, jaetut tulokset): kaikki lukevat, vain juontaja kirjoittaa.
       allow read: if true;
       allow write: if juontaja();
       match /vastaukset/{uid} {

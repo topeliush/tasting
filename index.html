@@ -8,18 +8,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="/app.css">
 <style>
-body { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; }
-main { max-width: 480px; padding: var(--vali-6) var(--vali-5); }
+.lataus { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--vali-6) var(--vali-5); }
+.lataus > div { max-width: 480px; }
 </style>
 </head>
 <body>
-<main class="o-osio">
-  <p class="o-display">tervetuloa</p>
-  <h1 class="o-h1" style="margin-top:var(--vali-4)">Viinitasting.com</h1>
-  <p class="o-ingressi" style="margin-top:var(--vali-4)">Skannaa tilaisuuden QR-koodi, niin pääset illan tastingiin.</p>
-  <p style="margin-top:var(--vali-6)"><a class="vt-painike" href="https://viinitasting.com">Varaa oma tasting</a></p>
-</main>
+<div id="app"><main class="lataus"><div><p class="o-display">tervetuloa</p><p class="o-ingressi" style="margin-top:var(--vali-4)" id="lataus-teksti">Ladataan tastingia…</p></div></main></div>
+<noscript>Tämä sivu tarvitsee JavaScriptin.</noscript>
+<script src="/asetukset.js"></script>
+<script src="/yhteys.js"></script>
+<script src="/qr.js"></script>
+<script>
+(function () {
+  var id = (new URLSearchParams(location.search).get("t") || "").trim().toLowerCase();
+  var teksti = document.getElementById("lataus-teksti");
+  function viesti(t, linkki) {
+    teksti.textContent = t;
+    if (linkki) {
+      var p = document.createElement("p"); p.style.marginTop = "var(--vali-6)";
+      p.innerHTML = '<a class="vt-painike" href="https://viinitasting.com">Varaa oma tasting</a>';
+      teksti.parentNode.appendChild(p);
+    }
+  }
+  if (!id) { viesti("Skannaa tilaisuuden QR-koodi, niin pääset illan tastingiin.", true); return; }
+  if (!/^[a-z0-9-]{1,60}$/.test(id) || !window.VTData) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
+  var aikaraja = setTimeout(function () { viesti("Yhteys on hidas. Odota hetki tai lataa sivu uudelleen."); }, 10000);
+  window.VTData.haeTasting(id).then(function (t) {
+    clearTimeout(aikaraja);
+    if (!t) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
+    t.id = id;
+    t.osoite = location.origin + "/?t=" + id;
+    window.TASTING = t;
+    document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
+    var s = document.createElement("script"); s.src = "/app.js?v=3"; document.body.appendChild(s);
+  }, function () { clearTimeout(aikaraja); viesti("Tastingin lataus epäonnistui. Lataa sivu uudelleen."); });
+})();
+</script>
 </body>
 </html>
