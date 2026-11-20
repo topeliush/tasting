@@ -786,8 +786,8 @@
           tulosKortit(d, "").replace(/^<div class="j-tulokset" style="[^"]*">/, "").replace(/<\/div>$/, "") +
           '<div class="j-tulos">' + ((v.kuvat || [])[0] ? kuvaTag(v.kuvat[0], "j-kuva") : "") + "<b>Mitä lasista voi löytää</b><span class=\"j-huomio\">" + esc(v.maistele || "") + "</span></div></div>";
     } else if (d.k === "vertailu") {
-      h = '<div class="j-rivi"><span class="j-ylatunniste">Lopuksi</span></div>' +
-        '<h1 class="j-otsikko">Mieti kaikkia kolmea yhdessä</h1><p class="j-ala">Vastaa puhelimessa kohdassa Lopuksi ja lukitse vastauksesi.</p>' +
+      h = '<div class="j-rivi"><span class="j-ylatunniste">Yhteenveto</span></div>' +
+        '<h1 class="j-otsikko">' + (lopuksi().length === 1 ? "Vielä yksi kysymys" : "Vielä " + lopuksi().length + " kysymystä") + '</h1><p class="j-ala">Vastaa puhelimessa kohdassa Yhteenveto ja lukitse vastauksesi.</p>' +
         '<ol class="j-kysymykset">' + lopuksi().map(function (q) { return "<li><b>" + esc(q.kysymys) + "</b></li>"; }).join("") + "</ol>";
     } else if (d.k === "vtulos") {
       var alk = d.l === "alkoholiton";
@@ -975,8 +975,8 @@
   function diaNimi(d) {
     if (!d) return "";
     if (d.k === "kansi") return "Kansi ja QR-koodi";
-    if (d.k === "loppu") return "Kiitos ja kiitoslahja";
-    if (d.k === "vertailu") return "Lopuksi · kysymykset";
+    if (d.k === "loppu") return "Kiitos · kiitoslahja";
+    if (d.k === "vertailu") return "Yhteenveto · kysymykset";
     if (d.k === "vtulos") return "Illan tulokset ja tähdet" + (onLinjat() ? (d.l === "alkoholiton" ? " (alkoholittomat)" : " (kuohuviinit)") : "");
     if (d.pari) return "Lasi " + d.lasi + " · Maistelu";
     var w = T.viinit[d.i];
@@ -1110,8 +1110,8 @@
         tarkistuslista() +
         muistiinpano("Muista", "Pyydä kaikkia skannaamaan koodi." + (onLinjat() ? " Jokainen valitsee alussa kuohuviinit tai alkoholittomat ja näkee vain omat juomansa." : "") + (lahjaKaytossa() ? " Kerro, että lopussa odottaa kiitoslahja." : ""));
     } else if (d.k === "vertailu") {
-      h = '<h1 class="p-h1">Lopuksi</h1>' +
-        muistiinpano("Ohje", "Osallistujat vastaavat puhelimessa kohdassa Lopuksi. Seuraavilla dioilla jaat vastaukset ja tähtien keskiarvot.") +
+      h = '<h1 class="p-h1">Yhteenveto</h1>' +
+        muistiinpano("Ohje", "Osallistujat vastaavat puhelimessa kohdassa Yhteenveto. Seuraavilla dioilla jaat vastaukset ja tähtien keskiarvot.") +
         lopuksi().map(function (q) {
           var t = (onLinjat() ? ["viini", "alkoholiton"] : ["viini"]).map(function (l) {
             var o = lOikea(q, l), vv = lVaihtoehdot(l);
