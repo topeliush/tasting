@@ -39,7 +39,7 @@
     tallenna: function (id, d) { d = JSON.parse(JSON.stringify(d)); d.muokattu = Date.now(); return post("/api/doc/tastingit/" + id, d); },
     poista: function (id) { return del("/api/doc/tastingit/" + id); },
     tallennaKuva: function (id, data) { var k = "k" + Math.random().toString(36).slice(2, 8); return post("/api/doc/tastingit/" + id + "/kuvat/" + k, { data: data }).then(function () { return id + "/" + k; }); },
-    haeKuva: function (p) { var o = p.split("/"); return get("/api/doc/tastingit/" + o[0] + "/kuvat/" + o[1]).then(function (d) { return d ? d.data : null; }); },
+    haeKuva: function (p) { if (/^(\/|https?:)/.test(String(p))) return Promise.resolve(p); var o = p.split("/"); return get("/api/doc/tastingit/" + o[0] + "/kuvat/" + o[1]).then(function (d) { return d ? d.data : null; }); },
     poistaKuva: function (p) { var o = p.split("/"); return del("/api/doc/tastingit/" + o[0] + "/kuvat/" + o[1]); },
     tyhjennaVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return Promise.all(l.map(function (x) { return del("/api/doc/tilaisuudet/" + id + "/vastaukset/" + x.id); })).then(function () { return del("/api/doc/tilaisuudet/" + id); }).then(function () { return l.length; }); }); },
     laskeVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return l.length; }); }

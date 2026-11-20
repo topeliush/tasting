@@ -68,7 +68,8 @@ window.VTData = {
     var db = perus().db, k = "k" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     return setDoc(doc(db, "tastingit", id, "kuvat", k), { data: data, luotu: Date.now() }).then(function () { return id + "/" + k; });
   },
-  haeKuva: function (polku) { var db = perus().db; return getDoc(kuvaRef(db, polku)).then(function (s) { return s.exists() ? s.data().data : null; }); },
+  // Repon staattiset kuvat (esim. /kuvat/face/kartta.jpg) näytetään suoraan, muut haetaan Firestoresta.
+  haeKuva: function (polku) { if (/^(\/|https?:)/.test(String(polku))) return Promise.resolve(polku); var db = perus().db; return getDoc(kuvaRef(db, polku)).then(function (s) { return s.exists() ? s.data().data : null; }); },
   poistaKuva: function (polku) { var db = perus().db; return deleteDoc(kuvaRef(db, polku)); },
   tyhjennaVastaukset: function (id) {
     var db = perus().db;

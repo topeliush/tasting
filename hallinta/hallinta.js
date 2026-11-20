@@ -264,6 +264,7 @@
       '<label class="h-valinta"><input type="checkbox" data-p="lahjakortti.kaytossa"' + (w.lahjakortti.kaytossa ? " checked" : "") + "> Kiitoslahja lopussa (lahjakortti)</label>" +
       (w.lahjakortti.kaytossa ? '<div class="h-kaksi">' + kentta("lahjakortti.arvo", "Lahjakortin arvo (€)", w.lahjakortti.arvo, "number") + kentta("lahjakortti.tunnus", "Tunnus koodiin (esim. TEK)", w.lahjakortti.tunnus) + "</div>" : "") +
       kentta("googleArvioLinkki", "Google-arvion linkki", w.googleArvioLinkki || "") +
+      (pohjat.some(function (p) { return p && p.id === id; }) ? '<div class="h-rivi"><button class="h-pieni" data-act="pohja-kuvat">Hae kuvat valmiista setistä</button><span class="h-ohje" style="margin:0">Lisää Clauden valmisteleman setin kuvat (esim. kartat) puuttuville viineille.</span></div>' : "") +
       "</div></section>";
 
     // Aromit
@@ -491,6 +492,22 @@
           d.lahjakortti = Object.assign({}, PERUS.lahjakortti, d.lahjakortti || {});
           return window.VTData.tallenna(pid, puhdista(Object.assign(kopio(PERUS), d)));
         }).then(function () { ilmoita("Setti tuotu"); return lataaLista(); }, function () { t.disabled = false; ilmoita("Tuonti epäonnistui."); });
+        break;
+      case "pohja-kuvat":
+        t.disabled = true;
+        fetch("/pohjat/" + encodeURIComponent(muokId) + ".json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+          var lisatty = 0;
+          (d.viinit || []).forEach(function (pw) {
+            var w = muok.viinit.filter(function (x) { return x.nimi === pw.nimi; })[0];
+            if (!w) return;
+            w.kuvat = w.kuvat || [];
+            (pw.kuvat || []).forEach(function (k) {
+              if (w.kuvat.indexOf(k) < 0 && w.kuvat.length < MAX_KUVAT) { w.kuvat.push(k); lisatty++; }
+            });
+          });
+          if (lisatty) { rakenne(); ilmoita(lisatty + " kuvaa lisätty. Muista tallentaa."); }
+          else { t.disabled = false; ilmoita("Ei uusia kuvia lisättäväksi."); }
+        }, function () { t.disabled = false; ilmoita("Kuvien haku epäonnistui."); });
         break;
       case "takaisin":
         if (muutettu && !window.confirm("Sinulla on tallentamattomia muutoksia. Poistutaanko silti?")) { e.preventDefault(); return; }
