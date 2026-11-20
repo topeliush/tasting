@@ -264,7 +264,7 @@
       '<label class="h-valinta"><input type="checkbox" data-p="lahjakortti.kaytossa"' + (w.lahjakortti.kaytossa ? " checked" : "") + "> Kiitoslahja lopussa (lahjakortti)</label>" +
       (w.lahjakortti.kaytossa ? '<div class="h-kaksi">' + kentta("lahjakortti.arvo", "Lahjakortin arvo (€)", w.lahjakortti.arvo, "number") + kentta("lahjakortti.tunnus", "Tunnus koodiin (esim. TEK)", w.lahjakortti.tunnus) + "</div>" : "") +
       kentta("googleArvioLinkki", "Google-arvion linkki", w.googleArvioLinkki || "") +
-      (pohjat.some(function (p) { return p && p.id === id; }) ? '<div class="h-rivi"><button class="h-pieni" data-act="pohja-kuvat">Hae kuvat valmiista setistä</button><span class="h-ohje" style="margin:0">Lisää Clauden valmisteleman setin kuvat (esim. kartat) puuttuville viineille.</span></div>' : "") +
+      '<div class="h-rivi"><button class="h-pieni" data-act="pohja-kuvat">Hae kuvat valmiista setistä</button><span class="h-ohje" style="margin:0">Lisää Clauden valmistelemat kuvat (esim. kartat) samannimisille viineille.</span></div>' +
       "</div></section>";
 
     // Aromit
@@ -495,9 +495,13 @@
         break;
       case "pohja-kuvat":
         t.disabled = true;
-        fetch("/pohjat/" + encodeURIComponent(muokId) + ".json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+        fetch("/pohjat/index.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (lst) {
+          return Promise.all((lst || []).map(function (p) {
+            return fetch("/pohjat/" + encodeURIComponent(p.id) + ".json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : {}; }, function () { return {}; });
+          }));
+        }).then(function (setit) {
           var lisatty = 0;
-          (d.viinit || []).forEach(function (pw) {
+          setit.reduce(function (a, d) { return a.concat(d.viinit || []); }, []).forEach(function (pw) {
             var w = muok.viinit.filter(function (x) { return x.nimi === pw.nimi; })[0];
             if (!w) return;
             w.kuvat = w.kuvat || [];
