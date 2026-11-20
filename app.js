@@ -360,8 +360,8 @@
       var w = T.viinit[i], valmis = onSokko(w) ? onAuki(i) : (S.arviot[i] != null && ((S.aromit[i] || []).length + omatAromit(i).length) > 0);
       return '<li><button class="o-tab' + (valmis ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="' + i + '" aria-current="' + (S.nakyma === i) + '" aria-label="' + iso(sana(w)) + " " + nro(i) + (valmis ? ", valmis" : "") + '">' + nro(i) + (valmis ? '<span class="o-tab__ok" aria-hidden="true">✓</span>' : "") + "</button></li>";
     }).join("");
-    if (lopuksi().length) tabit += '<li><button class="o-tab o-tab--loppu' + (S.loppu.lukittu ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="vertailu" aria-current="' + (S.nakyma === "vertailu") + '">Viimeinen sana</button></li>';
-    tabit += '<li><button class="o-tab o-tab--loppu" data-act="siirry" data-v="loppu" aria-current="' + (S.nakyma === "loppu") + '">Yhteenveto</button></li>';
+    if (lopuksi().length) tabit += '<li><button class="o-tab o-tab--loppu' + (S.loppu.lukittu ? " o-tab--valmis" : "") + '" data-act="siirry" data-v="vertailu" aria-current="' + (S.nakyma === "vertailu") + '">Yhteenveto</button></li>';
+    tabit += '<li><button class="o-tab o-tab--loppu" data-act="siirry" data-v="loppu" aria-current="' + (S.nakyma === "loppu") + '">Kiitos</button></li>';
     var linjaNappi = onLinjat() && S.linja ? '<button class="o-linjavaihto' + (S.linja === "alkoholiton" ? " o-linjavaihto--alk" : "") + '" data-act="alkuun">' +
       (S.linja === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + '<span aria-hidden="true">⇄</span><span class="o-piilo">, vaihda setti</span></button>' : "";
     return '<header class="o-yla"><span class="o-yla__nimi">' + esc(T.nimi) + "</span>" + linjaNappi + "</header>" +
@@ -485,7 +485,7 @@
       h += maistelu(i);
       h += viiniKortti(w, true);
       h += '<button class="vt-painike vt-painike--leveä" data-act="seuraava" data-i="' + i + '" data-v="' + (seurNb == null ? loppuNb : seurNb) + '">' +
-        (seurNb == null ? (lopuksi().length ? "Viimeinen sana →" : "Yhteenveto →") : "Seuraava lasi →") + "</button>";
+        (seurNb == null ? (lopuksi().length ? "Yhteenveto →" : "Kiitos →") : "Seuraava lasi →") + "</button>";
       return h + "</section>";
     }
     if (!onAuki(i)) {
@@ -511,14 +511,14 @@
       h += viiniKortti(w);
       var om = omat(), seur = om[om.indexOf(i) + 1];
       var loppuun = lopuksi().length ? "vertailu" : "loppu";
-      h += '<button class="vt-painike vt-painike--leveä" data-act="siirry" data-v="' + (seur == null ? loppuun : seur) + '">' + (seur == null ? (lopuksi().length ? "Viimeinen sana →" : "Yhteenveto →") : "Seuraava lasi →") + "</button>";
+      h += '<button class="vt-painike vt-painike--leveä" data-act="siirry" data-v="' + (seur == null ? loppuun : seur) + '">' + (seur == null ? (lopuksi().length ? "Yhteenveto →" : "Kiitos →") : "Seuraava lasi →") + "</button>";
     }
     return h + "</section>";
   }
 
   function vertailuNakyma() {
     var l = S.linja || "viini", L = S.loppu, vv = lVaihtoehdot(l);
-    var h = '<section class="o-osio"><h1 class="o-h1">Viimeinen sana</h1>';
+    var h = '<section class="o-osio"><h1 class="o-h1">Yhteenveto</h1>';
     if (!L.lukittu) {
       h += '<p class="o-ingressi">' + (omat().length === 3 ? "Kolme" : omat().length) + ' lasia takana. Nyt saa vertailla, ja maistaa vielä kerran, jos muisti pätkii.</p>';
       h += lopuksi().map(function (q) {
@@ -567,7 +567,7 @@
       h += tahtitaulukko(omat()) || '<p class="o-vaimea">Illan tähtitaulukko paljastetaan ihan lopuksi. Jännitys säilyy.</p>';
       h += arvioPyynto(true);
     }
-    h += '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="siirry" data-v="loppu">Yhteenveto</button>';
+    h += '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="siirry" data-v="loppu">Kiitos →</button>';
     return h + "</section>";
   }
   function jarjestys() {
