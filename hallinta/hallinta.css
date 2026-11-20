@@ -91,3 +91,9 @@
 .h-kooste__aromit span.oma { background: color-mix(in srgb, var(--sininen) 15%, var(--pinta)); font-style: italic; }
 .h-kooste__aromit i { font-style: normal; font-weight: 800; }
 .h-kooste .vt-painike { margin-top: var(--vali-3); }
+
+/* Lahjakortit */
+.h-lahjalista { margin: var(--vali-4) 0 0; padding: 0; list-style: none; }
+.h-lahjalista li { padding: var(--vali-3) 0; border-top: 1px dotted var(--viiva); }
+.h-lahjalista li > :not(:first-child) { margin-top: var(--vali-2); }
+.h-lahjakoodi { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 17px; letter-spacing: 0.04em; }

@@ -29,6 +29,7 @@
         });
       },
       haeKoonti: function (i) { return get("/api/doc/tilaisuudet/" + t + "/koonti/v" + i); },
+      tallennaLahja: function (d) { var x = JSON.parse(JSON.stringify(d)); x.tasting = t; x.kaytetty = false; x.luotuMs = Date.now(); return post("/api/doc/lahjakortit/" + d.koodi, x); },
       tallennaVastaus: function (uid, d) { return post("/api/doc/tilaisuudet/" + t + "/vastaukset/" + uid, d); },
       kuunteleVastaukset: function (cb) { return poll("/api/col/tilaisuudet/" + t + "/vastaukset", cb, function (l) { return l.map(function (x) { return x.data; }); }); }
     };
@@ -42,6 +43,8 @@
     haeKuva: function (p) { if (/^(\/|https?:)/.test(String(p))) return Promise.resolve(p); var o = p.split("/"); return get("/api/doc/tastingit/" + o[0] + "/kuvat/" + o[1]).then(function (d) { return d ? d.data : null; }); },
     poistaKuva: function (p) { var o = p.split("/"); return del("/api/doc/tastingit/" + o[0] + "/kuvat/" + o[1]); },
     tyhjennaVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return Promise.all(l.map(function (x) { return del("/api/doc/tilaisuudet/" + id + "/vastaukset/" + x.id); })).then(function () { return del("/api/doc/tilaisuudet/" + id); }).then(function () { return l.length; }); }); },
+    listaaLahjat: function () { return get("/api/col/lahjakortit").then(function (l) { return l.map(function (x) { x.data.id = x.id; return x.data; }); }); },
+    merkitseLahja: function (k, v) { return get("/api/doc/lahjakortit/" + k).then(function (d) { d.kaytetty = !!v; d.kaytettyMs = v ? Date.now() : null; return post("/api/doc/lahjakortit/" + k, d); }); },
     laskeVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return l.length; }); }
   };
 })();

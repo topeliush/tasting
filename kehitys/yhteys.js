@@ -50,6 +50,10 @@ window.VTYhteys = function (config, tilaisuus) {
     tallennaVastaus: function (uid, data) {
       return setDoc(doc(db, "tilaisuudet", tilaisuus, "vastaukset", uid), { l: data.l, v: data.v, L: data.L, paivitetty: serverTimestamp() });
     },
+    // Kiitoslahjan koodi talteen: osallistuja voi vain luoda, vain juontaja lukee ja merkitsee käytetyksi.
+    tallennaLahja: function (d) {
+      return setDoc(doc(db, "lahjakortit", d.koodi), { koodi: d.koodi, arvo: d.arvo, tasting: tilaisuus, asiakas: d.asiakas || "", nimi: d.nimi || "", voimassa: d.voimassa, valinta: d.valinta || "", luotu: serverTimestamp(), kaytetty: false });
+    },
     kuunteleVastaukset: function (cb, virhe) {
       return onSnapshot(collection(db, "tilaisuudet", tilaisuus, "vastaukset"), function (qs) { cb(qs.docs.map(function (d) { return d.data(); })); }, virhe);
     }
@@ -85,5 +89,12 @@ window.VTData = {
     var db = perus().db;
     return getDocs(collection(db, "tilaisuudet", id, "koonti")).then(function (qs) { var r = {}; qs.docs.forEach(function (d) { r[d.id] = d.data(); }); return r; });
   },
+  listaaLahjat: function () {
+    var db = perus().db;
+    return getDocs(collection(db, "lahjakortit")).then(function (qs) {
+      return qs.docs.map(function (d) { var x = d.data(); x.id = d.id; x.luotuMs = x.luotu && x.luotu.toMillis ? x.luotu.toMillis() : 0; delete x.luotu; return x; });
+    });
+  },
+  merkitseLahja: function (koodi, kaytetty) { var db = perus().db; return updateDoc(doc(db, "lahjakortit", koodi), { kaytetty: !!kaytetty, kaytettyMs: kaytetty ? Date.now() : null }); },
   laskeVastaukset: function (id) { var db = perus().db; return getDocs(collection(db, "tilaisuudet", id, "vastaukset")).then(function (qs) { return qs.size; }); }
 };

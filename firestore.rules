@@ -13,6 +13,13 @@ service cloud.firestore {
         allow write: if juontaja();
       }
     }
+    // Kiitoslahjojen koodit: osallistuja luo oman koodinsa kerran, vain juontaja näkee listan ja merkitsee käytetyksi.
+    match /lahjakortit/{koodi} {
+      allow read, update, delete: if juontaja();
+      allow create: if request.auth != null && koodi.size() <= 40
+        && request.resource.data.keys().hasOnly(['koodi', 'arvo', 'tasting', 'asiakas', 'nimi', 'voimassa', 'valinta', 'luotu', 'kaytetty'])
+        && request.resource.data.koodi == koodi && request.resource.data.kaytetty == false;
+    }
     // Tilaisuuden tila (dia, teema, jaetut tulokset): kaikki lukevat, vain juontaja kirjoittaa.
     match /tilaisuudet/{tilaisuus} {
       allow read: if true;

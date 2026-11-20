@@ -3,7 +3,7 @@
 - **Hallinta:** https://tasting.viinitasting.com/hallinta/ – tastingien luonti, muokkaus, linkit ja QR-koodit, vastausten tyhjennys.
 - **Osallistujat:** `https://tasting.viinitasting.com/?t=<tunnus>` – lisäksi `#ohjaus` (juontajan puhelin), `#naytto` (iso näyttö), `#poytakortti`.
 
-Tastingien sisältö ja kuvat ovat Firestoressa (`tastingit/{tunnus}`, `tastingit/{tunnus}/kuvat`). Vastaukset ovat polussa `tilaisuudet/{tunnus}/vastaukset`. Osallistujien yhteiset laskurit (aromit `koonti/v{n}`, tähdet, loppukysymykset ja osallistujamäärä `koonti/loppu`) päivittyvät suoraan puhelimista.
+Tastingien sisältö ja kuvat ovat Firestoressa (`tastingit/{tunnus}`, `tastingit/{tunnus}/kuvat`). Vastaukset ovat polussa `tilaisuudet/{tunnus}/vastaukset`. Kiitoslahjojen koodit tallentuvat kokoelmaan `lahjakortit/{koodi}` (osallistuja voi vain luoda, juontaja näkee ne hallinnan Lahjakortit-osiossa ja merkitsee käytetyksi). Osallistujien yhteiset laskurit (aromit `koonti/v{n}`, tähdet, loppukysymykset ja osallistujamäärä `koonti/loppu`) päivittyvät suoraan puhelimista.
 
 ## Tiedostot
 - `index.html` – lataa tastingin tunnuksella ja käynnistää sovelluksen.

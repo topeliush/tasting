@@ -21,12 +21,13 @@
     set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   };
   var KEY = "vt-tasting-" + T.id;
-  function uusiTila() { return { nimi: "", linja: null, loppu: { v: {}, lukittu: false }, aromit: {}, omaAromi: {}, aloitettu: false, nakyma: 0, vastaukset: {}, lukittu: {}, paljastettu: {}, arviot: {}, muistiinpanot: {}, kirjattu: { t: {}, L: {} } }; }
+  function uusiTila() { return { nimi: "", linja: null, loppu: { v: {}, lukittu: false }, aromit: {}, omaAromi: {}, aloitettu: false, nakyma: 0, vastaukset: {}, lukittu: {}, paljastettu: {}, arviot: {}, muistiinpanot: {}, aromiKiinni: {}, porukkaNahty: {}, kirjattu: { t: {}, L: {} } }; }
   var S = store.get(KEY, null) || uusiTila();
   if (!S.loppu) S.loppu = { v: {}, lukittu: false };
   if (!S.aromit) S.aromit = {};
   if (!S.omaAromi) S.omaAromi = {};
   if (!S.aromiKiinni) S.aromiKiinni = {};
+  if (!S.porukkaNahty) S.porukkaNahty = {};
   if (!S.kirjattu) S.kirjattu = { t: {}, L: {} };
   Object.keys(S.omaAromi).forEach(function (k) { if (typeof S.omaAromi[k] === "string") S.omaAromi[k] = S.omaAromi[k] ? [S.omaAromi[k]] : []; });
   var poppaa = null;
@@ -414,14 +415,16 @@
         '<button class="vt-painike vt-painike--pieni" data-act="oma-lisaa" data-i="' + i + '">Lisää</button></div>') +
       (omat.length ? '<div class="o-omat-lista">' + omatChipit + "</div>" : "") +
       '<p class="o-vaimea" style="margin:var(--vali-4) 0 var(--vali-3)">…tai napauta tuttuja. Saa valita monta.</p><div class="o-aromit">' + chipit + "</div>" + valmisNappi + "</fieldset>" +
-      (onSokko(T.viinit[i]) ? "" : '<div class="o-vt-porukka" id="porukka-' + i + '">' + porukkaHtml(i) + "</div>") +
+      (onSokko(T.viinit[i]) ? "" : (lukittu || S.porukkaNahty[i]) ? '<div class="o-vt-porukka" id="porukka-' + i + '">' + porukkaHtml(i) + "</div>" :
+        '<div class="o-vt-porukka"><div class="vt-kortti o-havainto o-porukka o-porukka--piilossa"><h2 class="o-h2">Muiden löytämät aromit</h2><p class="o-vaimea">Näet porukan aromit, kun olet valinnut omasi ja painanut <b>Valmis, nämä löysin</b>. Näin muiden vastaukset eivät ohjaa omaa nenääsi.</p></div></div>') +
       '<fieldset class="o-kysymys o-vt-tahdet"><legend>Montako tähteä?</legend><div class="o-tahdet">' + tahdet + '</div><p class="o-vaimea o-tahtisana" style="margin-top:var(--vali-2)">' + esc(tahtiSana) + "</p></fieldset>";
   }
 
   var kuvaVarasto = {};
   function kuvaTag(polku, luokka) {
     var src = kuvaVarasto[polku];
-    return '<img class="' + luokka + '" data-kuva="' + esc(polku) + '" alt=""' + (luokka === "o-kuva" ? ' data-act="kuva-iso"' : "") + (src ? ' src="' + src + '"' : "") + ">";
+    return '<img class="' + luokka + '" data-kuva="' + esc(polku) + '" alt=""' + (luokka === "o-kuva" ? ' data-act="kuva-iso"' : "") + (src ? ' src="' + src + '"' : "") +
+      ' onerror="var g=this.parentNode;this.remove();if(g&&g.classList.contains(\'o-kuvat\')&&!g.querySelector(\'img\'))g.remove()">';
   }
   function kuvaGalleria(w) {
     var k = (w.kuvat || []).filter(Boolean);
@@ -435,7 +438,7 @@
       if (kuvaVarasto[p] === false) return;
       kuvaVarasto[p] = false;
       window.VTData.haeKuva(p).then(function (src) {
-        if (!src || !/^data:image\//.test(src)) return;
+        if (!src || !/^(data:image\/|\/|https:)/.test(src)) return;
         kuvaVarasto[p] = src;
         Array.prototype.forEach.call(document.querySelectorAll('img[data-kuva="' + p + '"]'), function (x) { x.src = src; });
       }, function () { delete kuvaVarasto[p]; });
@@ -645,6 +648,14 @@
     var voimassa = new Date(); voimassa.setMonth(voimassa.getMonth() + (L.voimassaKk || 12));
     return { koodi: "VT" + L.arvo + "-" + (L.tunnus || "TASTING").toUpperCase() + "-" + loppu, voimassa: voimassa.toISOString(), valinta: null, kenelle: "", tervehdys: "" };
   }
+  // Koodi talteen juontajalle (hallinta → Lahjakortit), jotta sen aitouden voi tarkistaa. Tallennetaan kerran.
+  function tallennaLahjaTalteen() {
+    var l = S.lahja;
+    if (!l || l.talteen || !Y || !Y.tallennaLahja || !kayttaja || T.esikatselu) return;
+    l.talteen = "kesken";
+    Y.tallennaLahja({ koodi: l.koodi, arvo: T.lahjakortti.arvo, asiakas: T.asiakas || "", nimi: T.nimi || "", voimassa: l.voimassa, valinta: l.valinta })
+      .then(function () { l.talteen = true; tallenna(); }, function () { l.talteen = false; });
+  }
   function pvm(iso) { var d = new Date(iso); return d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear(); }
   function lahjaViesti() {
     var L = T.lahjakortti, l = S.lahja, osoite = lyhyt(T.varausLinkki);
@@ -759,7 +770,7 @@
     var d = D[dia], url = osallistujaUrl(), h = "", luokka = "";
     var teema = store.get("vt-teema", "vaalea");
     document.documentElement.dataset.theme = teema;
-    document.body.className = "juontaja";
+    document.body.className = "juontaja" + (document.body.classList.contains("j-levossa") ? " j-levossa" : "");
 
     if (d.k === "kansi") {
       luokka = " j-lava--kansi";
@@ -812,8 +823,22 @@
       '<a href="#ohjaus">' + (Y && !onJuontaja() ? "Kirjaudu juontajana" : "Puhelinohjaus") + '</a><a href="#poytakortti">Pöytäkortti</a><a href="#">Osallistujan näkymä</a>' +
       '<span id="yhteys" data-luokka="j-chip"></span></nav>';
     skaalaa();
+    if (!levossaAjastin) heraa();
     paivitaYhteys();
   }
+  // Ison näytön ohjauspalkki piiloutuu, kun hiiri on ollut paikallaan hetken.
+  var levossaAjastin = null;
+  function heraa() {
+    document.body.classList.remove("j-levossa");
+    clearTimeout(levossaAjastin);
+    levossaAjastin = setTimeout(function () {
+      var nav = document.querySelector(".j-ohjaus");
+      if (!nav) return;
+      if (nav.matches(":hover, :focus-within")) { heraa(); return; }
+      document.body.classList.add("j-levossa");
+    }, 2500);
+  }
+  ["mousemove", "mousedown", "touchstart", "keydown"].forEach(function (e) { window.addEventListener(e, heraa, { passive: true }); });
   function skaalaa() {
     var lava = document.getElementById("lava");
     if (!lava) return;
@@ -951,7 +976,7 @@
       kayttaja = u;
       if (!u && !juontajaReitti()) Y.anonyymi().catch(function () {});
       viimeksiLahetetty = "";
-      if (u) { asetaPresence(); kiinnostavat().forEach(haeKoonti); }
+      if (u) { asetaPresence(); kiinnostavat().forEach(haeKoonti); if (!juontajaReitti() && S.lahja && S.lahja.valinta) tallennaLahjaTalteen(); }
       kuunteleVastaukset();
       if (juontajaReitti()) reitti();
       paivitaYhteys();
@@ -1181,7 +1206,7 @@
       '<header class="p-yla"><div><span class="o-ylatunniste">Juontaja</span><span class="p-yla__nimi">' + esc(T.nimi) + "</span></div>" +
       '<span id="yhteys" data-luokka="p-chip"></span></header>' +
       '<p class="p-ohje" id="yhteys-ohje">' + (Y ? "Odotetaan yhteyttä. Iso näyttö seuraa puhelintasi, kun osoite …#naytto on auki läppärillä tai televisiossa." : "Yhteysasetukset puuttuvat, joten sovellus toimii vain tällä laitteella.") + "</p>" +
-      '<details class="p-ohjelma"><summary>Ohjelma · hyppää kohtaan</summary><ol>' + ohjelma + "</ol></details>" +
+      '<details class="p-ohjelma"' + (ohjelmaAuki ? " open" : "") + '><summary>Ohjelma · hyppää kohtaan</summary><ol>' + ohjelma + "</ol></details>" +
       osiot +
       '<div class="p-asetukset"><button class="vt-painike vt-painike--toissijainen vt-painike--pieni" data-act="j-teema">Näytön teema: ' + (teema === "ilta" ? "Ilta" : "Vaalea") + "</button>" +
       (Y && onJuontaja() ? '<button class="vt-linkki" data-act="p-ulos">Kirjaudu ulos</button>' : "") +
@@ -1195,6 +1220,8 @@
     window.scrollTo(0, y);
     paivitaYhteys();
   }
+  var ohjelmaAuki = false;
+  document.addEventListener("toggle", function (e) { if (e.target.classList && e.target.classList.contains("p-ohjelma")) ohjelmaAuki = e.target.open; }, true);
   function vieritaDiaan(k) {
     var el = document.getElementById("p-dia-" + k);
     if (!el) return;
@@ -1298,7 +1325,7 @@
         var keskenK = document.getElementById("oma-" + i);
         if (keskenK && keskenK.value.trim() && lisaaOma(i, keskenK.value)) { var uoK = omatAromit(i)[omatAromit(i).length - 1], omK = {}; omK[avainT(uoK)] = { t: uoK, d: 1 }; kirjaaKoonti(i, null, omK); vastattu(i); }
         siirtyma("kiinni", function () {
-          S.aromiKiinni[i] = true; tallenna(); renderOsallistuja();
+          S.aromiKiinni[i] = true; S.porukkaNahty[i] = true; tallenna(); renderOsallistuja();
           vieNakyviin(app.querySelector(".o-aromit-kiinni"), 16);
         });
         haeKoonti(i);
@@ -1361,7 +1388,7 @@
         S.arviot[i] = +t.dataset.v; tallenna(); renderOsallistuja(); break;
       case "kopioi": kopioi(viinilistaTeksti(), "kopio-tila", "kopio-teksti", "Viinilista kopioitu. Liitä se vaikka muistiinpanoihin."); break;
       case "lahja-valinta":
-        S.lahja.valinta = t.dataset.v; tallenna(); renderOsallistuja();
+        S.lahja.valinta = t.dataset.v; tallenna(); tallennaLahjaTalteen(); renderOsallistuja();
         var kortti = document.getElementById("lahjakortti"); if (kortti) kortti.scrollIntoView({ behavior: "smooth", block: "start" });
         break;
       case "lahja-kopioi": kopioi(lahjaViesti(), "lahja-tila", "lahja-teksti", "Viesti kopioitu. Liitä se haluamaasi sovellukseen."); break;
@@ -1375,13 +1402,13 @@
         S = uusiTila(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
       case "tyhjenna":
         if (!tyhjennysVarmistus) { tyhjennysVarmistus = true; t.textContent = "Varmasti? Vastaukset ja muistiinpanot poistuvat. Paina uudelleen."; return; }
-        tyhjennysVarmistus = false; peruKirjaukset(); S = uusiTila(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
+        tyhjennysVarmistus = false; peruKirjaukset(); var lahjaTalteen = S.lahja; S = uusiTila(); if (lahjaTalteen) S.lahja = lahjaTalteen; tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
       case "j-ed": siirraDia(-1); if (juontajaTila() === "ohjaus") vieritaDiaan(dia); break;
       case "j-seur": siirraDia(1); if (juontajaTila() === "ohjaus") vieritaDiaan(dia); break;
       case "p-nayta": asetaDia(+t.dataset.v); break;
       case "p-vierita": vieritaDiaan(+t.dataset.v); break;
       case "j-teema": vaihdaTeema(); break;
-      case "p-hyppaa": var ohj = t.closest("details"); if (ohj) ohj.open = false; vieritaDiaan(+t.dataset.v); break;
+      case "p-hyppaa": var ohj = t.closest("details"); if (ohj) ohj.open = false; ohjelmaAuki = false; vieritaDiaan(+t.dataset.v); break;
       case "p-iso": naytaIsona(t.dataset.v, t.dataset.i == null ? null : +t.dataset.i); break;
       case "p-sulje": t.hidden = true; break;
       case "j-koko":

@@ -7,7 +7,7 @@
   var lista = null, pohjat = [], auki = {}, laskut = {}, koosteet = {};
   function emoji(a) { var e = window.VTAromiEmoji ? window.VTAromiEmoji(a) : ""; return e ? e + " " : ""; }
   var muok = null, muokId = null, muutettu = false, juomaAuki = {}, kuvaVarasto = {};
-  var uusiAuki = false, tallentaa = false;
+  var uusiAuki = false, tallentaa = false, lahjat = null, lahjatAuki = false, lahjaHaku = "";
 
   var AROMIT = {
     kuohu: ["Vihreä omena", "Keltainen omena ja päärynä", "Sitrus", "Persikka ja aprikoosi", "Trooppiset hedelmät", "Punaiset marjat", "Kukat", "Hunaja", "Paahtoleipä ja brioche", "Pähkinä", "Vanilja", "Yrtit ja tee"],
@@ -144,7 +144,39 @@
         '<a class="vt-painike vt-painike--pieni vt-painike--toissijainen" href="#muokkaa-' + esc(t.id) + '">Muokkaa</a></div>' +
         (auki[t.id] ? linkit(t) : "") + "</article>";
     });
+    h += lahjaOsio();
     app.innerHTML = h + "</main>";
+  }
+
+  /* ---------- Lahjakortit: osallistujien kiitoslahjakoodit ---------- */
+  function lahjaOsio() {
+    var h = '<section class="h-osio h-lahjat"><h2 class="h-alaotsikko">Lahjakortit</h2>';
+    if (!lahjatAuki) return h + '<p class="h-ohje">Kiitoslahjan koodit, jotka osallistujat ovat ottaneet. Tarkista koodi tästä, kun asiakas varaa sillä.</p><button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="lahjat-auki">Näytä lahjakortit</button></section>';
+    if (lahjat === null) return h + '<p class="h-ohje">Ladataan…</p></section>';
+    var kaytetty = lahjat.filter(function (l) { return l.kaytetty; }).length;
+    h += '<p class="h-ohje">' + lahjat.length + " koodia otettu · " + kaytetty + " käytetty</p>" +
+      '<div class="h-kentta"><label for="lahja-haku">Tarkista koodi</label><input class="o-kentta" id="lahja-haku" data-lahjahaku="1" autocomplete="off" autocapitalize="characters" placeholder="esim. VT40-FACE-AB12" value="' + esc(lahjaHaku) + '"></div>';
+    if (!lahjat.length) return h + '<p class="h-ohje">Ei vielä koodeja. Koodi tallentuu tähän, kun osallistuja valitsee kiitoslahjasta Käytän itse tai Annan lahjaksi.</p></section>';
+    var nyt = Date.now();
+    h += '<ul class="h-lahjalista">' + lahjat.slice().sort(function (a, b) { return (b.luotuMs || 0) - (a.luotuMs || 0); }).map(function (l) {
+      var vanha = l.voimassa && new Date(l.voimassa).getTime() < nyt;
+      var tila = l.kaytetty ? '<span class="h-merkki h-merkki--mennyt">Käytetty</span>' : vanha ? '<span class="h-merkki h-merkki--mennyt">Vanhentunut</span>' : '<span class="h-merkki h-merkki--tuleva">Voimassa</span>';
+      return '<li data-koodi="' + esc(l.koodi) + '"><div class="h-rivi"><b class="h-lahjakoodi">' + esc(l.koodi) + "</b>" + tila + "</div>" +
+        '<div class="h-meta">' + (l.arvo ? esc(l.arvo) + " € · " : "") + esc(l.nimi || l.tasting || "") + (l.asiakas ? " · " + esc(l.asiakas) : "") +
+        (l.luotuMs ? " · otettu " + new Date(l.luotuMs).toLocaleDateString("fi-FI") : "") + (l.voimassa ? " · voimassa " + new Date(l.voimassa).toLocaleDateString("fi-FI") + " asti" : "") +
+        (l.valinta ? " · " + (l.valinta === "lahja" ? "annettu lahjaksi" : "itselle") : "") + "</div>" +
+        '<button class="vt-painike vt-painike--pieni' + (l.kaytetty ? " vt-painike--toissijainen" : "") + '" data-act="lahja-merkitse" data-koodi="' + esc(l.koodi) + '" data-v="' + (l.kaytetty ? "0" : "1") + '">' + (l.kaytetty ? "Peru käyttö" : "Merkitse käytetyksi") + "</button></li>";
+    }).join("") + '</ul><p class="h-ohje" id="lahja-eiloydy" hidden>Koodia ei löydy. Se ei ole tämän sovelluksen antama, tai se on otettu ennen kuin koodit alettiin tallentaa.</p></section>';
+    return h;
+  }
+  function suodataLahjat() {
+    var q = lahjaHaku.trim().toUpperCase().replace(/\s+/g, ""), nakyy = 0;
+    document.querySelectorAll(".h-lahjalista li").forEach(function (li) { var on = !q || li.dataset.koodi.indexOf(q) >= 0; li.hidden = !on; if (on) nakyy++; });
+    var e = document.getElementById("lahja-eiloydy"); if (e) e.hidden = !(q && !nakyy);
+  }
+  function haeLahjat() {
+    window.VTData.listaaLahjat().then(function (l) { lahjat = l || []; render(); suodataLahjat(); },
+      function () { lahjat = []; render(); ilmoita("Lahjakorttien haku epäonnistui. Onko firestore.rules päivitetty?"); });
   }
 
   function uusiLomake() {
@@ -460,6 +492,14 @@
       case "ulos": Y.ulos(); break;
       case "uusi-auki": uusiAuki = true; render(); setTimeout(function () { var n = document.getElementById("u-nimi"); if (n) n.focus(); }, 0); break;
       case "uusi-kiinni": uusiAuki = false; render(); break;
+      case "lahjat-auki": lahjatAuki = true; lahjat = null; render(); haeLahjat(); break;
+      case "lahja-merkitse":
+        t.disabled = true;
+        window.VTData.merkitseLahja(t.dataset.koodi, t.dataset.v === "1").then(function () {
+          (lahjat || []).forEach(function (l) { if (l.koodi === t.dataset.koodi) l.kaytetty = t.dataset.v === "1"; });
+          render(); suodataLahjat(); ilmoita(t.dataset.v === "1" ? "Merkitty käytetyksi" : "Käyttö peruttu");
+        }, function () { t.disabled = false; ilmoita("Tallennus epäonnistui"); });
+        break;
       case "luo": luo(); break;
       case "linkit": auki[t.dataset.id] = !auki[t.dataset.id]; render(); break;
       case "kopioi":
@@ -556,6 +596,7 @@
     if (d.dataset && d.dataset.juoma != null) juomaAuki[+d.dataset.juoma] = d.open;
   }, true);
   app.addEventListener("input", function (e) {
+    if (e.target.dataset && e.target.dataset.lahjahaku) { lahjaHaku = e.target.value; suodataLahjat(); return; }
     var t = e.target, p = t.dataset && t.dataset.p;
     if (!p || !muok || t.type === "checkbox" || t.tagName === "SELECT") return;
     aseta(p, t.type === "number" ? (t.value === "" ? "" : +t.value) : t.value);

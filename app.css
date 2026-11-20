@@ -241,8 +241,10 @@ body.juontaja { background: #161614; overflow: hidden; }
 .j-asetus { margin-top: calc(30 * var(--u)); font-size: calc(26 * var(--u)); }
 .j-asetus input { width: 100%; margin-top: calc(10 * var(--u)); padding: calc(14 * var(--u)) calc(20 * var(--u)); border-radius: calc(12 * var(--u)); border: 2px solid var(--muste); font: inherit; font-size: calc(28 * var(--u)); color: var(--muste); background: var(--valkoinen); }
 .qr-tyhja { display: flex; align-items: center; justify-content: center; padding: 8%; text-align: center; color: var(--muste); font-weight: 700; background: var(--valkoinen); }
-.j-ohjaus { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: var(--kulma-pilleri); background: rgba(22, 22, 20, 0.88); color: #f3e9c6; box-shadow: var(--varjo-pehmea); opacity: 0.4; transition: opacity 0.2s; font-size: 14px; z-index: 5; }
+.j-ohjaus { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: var(--kulma-pilleri); background: rgba(22, 22, 20, 0.88); color: #f3e9c6; box-shadow: var(--varjo-pehmea); opacity: 0.85; transition: opacity 0.4s; font-size: 14px; z-index: 5; }
 .j-ohjaus:hover, .j-ohjaus:focus-within { opacity: 1; }
+body.j-levossa .j-ohjaus { opacity: 0; pointer-events: none; }
+body.j-levossa { cursor: none; }
 .j-ohjaus button, .j-ohjaus a { white-space: nowrap; min-height: 40px; padding: 0 14px; border-radius: var(--kulma-pilleri); border: 0; background: transparent; color: inherit; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
 .j-ohjaus button:hover, .j-ohjaus a:hover { background: rgba(243, 233, 198, 0.15); }
 .j-ohjaus .j-laskuri { white-space: nowrap; padding: 0 8px; font-variant-numeric: tabular-nums; }
