@@ -122,18 +122,28 @@
     });
     if (on) kirjaaLoppu(m);
   }
+  // "Aloita alusta": perutaan omat kirjaukset. Vähennetään vain laskureista, jotka ovat yhä plussalla,
+  // ettei juontajan tyhjennyksen jälkeen jää miinuksia, jotka piilottaisivat seuraavat valinnat.
   function peruKirjaukset() {
-    if (!koontiTila()) return;
-    var m = { t: {}, L: {} }, on = false;
-    Object.keys(S.kirjattu.t).forEach(function (i) { var v = S.kirjattu.t[i]; if (v != null) { m.t[i] = {}; m.t[i][v] = -1; on = true; } });
-    Object.keys(S.kirjattu.L).forEach(function (k) { var v = S.kirjattu.L[k]; if (v != null) { m.L[k] = {}; m.L[k][v] = -1; on = true; } });
-    if (S.kirjattu.m) { m.m = -1; on = true; }
-    if (on) kirjaaLoppu(m);
-    Object.keys(S.aromit || {}).forEach(function (i) {
-      var a = {}, o = {}, onA = false, onO = false;
-      (S.aromit[i] || []).forEach(function (x) { a[x] = -1; onA = true; });
-      omatAromit(+i).forEach(function (x) { o[avainT(x)] = { t: x, d: -1 }; onO = true; });
-      if (onA || onO) kirjaaKoonti(+i, onA ? a : null, onO ? o : null);
+    if (!koontiTila() || !Y.haeKoonti) return;
+    var V = S;
+    function n(x) { return typeof x === "number" ? x : 0; }
+    Y.haeKoonti("loppu").then(function (d) {
+      d = d || {}; var m = { t: {}, L: {} }, on = false;
+      Object.keys(V.kirjattu.t).forEach(function (i) { var v = V.kirjattu.t[i]; if (v != null && n((d.t || {})[i] && d.t[i][v]) > 0) { m.t[i] = {}; m.t[i][v] = -1; on = true; } });
+      Object.keys(V.kirjattu.L).forEach(function (k) { var v = V.kirjattu.L[k]; if (v != null && n((d.L || {})[k] && d.L[k][v]) > 0) { m.L[k] = {}; m.L[k][v] = -1; on = true; } });
+      if (V.kirjattu.m && n(d.m) > 0) { m.m = -1; on = true; }
+      if (on) kirjaaLoppu(m);
+    }, function () {});
+    var lasit = {};
+    Object.keys(V.aromit || {}).concat(Object.keys(V.omaAromi || {})).forEach(function (i) { lasit[i] = 1; });
+    Object.keys(lasit).forEach(function (i) {
+      Y.haeKoonti(+i).then(function (d) {
+        d = d || {}; var a = {}, o = {}, onA = false, onO = false;
+        (V.aromit[i] || []).forEach(function (x) { if (n((d.a || {})[x]) > 0) { a[x] = -1; onA = true; } });
+        (Array.isArray(V.omaAromi[i]) ? V.omaAromi[i] : []).forEach(function (x) { var k = avainT(x); if (d.o && d.o[k] && n(d.o[k].n) > 0) { o[k] = { t: x, d: -1 }; onO = true; } });
+        if (onA || onO) kirjaaKoonti(+i, onA ? a : null, onO ? o : null);
+      }, function () {});
     });
   }
   // Juontajan jakama avain näytetään osallistujien elävistä laskureista, jos niitä on; muuten jaettu tilannekuva.
@@ -520,7 +530,16 @@
       h += '<button class="vt-painike vt-painike--leveä" data-act="l-lukitse"' + (valmis ? "" : " disabled") + ">Lukitse ja katso, mitä muut sanoi</button>";
       if (!valmis) h += '<p class="o-vaimea">Vastaa kaikkiin, niin pääset kurkkaamaan muiden vastaukset.</p>';
     } else {
-      var ok = 0, pk = 0;
+      var ok = 0, pk = 0, kasassa = 0;
+      var odottaa = !lopuksi().some(function (q) { var j = naytettavat(lAvain(q.id, l), vv.length); return j && summa(j); });
+      if (odottaa) {
+        lopuksi().forEach(function (q) { kasassa = Math.max(kasassa, summa(liveLuvut(lAvain(q.id, l), vv.length) || [])); });
+        var juontajaNimi = String(T.juontaja || "Juontaja").split(" ")[0];
+        h += '<div class="o-odotus" role="status" aria-live="polite"><span class="o-odotus__ikoni" aria-hidden="true"><i></i><i></i><i></i></span>' +
+          '<div class="o-odotus__sisus"><p class="o-odotus__otsikko">Tulokset tulossa</p>' +
+          '<p class="o-odotus__teksti">' + esc(juontajaNimi) + " paljastaa porukan vastaukset kaikille yhtä aikaa. Pidä sivu auki, niin tulokset ilmestyvät tähän itsestään.</p>" +
+          (kasassa ? '<p class="o-odotus__luku">' + kpl(kasassa, "vastaus", "vastausta") + " jo kasassa</p>" : "") + "</div></div>";
+      }
       var kortit = lopuksi().map(function (q) {
         var v = L.v[q.id], o = lOikea(q, l), j = naytettavat(lAvain(q.id, l), vv.length), f = lFakta(q, l);
         var r = '<section class="vt-kortti o-vs"><h2 class="o-vs__k">' + esc(q.kysymys) + "</h2>";
@@ -536,7 +555,8 @@
         if (j && summa(j)) {
           r += '<div class="o-jakauma"><span class="o-jakauma__otsikko">Koko porukka · ' + kpl(summa(j), "vastaus", "vastausta") + "</span>" + palkit(vv, j, o, v) + "</div>";
         } else {
-          r += '<p class="o-vaimea o-vs__odota">Porukan vastaukset ilmestyvät tähän, kun juontaja jakaa ne.</p>';
+          r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · paljastetaan pian</span><ul class="pk pk--haamu" aria-hidden="true">' +
+            vv.map(function (vt, o) { return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">? %</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
         }
         if (f) r += '<p class="o-vs__fakta"><b>Tiesitkö?</b> ' + esc(f) + "</p>";
         return r + "</section>";

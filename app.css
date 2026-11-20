@@ -408,6 +408,22 @@ body.juontaja { background: #161614; overflow: hidden; }
 .o-vs__fakta { margin: var(--vali-3) 0 0 !important; padding: var(--vali-2) var(--vali-3); border-radius: var(--kulma-s); background: color-mix(in srgb, var(--vihrea) 12%, var(--pinta)); font-size: 14.5px; line-height: 1.45; }
 .o-vs__fakta b { color: var(--vihrea-syva); margin-right: 0.25em; }
 .o-vs__odota { margin-top: var(--vali-3) !important; }
+/* Viimeinen sana: odotetaan juontajan paljastusta */
+.o-odotus { display: flex; align-items: center; gap: var(--vali-4); padding: var(--vali-5); border-radius: var(--kulma-l); background: var(--vihrea); color: var(--on-vihrea); }
+.o-odotus__ikoni { flex: none; display: flex; align-items: center; justify-content: center; gap: 6px; width: 64px; height: 64px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); }
+.o-odotus__ikoni i { width: 10px; height: 10px; border-radius: 999px; background: #fff; animation: o-odotus 1.4s ease-in-out infinite; }
+.o-odotus__ikoni i:nth-child(2) { animation-delay: 0.2s; }
+.o-odotus__ikoni i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes o-odotus { 0%, 80%, 100% { opacity: 0.35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-6px); } }
+.o-odotus__sisus > p { margin: 0; }
+.o-odotus__otsikko { font-family: var(--font-otsikko); font-size: 26px; line-height: 1.1; }
+.o-odotus__teksti { margin-top: var(--vali-1) !important; font-size: 15px; line-height: 1.45; opacity: 0.92; }
+.o-odotus__luku { display: inline-block; margin-top: var(--vali-2) !important; padding: 2px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); font-size: 13px; font-weight: 800; letter-spacing: 0.04em; }
+.pk--haamu .pk-luku { color: var(--teksti-vaimea); }
+.pk--haamu .pk-palkki i { width: 100%; background: linear-gradient(90deg, rgba(45, 45, 42, 0) 0%, rgba(45, 45, 42, 0.16) 50%, rgba(45, 45, 42, 0) 100%); background-size: 200% 100%; animation: o-haamu 1.6s linear infinite; }
+.pk--haamu li.on-oma .pk-palkki i { background-image: linear-gradient(90deg, rgba(64, 100, 150, 0.1) 0%, rgba(64, 100, 150, 0.45) 50%, rgba(64, 100, 150, 0.1) 100%); background-color: transparent; }
+@keyframes o-haamu { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .o-odotus__ikoni i, .pk--haamu .pk-palkki i { animation: none; } }
 .o-tt > * + * { margin-top: var(--vali-2); }
 .o-tt__lista { margin: var(--vali-3) 0 0; padding: 0; list-style: none; }
 .o-tt__lista li { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: var(--vali-3); padding: var(--vali-3) 0; border-top: 1.5px dotted var(--viiva); }

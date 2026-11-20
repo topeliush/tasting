@@ -62,6 +62,12 @@
 .h-palkki { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; padding: var(--vali-3) var(--vali-4) calc(var(--vali-3) + env(safe-area-inset-bottom)); background: var(--pinta); border-top: 2px solid var(--viiva); box-shadow: var(--varjo-pehmea); }
 .h-palkki__sisus { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: var(--vali-3); }
 .h-palkki__tila { flex: 1; font-size: 14px; font-weight: 700; color: var(--teksti-vaimea); }
+@media (max-width: 600px) {
+  .h-palkki__sisus { flex-wrap: wrap; gap: var(--vali-2); }
+  .h-palkki__tila { flex: 1 0 100%; text-align: center; }
+  .h-palkki .vt-painike { flex: 1 1 0; min-width: 0; padding: 0 var(--vali-3); }
+  .h-palkki .h-esikatsele { margin-right: 0; }
+}
 .h-palkki__tila.on { color: var(--virhe); }
 .h-ilmoitus { position: fixed; left: 50%; top: calc(var(--vali-4) + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 9; padding: var(--vali-2) var(--vali-5); border-radius: var(--kulma-pilleri); background: var(--muste); color: #f3e9c6; font-size: 15px; font-weight: 700; box-shadow: var(--varjo-pehmea); }
 /* Esikatselu ja tilaisuuden yhteenveto */
