@@ -585,3 +585,31 @@ html[data-siirto="kiinni"]::view-transition-new(aromit) { animation: vt-esiin 0.
 .o-tabit.on-oikealla { -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); mask-image: linear-gradient(to right, #000 82%, transparent); }
 .o-tabit.on-vasemmalla { -webkit-mask-image: linear-gradient(to left, #000 82%, transparent); mask-image: linear-gradient(to left, #000 82%, transparent); }
 .o-tabit.on-oikealla.on-vasemmalla { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 82%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 82%, transparent); }
+
+/* ---------- Juontajatila: vain juontajalle näkyvät osat ---------- */
+:root { --jt: #1d6b6f; --jt-tausta: #d8eeec; --jt-teksti: #123f42; }
+.jt { margin: var(--vali-4) 0; padding: var(--vali-4); border: 2px dashed var(--jt); border-radius: var(--kulma-m); background: var(--jt-tausta); color: var(--jt-teksti); }
+.jt > :not(:first-child) { margin-top: var(--vali-3); }
+.jt__yla { display: flex; align-items: center; gap: var(--vali-2); flex-wrap: wrap; }
+.jt__yla b { font-size: 15px; }
+.jt-merkki { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--kulma-pilleri); background: var(--jt); color: #fff; font-family: var(--font-leipa); font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; vertical-align: middle; }
+.jt--palkki { display: flex; flex-direction: column; align-items: flex-start; gap: var(--vali-2); margin: 0 0 var(--vali-4); padding: var(--vali-3); }
+.jt--palkki > :not(:first-child) { margin-top: 0; }
+.jt__napit { display: flex; flex-wrap: wrap; gap: var(--vali-2); }
+.jt-nappi { background: var(--jt); border-color: var(--jt); color: #fff; min-height: 40px; text-align: left; }
+.jt--kortissa { margin-top: var(--vali-5); }
+.jt p { margin: 0; }
+.jt .p-muisti { background: rgba(255, 255, 255, 0.55); }
+.jt h3 { color: var(--jt-teksti); }
+.o-tab--jt { border-color: var(--jt) !important; color: var(--jt) !important; border-style: dashed !important; }
+.o-tab--jt[aria-current="true"] { background: var(--jt) !important; color: #fff !important; }
+body.jt-tila .o-kehys { padding-bottom: 140px; }
+body.jt-tila .o-yla #yhteys { margin-left: auto; }
+.jt-ala { border-top: 3px solid var(--jt); }
+.p-tahdet { margin-top: var(--vali-4); }
+.p-tahdet summary { cursor: pointer; list-style: none; display: grid; gap: 4px; padding: var(--vali-2) 0; }
+.p-tahdet summary::-webkit-details-marker { display: none; }
+.p-tahdet summary b::after { content: " · näytä jakaumat ▾"; font-weight: 600; font-size: 13px; color: var(--teksti-vaimea); }
+.p-tahdet[open] summary b::after { content: " · piilota jakaumat ▴"; }
+.p-tahdet summary span { font-size: 14px; line-height: 1.5; }
+.p-muisti .p-jaa { margin: var(--vali-3) 0; }
