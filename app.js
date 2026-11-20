@@ -187,6 +187,7 @@
   var loppuOdottaa = false;
   function kiinnostavat() {
     if (!koontiTila()) return [];
+    if (juontajaReitti() && juontajaTila() === "ohjaus") { var l = ["loppu"]; diat().forEach(function (x) { if (x.k === "paljastus") l.push(x.i); }); return l; }
     if (juontajaReitti()) { var d = diat()[dia]; return d && d.k === "paljastus" ? [d.i] : d && (d.k === "kansi" || d.k === "vertailu" || d.k === "vtulos" || d.k === "loppu") ? ["loppu"] : []; }
     if (!S.aloitettu) return [];
     if (typeof S.nakyma === "number") return [S.nakyma];
@@ -884,12 +885,19 @@
     });
     return o;
   }
-  var paivitysAjastin = null;
+  var paivitysAjastin = null, vieritettyMs = 0;
+  window.addEventListener("scroll", function () { vieritettyMs = Date.now(); }, { passive: true });
+  window.addEventListener("touchmove", function () { vieritettyMs = Date.now(); }, { passive: true });
   function paivitaPian() {
     if (paivitysAjastin) return;
     paivitysAjastin = setTimeout(function () {
       paivitysAjastin = null;
-      if (juontajaReitti()) { if (juontajaTila() === "ohjaus") renderOhjaus(); return; }
+      if (juontajaReitti()) {
+        if (juontajaTila() !== "ohjaus") return;
+        // Ohjaus on pitkä vieritettävä sivu: ei piirretä uudelleen kesken vierityksen, ettei sivu nyi.
+        if (Date.now() - vieritettyMs < 1200) { paivitaPian(); return; }
+        renderOhjaus(); return;
+      }
       var pk = typeof S.nakyma === "number" ? document.getElementById("porukka-" + S.nakyma) : null;
       if (pk) { pk.innerHTML = porukkaHtml(S.nakyma); return; }
       var a = document.activeElement;
@@ -1049,8 +1057,8 @@
     varmistaKoonti(i);
     return '<div class="p-muisti"><h3>Mitä aromeja porukka löysi?</h3><p class="p-ohje" style="margin:0 0 var(--vali-2)">Päivittyy kaikille itsestään, myös isolle näytölle. Sinun ei tarvitse tehdä mitään.</p>' + kuplat(i, false, 18) + "</div>";
   }
-  function laskurit(d) {
-    var X = diaAvaimet(d);
+  function laskurit(d, k) {
+    var X = diaAvaimet(d), dk = k == null ? dia : k;
     if (!X.length) return "";
     var jaettu = X.some(function (x) { return jaetut[x.avain]; });
     function kortti(x) {
@@ -1077,8 +1085,8 @@
       (koontiTila() ? "" : '<p class="p-ohje" style="margin:0">📱 = puhelimista tulleet. Lisää käsiäänet + ja − napeilla.</p>') +
       tav.map(kortti).join("") +
       (tah.length ? '<h3 style="margin-top:var(--vali-5)">Tähdet · ' + tah.map(function (x) { var ka = keskiarvo(luvut(x.avain, 6)); return ka == null ? "–" : "★ " + desi(ka); }).join(" · ") + "</h3>" + tah.map(kortti).join("") : "") +
-      '<div class="p-jaa"><button class="vt-painike" data-act="p-jaa">' + (jaettu && !koontiTila() ? "Päivitä kaikille" : "Näytä kaikille") + "</button>" +
-      '<button class="vt-painike vt-painike--toissijainen" data-act="p-piilota"' + (jaettu ? "" : " disabled") + ">Piilota</button></div></div>";
+      '<div class="p-jaa"><button class="vt-painike" data-act="p-jaa" data-d="' + dk + '">' + (jaettu && !koontiTila() ? "Päivitä kaikille" : "Näytä kaikille") + "</button>" +
+      '<button class="vt-painike vt-painike--toissijainen" data-act="p-piilota" data-d="' + dk + '"' + (jaettu ? "" : " disabled") + ">Piilota</button></div></div>";
   }
   function kirjautuminen() {
     document.documentElement.dataset.theme = "vaalea";
@@ -1092,15 +1100,8 @@
       '<p class="o-alatunniste"><a class="vt-linkki" href="#naytto">Ison näytön näkymä</a> · <a class="vt-linkki" href="#">Osallistujan näkymä</a></p>' +
       "</section></main>";
   }
-  function renderOhjaus() {
-    if (Y && !onJuontaja()) { kirjautuminen(); return; }
-    var dk = diat()[dia]; if (dk && dk.k === "paljastus") varmistaKoonti(dk.i);
-    var D = diat();
-    dia = Math.max(0, Math.min(dia, D.length - 1));
-    var d = D[dia], url = osallistujaUrl(), teema = store.get("vt-teema", "vaalea"), h = "";
-    document.documentElement.dataset.theme = "vaalea";
-    document.body.className = "ohjaus";
-
+  function ohjausOsio(d, k, url) {
+    var h = "";
     if (d.k === "kansi") {
       h = '<h1 class="p-h1">Tervetuloa</h1>' +
         '<div class="p-qr">' + qrSvg(url, "") + "<div>" + (url ? "<b>" + esc(lyhyt(url)) + "</b>" : "<b>Osoite puuttuu</b>") +
@@ -1119,7 +1120,7 @@
           return muistiinpano(esc(q.kysymys), t);
         }).join("");
     } else if (d.k === "vtulos") {
-      h = '<h1 class="p-h1">Illan tulokset' + (onLinjat() ? (d.l === "alkoholiton" ? " · alkoholittomat" : " · kuohuviinit") : "") + "</h1>" + laskurit(d);
+      h = '<h1 class="p-h1">Illan tulokset' + (onLinjat() ? (d.l === "alkoholiton" ? " · alkoholittomat" : " · kuohuviinit") : "") + "</h1>" + laskurit(d, k);
     } else if (d.k === "maistelu" && d.pari) {
       h = '<div class="o-rivi"><span class="vt-pallo">' + d.lasi + '</span><span class="p-vaihe">Lasi ' + d.lasi + " · maistelu</span></div>" +
         '<h1 class="p-h1">Haistele, maistele, anna tähdet</h1>' +
@@ -1140,9 +1141,9 @@
         '<h1 class="p-h1">' + esc(w.nimi) + "</h1>";
       if (sokko && d.k === "paljastus" && T.kaytaPaljastussanaa) {
         h += '<div class="p-sana"><span>Paljastussana</span><b>' + esc(w.paljastussana) + "</b>" +
-          '<button class="p-sana__nappi" data-act="p-iso" data-v="sana">Näytä isona</button></div>';
+          '<button class="p-sana__nappi" data-act="p-iso" data-v="sana" data-i="' + d.i + '">Näytä isona</button></div>';
       }
-      if (d.k === "paljastus") h += koontiTila() ? aromiYhteenveto(d.i) : laskurit(d) + omatLista(d.i);
+      if (d.k === "paljastus") h += koontiTila() ? aromiYhteenveto(d.i) : laskurit(d, k) + omatLista(d.i);
       if (d.k === "maistelu") {
         h += (T.kaytaPaljastussanaa ? '<p class="o-vaimea">Paljastussana seuraavassa vaiheessa: <b>' + esc(w.paljastussana) + "</b></p>" : "") +
           muistiinpano("Kiinnitä huomiota", w.maistele) + muistiinpano("Omat muistiinpanot", w.juontajalle);
@@ -1152,29 +1153,57 @@
       }
     }
 
+    return h;
+  }
+  function renderOhjaus() {
+    if (Y && !onJuontaja()) { kirjautuminen(); return; }
+    var D = diat();
+    D.forEach(function (x) { if (x.k === "paljastus") varmistaKoonti(x.i); });
+    dia = Math.max(0, Math.min(dia, D.length - 1));
+    var url = osallistujaUrl(), teema = store.get("vt-teema", "vaalea");
+    document.documentElement.dataset.theme = "vaalea";
+    document.body.className = "ohjaus";
+
+    var osiot = D.map(function (d, k) {
+      var nyt = k === dia;
+      return '<section class="p-osio vt-kortti' + (nyt ? " on-nyt" : "") + '" id="p-dia-' + k + '">' +
+        '<div class="p-osio__yla"><span class="p-vaihe">' + (k + 1) + " / " + D.length + " · " + esc(diaNimi(d)) + "</span>" +
+        (nyt ? '<span class="p-nyt-merkki">Näytöllä nyt</span>' : '<button class="vt-painike vt-painike--pieni vt-painike--toissijainen" data-act="p-nayta" data-v="' + k + '">Näytä näytöllä</button>') +
+        "</div>" + ohjausOsio(d, k, url) + "</section>";
+    }).join("");
     var ohjelma = D.map(function (x, k) {
       return '<li><button data-act="p-hyppaa" data-v="' + k + '" aria-current="' + (k === dia) + '"><span>' + (k + 1) + "</span>" + esc(diaNimi(x)) + "</button></li>";
     }).join("");
     var seuraava = D[dia + 1];
 
+    var y = window.scrollY;
     app.innerHTML = '<div class="p-kehys">' +
       '<header class="p-yla"><div><span class="o-ylatunniste">Juontaja</span><span class="p-yla__nimi">' + esc(T.nimi) + "</span></div>" +
       '<span id="yhteys" data-luokka="p-chip"></span></header>' +
       '<p class="p-ohje" id="yhteys-ohje">' + (Y ? "Odotetaan yhteyttä. Iso näyttö seuraa puhelintasi, kun osoite …#naytto on auki läppärillä tai televisiossa." : "Yhteysasetukset puuttuvat, joten sovellus toimii vain tällä laitteella.") + "</p>" +
-      '<section class="p-nyt vt-kortti"><span class="p-vaihe">Nyt näytöllä · ' + (dia + 1) + " / " + D.length + "</span>" + h + "</section>" +
-      '<details class="p-ohjelma"><summary>Ohjelma</summary><ol>' + ohjelma + "</ol></details>" +
+      '<details class="p-ohjelma"><summary>Ohjelma · hyppää kohtaan</summary><ol>' + ohjelma + "</ol></details>" +
+      osiot +
       '<div class="p-asetukset"><button class="vt-painike vt-painike--toissijainen vt-painike--pieni" data-act="j-teema">Näytön teema: ' + (teema === "ilta" ? "Ilta" : "Vaalea") + "</button>" +
       (Y && onJuontaja() ? '<button class="vt-linkki" data-act="p-ulos">Kirjaudu ulos</button>' : "") +
       '<a class="vt-linkki" href="#naytto">Avaa näyttönäkymä</a><a class="vt-linkki" href="#poytakortti">Pöytäkortit</a><a class="vt-linkki" href="#">Osallistujan näkymä</a></div>' +
       "</div>" +
-      '<nav class="p-ala" aria-label="Diojen ohjaus"><p>' + (seuraava ? "Seuraavaksi: " + esc(diaNimi(seuraava)) : "Viimeinen dia") + "</p>" +
+      '<nav class="p-ala" aria-label="Diojen ohjaus"><p><button class="p-ala__nyt" data-act="p-vierita" data-v="' + dia + '">Näytöllä: <b>' + esc(diaNimi(D[dia])) + "</b></button>" +
+      (seuraava ? " · Seuraavaksi: " + esc(diaNimi(seuraava)) : "") + "</p>" +
       '<div class="p-napit"><button class="vt-painike vt-painike--toissijainen" data-act="j-ed"' + (dia === 0 ? " disabled" : "") + ' aria-label="Edellinen dia">‹</button>' +
       '<button class="vt-painike" data-act="j-seur"' + (seuraava ? "" : " disabled") + ">Seuraava ›</button></div></nav>" +
       '<div class="p-iso" id="p-iso" hidden data-act="p-sulje"></div>';
+    window.scrollTo(0, y);
     paivitaYhteys();
   }
-  function naytaIsona(mita) {
+  function vieritaDiaan(k) {
+    var el = document.getElementById("p-dia-" + k);
+    if (!el) return;
+    var yla = document.querySelector(".p-yla"), ylaK = yla ? yla.getBoundingClientRect().height : 0;
+    window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - ylaK - 12));
+  }
+  function naytaIsona(mita, wi) {
     var el = document.getElementById("p-iso"), D = diat(), d = D[dia];
+    if (wi != null && !isNaN(wi)) d = { i: wi };
     if (!el) return;
     if (mita === "qr") {
       var url = osallistujaUrl();
@@ -1318,12 +1347,13 @@
       case "p-live":
         store.set(KEY + "-live", store.get(KEY + "-live", true) === false); livePaivitys(); renderOhjaus(); break;
       case "p-jaa":
+        if (t.dataset.d != null) { dia = +t.dataset.d; store.set(KEY + "-juontaja", dia); }
         var dNyt = diat()[dia];
         diaAvaimet(dNyt).forEach(function (x) { jaetut[x.avain] = luvut(x.avain, x.vaihtoehdot.length); });
         if (dNyt && dNyt.k === "paljastus") jaetut["o" + dNyt.i] = omatHavainnot(dNyt.i);
         store.set(KEY + "-jaetut", jaetut); laheta(); renderOhjaus(); break;
       case "p-piilota":
-        var dPois = diat()[dia];
+        var dPois = diat()[t.dataset.d != null ? +t.dataset.d : dia];
         diaAvaimet(dPois).forEach(function (x) { delete jaetut[x.avain]; });
         if (dPois && dPois.k === "paljastus") delete jaetut["o" + dPois.i];
         store.set(KEY + "-jaetut", jaetut); laheta(); renderOhjaus(); break;
@@ -1346,11 +1376,13 @@
       case "tyhjenna":
         if (!tyhjennysVarmistus) { tyhjennysVarmistus = true; t.textContent = "Varmasti? Vastaukset ja muistiinpanot poistuvat. Paina uudelleen."; return; }
         tyhjennysVarmistus = false; peruKirjaukset(); S = uusiTila(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); break;
-      case "j-ed": siirraDia(-1); break;
-      case "j-seur": siirraDia(1); break;
+      case "j-ed": siirraDia(-1); if (juontajaTila() === "ohjaus") vieritaDiaan(dia); break;
+      case "j-seur": siirraDia(1); if (juontajaTila() === "ohjaus") vieritaDiaan(dia); break;
+      case "p-nayta": asetaDia(+t.dataset.v); break;
+      case "p-vierita": vieritaDiaan(+t.dataset.v); break;
       case "j-teema": vaihdaTeema(); break;
-      case "p-hyppaa": asetaDia(+t.dataset.v); window.scrollTo(0, 0); break;
-      case "p-iso": naytaIsona(t.dataset.v); break;
+      case "p-hyppaa": var ohj = t.closest("details"); if (ohj) ohj.open = false; vieritaDiaan(+t.dataset.v); break;
+      case "p-iso": naytaIsona(t.dataset.v, t.dataset.i == null ? null : +t.dataset.i); break;
       case "p-sulje": t.hidden = true; break;
       case "j-koko":
         try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(function () {}); } catch (err) {}

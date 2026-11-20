@@ -259,6 +259,16 @@ body.juontaja { background: #161614; overflow: hidden; }
 .j-chip.on { background: var(--vihrea); border-color: var(--vihrea); color: #fff; }
 .p-ohje { margin: var(--vali-3) 0 0; font-size: 14px; line-height: 1.45; color: var(--teksti-vaimea); }
 .p-nyt > :not(:first-child) { margin-top: var(--vali-4); }
+.p-osio > :not(:first-child) { margin-top: var(--vali-4); }
+.p-osio { scroll-margin-top: var(--vali-3); transition: box-shadow 0.2s, border-color 0.2s; }
+.p-osio.on-nyt { border-color: var(--vihrea); box-shadow: 4px 4px 0 var(--vihrea); outline: 3px solid var(--vihrea); outline-offset: -1px; }
+.p-osio__yla { display: flex; align-items: center; justify-content: space-between; gap: var(--vali-3); flex-wrap: wrap; }
+.p-osio__yla .p-vaihe { flex: 1 1 auto; min-width: 0; }
+.p-osio__yla .vt-painike--pieni { min-height: 36px; padding: 0 var(--vali-4); font-size: 12px; }
+.p-nyt-merkki { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--kulma-pilleri); background: var(--vihrea); color: var(--on-vihrea); font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.p-nyt-merkki::before { content: ""; width: 8px; height: 8px; border-radius: 999px; background: currentColor; animation: o-live 1.8s ease-out infinite; }
+.p-ala__nyt { padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.p-ala__nyt b { color: var(--vihrea-syva); }
 .p-vaihe { display: block; font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--vihrea-syva); }
 .p-h1 { margin: 0; font-family: var(--font-otsikko); font-size: 30px; font-weight: 400; line-height: 1.1; color: var(--sininen); }
 .p-sana { padding: var(--vali-4) var(--vali-5); border-radius: var(--kulma-l); background: var(--vihrea); color: var(--on-vihrea); }
