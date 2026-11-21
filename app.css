@@ -715,3 +715,20 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 .jt-paneeli__yla { gap: var(--vali-2); }
 .jt-paneeli__yla #yhteys { margin-right: auto; font-size: 11px; }
 .jt-fab.on-varoitus::after { content: ""; position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 999px; background: #c0392b; border: 2px solid #fff; }
+
+/* ---------- Juontajan live-luvut ja tähtijakaumat ---------- */
+.jt-luvut { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; }
+.jt-luvut > div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.6); }
+.jt-luvut b { font-size: 26px; line-height: 1; color: var(--jt-teksti); }
+.jt-luvut span { font-size: 11.5px; font-weight: 700; line-height: 1.2; opacity: 0.8; }
+.jt-pieni { font-size: 12.5px !important; font-weight: 700; opacity: 0.85; margin-top: var(--vali-3) !important; }
+.jt-tahdet { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-items: end; height: 92px; margin-top: 6px; }
+.jt-tahdet__sarake { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+.jt-tahdet__sarake i { display: block; width: 100%; min-height: 3px; border-radius: 6px 6px 2px 2px; background: var(--jt); }
+.jt-tahdet__n { font-size: 13px; font-weight: 800; }
+.jt-tahdet__o { font-size: 11px; font-weight: 700; opacity: 0.75; }
+.jt-tahtikortit { display: grid; gap: 10px; }
+.jt-tahtikortti { padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.6); }
+.jt-tahtikortti__yla { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.jt-tahtikortti__yla span { white-space: nowrap; font-weight: 700; }
+.jt-tahtikortti .jt-tahdet { height: 70px; }
