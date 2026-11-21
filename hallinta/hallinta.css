@@ -97,3 +97,9 @@
 .h-lahjalista li { padding: var(--vali-3) 0; border-top: 1px dotted var(--viiva); }
 .h-lahjalista li > :not(:first-child) { margin-top: var(--vali-2); }
 .h-lahjakoodi { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 17px; letter-spacing: 0.04em; }
+
+.h-jakauma { margin: var(--vali-2) 0 var(--vali-3); padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.55); }
+.h-jakauma__yla { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.h-jakauma__yla span { white-space: nowrap; font-weight: 700; }
+.h-jakauma .jt-tahdet { height: 70px; }
+.h-jakauma .jt-tahdet__sarake i { background: var(--vihrea); }

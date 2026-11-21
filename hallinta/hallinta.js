@@ -287,7 +287,12 @@
       var tyhja = !L.tahdet.some(function (x) { return x.n; }) && !L.aromit.some(function (x) { return x.lista.length; });
       if (tyhja) { h += '<div class="h-kooste__linja' + (L.l === "alkoholiton" ? " h-kooste__linja--alk" : "") + '"><h4>' + (L.l === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + '</h4><p class="h-ohje" style="margin:var(--vali-1) 0 0">Ei vielä vastauksia.</p></div>'; return; }
       h += '<div class="h-kooste__linja' + (L.l === "alkoholiton" ? " h-kooste__linja--alk" : "") + '">' + (K.linjat.length > 1 ? "<h4>" + (L.l === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + "</h4>" : "") +
-        "<h5>Suosikit</h5><ol>" + L.tahdet.map(function (x) { return "<li><span>" + esc(x.nimi) + "</span><b>" + (x.ka == null ? "–" : "★ " + desi(x.ka)) + '</b><small>' + x.n + " arviota" + (x.n ? " · 0–5★: " + x.jakauma.join(" / ") : "") + "</small></li>"; }).join("") + "</ol>" +
+        "<h5>Suosikit</h5><ol>" + L.tahdet.map(function (x) { return "<li><span>" + esc(x.nimi) + "</span><b>" + (x.ka == null ? "–" : "★ " + desi(x.ka)) + '</b><small>' + x.n + " arviota</small></li>"; }).join("") + "</ol>" +
+        "<h5>Tähtien jakauma</h5>" + L.tahdet.slice().sort(function (a, b) { return a.nro - b.nro; }).map(function (x) {
+          var max = Math.max.apply(null, x.jakauma.concat([1]));
+          return '<div class="h-jakauma"><div class="h-jakauma__yla"><b>Lasi ' + x.nro + " · " + esc(x.nimi) + "</b><span>" + (x.ka == null ? "–" : "★ " + desi(x.ka)) + " · " + x.n + ' kpl</span></div><div class="jt-tahdet">' +
+            x.jakauma.map(function (c, o) { return '<div class="jt-tahdet__sarake"><span class="jt-tahdet__n">' + c + '</span><i style="height:' + Math.round(c / max * 100) + '%"></i><span class="jt-tahdet__o">' + o + "★</span></div>"; }).join("") + "</div></div>";
+        }).join("") +
         "<h5>Kaikki aromit</h5>" + L.aromit.map(function (x) {
           return '<p class="h-kooste__aromit"><b>Lasi ' + x.nro + " · " + esc(x.nimi) + "</b>" + (x.lista.length ? x.lista.map(function (a) { return '<span class="' + (a.oma ? "oma" : "") + '">' + emoji(a.t) + esc(a.t) + " <i>" + a.n + "</i></span>"; }).join("") : "<span>–</span>") + "</p>";
         }).join("") +
