@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" href="/app.js?v=26" as="script">
+<link rel="preload" href="/app.js?v=27" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=24">
+<link rel="stylesheet" href="/app.css?v=25">
 <style>
 .lataus { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--vali-6) var(--vali-5); }
 .lataus > div { max-width: 480px; }
@@ -44,7 +44,7 @@
     t.osoite = location.origin + "/?t=" + (t.esikatselu ? esikatselu : tunnus);
     window.TASTING = t;
     document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
-    var s = document.createElement("script"); s.src = "/app.js?v=26"; document.body.appendChild(s);
+    var s = document.createElement("script"); s.src = "/app.js?v=27"; document.body.appendChild(s);
   }
   // Esikatselu hallinnasta: tallentamaton setti tulee selaimen muistista, eikä mitään tallenneta palvelimelle.
   if (esikatselu && /^[a-z0-9-]{1,60}$/.test(esikatselu)) {

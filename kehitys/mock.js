@@ -28,7 +28,12 @@
           return post(u, d);
         });
       },
-      haeKoonti: function (i) { return get("/api/doc/tilaisuudet/" + t + "/koonti/v" + i); },
+      haeKoonti: function (i) { return get("/api/doc/tilaisuudet/" + t + "/koonti/" + (typeof i === "string" ? i : "v" + i)); },
+      koontiLisaa: function (id, muutos) {
+        var u = "/api/doc/tilaisuudet/" + t + "/koonti/" + id;
+        function lisaa(kohde, m) { Object.keys(m).forEach(function (k) { if (typeof m[k] === "number") kohde[k] = (kohde[k] || 0) + m[k]; else { kohde[k] = kohde[k] || {}; lisaa(kohde[k], m[k]); } }); }
+        return get(u).then(function (d) { d = d || {}; lisaa(d, muutos); return post(u, d); });
+      },
       tallennaLahja: function (d) { var x = JSON.parse(JSON.stringify(d)); x.tasting = t; x.kaytetty = false; x.luotuMs = Date.now(); return post("/api/doc/lahjakortit/" + d.koodi, x); },
       tallennaVastaus: function (uid, d) { return post("/api/doc/tilaisuudet/" + t + "/vastaukset/" + uid, d); },
       kuunteleVastaukset: function (cb) { return poll("/api/col/tilaisuudet/" + t + "/vastaukset", cb, function (l) { return l.map(function (x) { return x.data; }); }); }

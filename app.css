@@ -628,3 +628,70 @@ body.jt-tila .o-kehys { padding-bottom: 110px; }
 body.jt-tila .o-yla { flex-wrap: wrap; gap: var(--vali-2); }
 body.jt-tila .o-yla #yhteys { max-width: 100%; }
 @media (max-width: 360px) { body.jt-tila .o-yla #yhteys .p-chip, body.jt-tila .o-yla #yhteys > * { font-size: 10px; } }
+
+/* ---------- Viinisivu: aromiruudut, oma havainto, yksi Valmis ---------- */
+.o-aromit--ruudut { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.o-aromit--ruudut .o-aromi { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 8px 12px; border-radius: 16px; font-size: 15.5px; line-height: 1.2; text-align: left; }
+.o-aromit--ruudut .o-aromi .o-emoji { flex: none; margin: 0; font-size: 24px; line-height: 1; }
+.o-aromit--ruudut .o-aromi[aria-pressed="true"] { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35); }
+@media (max-width: 340px) { .o-aromit--ruudut .o-aromi { font-size: 14px; padding: 8px 10px; } .o-aromit--ruudut .o-aromi .o-emoji { font-size: 20px; } }
+.o-muuta { margin-top: var(--vali-5); padding-top: var(--vali-4); border-top: 1px dashed var(--viiva); }
+.o-muuta__otsikko { margin: 0 0 2px; font-weight: 800; font-size: 16px; }
+.o-muuta .o-vaimea { margin: 0 0 var(--vali-3); }
+.o-muuta .o-omat-lista { margin-top: var(--vali-3); }
+.o-aromit-valmis { margin-top: var(--vali-4); min-height: 56px; font-size: 16px; }
+.o-valmis-vihje { margin: var(--vali-2) 0 0; font-size: 13.5px; text-align: center; }
+
+/* ---------- Paljastushetki ---------- */
+.o-osumat { margin: 0 0 var(--vali-3); font-size: 15px; }
+.o-osumat b { color: var(--vihrea-syva); font-size: 18px; }
+.o-kupla--osuma { box-shadow: 0 0 0 3px var(--sininen); }
+.o-kupla--osuma::after { content: "✓"; margin-left: 2px; font-size: 0.85em; }
+.o-kuplat--paljastus .o-kupla { animation: o-kupla-sisaan 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.35) both; animation-delay: var(--d, 0ms); }
+.o-kupla--uusi { animation: o-kupla-sisaan 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.35) both; }
+@keyframes o-kupla-sisaan { from { opacity: 0; transform: scale(0.3) translateY(10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .o-kuplat--paljastus .o-kupla, .o-kupla--uusi { animation: none; } }
+
+/* ---------- Iso näyttö: valmiina-luku, isompi pilvi, palkkien kasvu ---------- */
+.j-valmiina { position: relative; display: block; height: calc(40 * var(--u)); border-radius: 999px; background: rgba(45, 45, 42, 0.08); overflow: hidden; }
+.j-valmiina i { position: absolute; inset: 0 auto 0 0; display: block; background: var(--vihrea); border-radius: inherit; transition: width 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.j-valmiina span { position: relative; display: flex; align-items: center; height: 100%; padding: 0 calc(18 * var(--u)); font-size: calc(22 * var(--u)); font-weight: 800; letter-spacing: 0.04em; }
+.j-tulos--pilvi .o-kuplat { font-size: calc(36 * var(--u)); gap: calc(18 * var(--u)); }
+.j-anim .pk-palkki i, .j-anim .o-keskiarvot .pk-palkki i { transform-origin: left center; animation: j-kasva 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.j-anim .pk li:nth-child(2) .pk-palkki i, .j-anim .o-keskiarvot li:nth-child(2) .pk-palkki i { animation-delay: 0.12s; }
+.j-anim .pk li:nth-child(3) .pk-palkki i, .j-anim .o-keskiarvot li:nth-child(3) .pk-palkki i { animation-delay: 0.24s; }
+.j-anim .pk li:nth-child(4) .pk-palkki i, .j-anim .o-keskiarvot li:nth-child(4) .pk-palkki i { animation-delay: 0.36s; }
+.j-anim .pk li:nth-child(5) .pk-palkki i, .j-anim .o-keskiarvot li:nth-child(5) .pk-palkki i { animation-delay: 0.48s; }
+@keyframes j-kasva { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .j-anim .pk-palkki i { animation: none; } }
+
+/* ---------- Iltatila osallistujille ---------- */
+.o-teemanappi { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-left: var(--vali-2); border: 2px solid var(--viiva); border-radius: 999px; background: var(--pinta); color: var(--teksti); font-size: 19px; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.o-yla { align-items: center; }
+.o-yla__nimi { flex: 1 1 auto; min-width: 0; }
+html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var(--teksti); }
+
+/* ---------- Kiitos-sivu tiiviimmäksi ---------- */
+.o-garvio { padding: var(--vali-4) var(--vali-4) var(--vali-3); }
+.o-garvio__tahdet { font-size: 26px; }
+.o-garvio__otsikko { margin: var(--vali-2) 0 var(--vali-1); font-size: 26px; }
+.o-garvio p { margin: 0 0 var(--vali-3); font-size: 15px; line-height: 1.4; }
+.o-garvio__nappi { min-height: 52px; }
+.o-garvio .o-garvio__allekirjoitus { margin-top: var(--vali-2); font-size: 13px; }
+.o-lahja { padding: var(--vali-4); }
+.o-lahja__rivi { display: flex; align-items: center; gap: var(--vali-3); }
+.o-lahja__rivi .o-lahja__summa { margin: 0; font-size: 52px; }
+.o-lahja__rivi .o-lahja__nimi { font-size: 15px; }
+.o-lahja__rivi .o-lahja__nimi small { display: block; margin-top: 2px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em; text-transform: none; opacity: 0.9; }
+.o-lahja > p { margin: var(--vali-2) 0 var(--vali-3); font-size: 15px; }
+.o-juomakortti .o-lista--juomat li { flex-wrap: nowrap; align-items: center; padding: var(--vali-2) 0; gap: var(--vali-2); }
+.o-juomakortti .o-lista--juomat .vt-pallo { margin-top: 0; width: 30px; height: 30px; font-size: 16px; flex: none; }
+.o-juomakortti .o-lista .o-juoma__tiedot b { font-size: 14.5px; line-height: 1.25; }
+.o-juomakortti .o-juoma__tiedot > span:not(.o-suosikki) { font-size: 12.5px; }
+.o-juomakortti .o-juoma__tahdet { flex-basis: auto; flex-direction: column; gap: 3px; padding-left: 0; margin-top: 0; }
+.o-juomakortti .o-lista .o-juoma__tahdet span { padding: 2px 8px; font-size: 14px; justify-content: space-between; min-width: 92px; }
+.o-juomakortti .o-juoma__tahdet small { font-size: 9.5px; }
+/* Iltatilan korjaukset osallistujan näkymään */
+[data-theme="ilta"] .o-garvio { background: #2f4d78; color: #fff; }
+[data-theme="ilta"] .o-garvio__nappi { color: #2f4d78; }
+[data-theme="ilta"] .o-tahti { color: rgba(243, 233, 198, 0.3); }
