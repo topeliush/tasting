@@ -732,3 +732,22 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 .jt-tahtikortti__yla { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
 .jt-tahtikortti__yla span { white-space: nowrap; font-weight: 700; }
 .jt-tahtikortti .jt-tahdet { height: 70px; }
+
+/* ---------- Sokkokierrokset: viimeisen lasin kaveri ---------- */
+.o-kaveri { margin-bottom: var(--vali-4); }
+.o-kaveri .o-h2 { margin-bottom: var(--vali-1); }
+.o-kaveri__lista { display: grid; gap: 8px; margin-top: var(--vali-3); }
+.o-kaveri__nappi { display: flex; align-items: center; gap: var(--vali-3); width: 100%; min-height: 56px; padding: 8px 12px; border: 2px solid var(--viiva); border-radius: 16px; background: var(--pinta); color: var(--teksti); font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.o-kaveri__nappi > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.o-kaveri__nappi b { font-size: 15.5px; }
+.o-kaveri__nappi small { font-size: 13px; color: var(--teksti-vaimea); }
+.o-kaveri__nappi[aria-pressed="true"] { border-color: var(--vihrea); background: var(--vihrea); color: var(--on-vihrea); }
+.o-kaveri__nappi[aria-pressed="true"] small { color: inherit; opacity: 0.85; }
+.o-kaveri__valittu { margin-top: var(--vali-4); padding-top: var(--vali-3); border-top: 1px dashed var(--viiva); }
+.o-kaveri__otsikko { margin: 0 0 2px; font-weight: 800; }
+.jt-kaverit { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.jt-kaverit li { display: grid; grid-template-columns: 1fr 34% 28px; align-items: center; gap: 8px; font-size: 13.5px; }
+.jt-kaverit span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.jt-kaverit i { display: block; height: 10px; min-width: 3px; border-radius: 999px; background: var(--jt); }
+.jt-kaverit b { text-align: right; }
+.o-vaihe-teksti { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teksti-vaimea); }

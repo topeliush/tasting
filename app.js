@@ -66,7 +66,22 @@
   }
 
   function onSokko(w) { return !!T.sokkotasting && w.sokko !== false; }
-  function onAuki(i) { return !onSokko(T.viinit[i]) || !!S.paljastettu[i]; }
+  function onAuki(i) { return !onSokko(T.viinit[i]) || !!S.paljastettu[i] || (kierrosTila() && kierrosValmis(i)); }
+  // Sokkotastingin kierrokset: viinit maistetaan pareittain (1+2, 3+4, ...). Pariton viimeinen viini
+  // maistetaan yksin, ja sen viereen jokainen valitsee itse suosikkinsa aiemmista. Tiedot aukeavat,
+  // kun osallistuja on arvioinut kaikki kierroksen lasit.
+  function kierrosTila() { return !!T.sokkotasting && !onLinjat() && !T.kaytaPaljastussanaa; }
+  function kierrokset() { var l = [], n = T.viinit.length; for (var k = 0; k < n; k += 2) l.push(k + 1 < n ? [k, k + 1] : [k]); return l; }
+  function kierrosOf(i) { var r = kierrokset(); for (var k = 0; k < r.length; k++) if (r[k].indexOf(i) >= 0) return r[k]; return [i]; }
+  function kierrosValmis(i) { return kierrosOf(i).every(function (j) { return !onSokko(T.viinit[j]) || !!S.lukittu[j]; }); }
+  function onKaveriKierros(i) { var r = kierrosOf(i); return r.length === 1 && i > 0; }
+  function seuraavaAskel(i) {
+    var r = kierrokset(), oma = kierrosOf(i), ix = oma.indexOf(i);
+    if (ix < oma.length - 1) return oma[ix + 1];
+    var rk = r.indexOf(r.filter(function (x) { return x.indexOf(i) >= 0; })[0]);
+    if (rk >= 0 && rk + 1 < r.length) return r[rk + 1][0];
+    return lopuksi().length ? "vertailu" : "loppu";
+  }
   function tyyppi(w, sokkona) {
     var nimi = sokkona ? (w.alkoholiton ? "Alkoholiton" : TYYPIT[w.tyyppi] || "Viini") : (w.tyyppiNimi || TYYPIT[w.tyyppi] || "Viini");
     return '<span class="vt-tyyppi vt-tyyppi--' + esc(w.tyyppi) + (w.alkoholiton ? " vt-tyyppi--alkoholiton" : "") + '">' + esc(nimi) + "</span>";
@@ -529,6 +544,24 @@
       (koontiTila() ? '<div class="o-vt-porukka" id="porukka-' + i + '">' + porukkaHtml(i) + "</div>" : "");
   }
 
+  // Viimeisen lasin kaveri: jokainen valitsee viereen mieluisensa aiemmista viineistä (ei sokkona, ei arvailua).
+  function kaveriValinta(i) {
+    var aiemmat = T.viinit.map(function (w, j) { return j; }).filter(function (j) { return j < i; });
+    return '<div class="vt-kortti o-kaveri"><h2 class="o-h2">Valitse viereen suosikkisi</h2><p class="o-vaimea">Kaada lasin ' + nro(i) + ' viereen se aiemmista, jonka haluat maistaa uudelleen. Vertaile rauhassa.</p><div class="o-kaveri__lista">' +
+      aiemmat.map(function (j) {
+        var t = S.arviot[j];
+        return '<button class="o-kaveri__nappi" data-act="kaveri" data-v="' + j + '" aria-pressed="' + (S.kaveri === j) + '"><span class="vt-pallo">' + nro(j) + "</span><span><b>" + esc(onAuki(j) ? lyhytNimi(j) : "Lasi " + nro(j)) + "</b><small>" + (t == null ? "ei tähtiä" : tahtiTeksti(t) + " " + t + "/5") + "</small></span></button>";
+      }).join("") + "</div>" + (S.kaveri != null ? kaveriKortti(true) : "") + "</div>";
+  }
+  function kaveriKortti(sisalla) {
+    var j = S.kaveri, w = T.viinit[j];
+    if (j == null || !w) return "";
+    var omat = (S.aromit[j] || []).map(function (o) { return '<span class="o-kupla o-kupla--oma">' + aromiHtml(aromit(j)[o]) + "</span>"; }).join("") +
+      omatAromit(j).map(function (x) { return '<span class="o-kupla o-kupla--oma">' + esc(x) + "</span>"; }).join("");
+    return '<div class="' + (sisalla ? "o-kaveri__valittu" : "vt-kortti o-kaveri") + '"><p class="o-kaveri__otsikko">Vierellä: lasi ' + nro(j) + " · " + esc(w.nimi) + "</p>" +
+      '<p class="o-vaimea">Annoit sille ' + (S.arviot[j] == null ? "ei tähtiä" : tahtiTeksti(S.arviot[j]) + " " + S.arviot[j] + "/5") + ".</p>" +
+      (omat ? '<div class="o-kuplat o-kuplat--pienet">' + omat + "</div>" : "") + "</div>";
+  }
   function arvio(i) {
     return '<div><label class="o-label" for="muistiinpano-' + i + '">Omat muistiinpanot</label>' +
       '<textarea class="o-kentta" id="muistiinpano-' + i + '" data-muistiinpano="' + i + '" placeholder="Mitä maistoit? Ostaisitko tämän?">' + esc(S.muistiinpanot[i] || "") + "</textarea></div>";
@@ -545,6 +578,22 @@
       h += viiniKortti(w, true);
       h += '<button class="vt-painike vt-painike--leveä" data-act="seuraava" data-i="' + i + '" data-v="' + (seurNb == null ? loppuNb : seurNb) + '">' +
         (seurNb == null ? (lopuksi().length ? "Yhteenveto →" : "Kiitos →") : "Seuraava lasi →") + "</button>";
+      return h + "</section>";
+    }
+    if (!onAuki(i) && kierrosTila()) {
+      var kr = kierrosOf(i), muut = kr.filter(function (j) { return j !== i; }), kesken = muut.filter(function (j) { return !S.lukittu[j]; });
+      h += '<h1 class="o-h1">Lasi ' + nro(i) + '</h1><p class="o-ingressi">' + (kr.length > 1 ? "Kierros " + (kierrokset().map(function (r) { return r[0]; }).indexOf(kr[0]) + 1) + ": lasit " + kr.map(function (j) { return nro(j); }).join(" ja ") + ". Viinien tiedot aukeavat, kun olet arvioinut molemmat." :
+        "Viimeinen lasi. Viini paljastuu, kun olet antanut aromit ja tähdet.") + "</p>";
+      if (onKaveriKierros(i)) h += kaveriValinta(i);
+      h += maistelu(i);
+      if (!S.lukittu[i]) {
+        var valmisK = S.arviot[i] != null;
+        h += '<button class="vt-painike vt-painike--leveä o-aromit-valmis" data-act="lukitse" data-i="' + i + '"' + (valmisK ? "" : " disabled") + ">" + (kesken.length ? "Valmis, lasi " + nro(kesken[0]) + " →" : "Valmis, näytä viini" + (kr.length > 1 ? "t" : "")) + "</button>";
+        if (!valmisK) h += '<p class="o-vaimea o-valmis-vihje">Anna ensin tähdet. Porukan aromit näet viinin tietojen yhteydessä.</p>';
+      } else if (kesken.length) {
+        h += '<div class="vt-vinkki o-odota"><span class="vt-vinkki__nimi">Lasi ' + nro(i) + " arvioitu ✓</span><p>Maista seuraavaksi lasi " + nro(kesken[0]) + ". Molempien viinien tiedot aukeavat, kun se on arvioitu.</p>" +
+          '<button class="vt-painike vt-painike--leveä" data-act="siirry" data-v="' + kesken[0] + '">Lasi ' + nro(kesken[0]) + " →</button></div>";
+      }
       return h + "</section>";
     }
     if (!onAuki(i)) {
@@ -565,6 +614,11 @@
         h += '<div class="vt-vinkki o-odota"><span class="vt-vinkki__nimi">Lukossa!</span><p>Odota, että juontaja paljastaa lasin. Sillä välin saa maistaa uudestaan.</p>' +
           '<button class="vt-painike vt-painike--leveä" data-act="paljasta" data-i="' + i + '">Näytä mikä se oli</button></div>';
       }
+    } else if (kierrosTila()) {
+      h = '<section class="o-osio"><div class="o-rivi"><span class="vt-pallo">' + nro(i) + '</span><span class="o-vaihe-teksti">Lasin ' + nro(i) + " tiedot</span></div>" + viiniKortti(w) + tulos(w, i);
+      if (onKaveriKierros(i) && S.kaveri != null) h += kaveriKortti();
+      var sa = seuraavaAskel(i);
+      h += '<button class="vt-painike vt-painike--leveä" data-act="siirry" data-v="' + sa + '">' + (sa === "vertailu" ? "Yhteenveto →" : sa === "loppu" ? "Kiitos →" : kierrosOf(i).indexOf(sa) >= 0 ? "Lasin " + nro(sa) + " tiedot →" : "Seuraava kierros: lasi " + nro(sa) + " →") + "</button>";
     } else {
       if (sokko) h += tulos(w, i);
       h += viiniKortti(w);
@@ -790,7 +844,12 @@
       }
       if (lopuksi().length) { a.push({ k: "vertailu" }); a.push({ k: "vtulos", l: "viini" }); a.push({ k: "vtulos", l: "alkoholiton" }); }
     } else {
-      T.viinit.forEach(function (w, i) { if (onSokko(w)) a.push({ k: "maistelu", i: i }); a.push({ k: "paljastus", i: i }); });
+      if (kierrosTila()) {
+        kierrokset().forEach(function (r) {
+          a.push(r.length > 1 ? { k: "maistelu", pari: r, lasi: r.map(function (i) { return i + 1; }).join(" & ") } : { k: "maistelu", i: r[0] });
+          r.forEach(function (i) { a.push({ k: "paljastus", i: i }); });
+        });
+      } else T.viinit.forEach(function (w, i) { if (onSokko(w)) a.push({ k: "maistelu", i: i }); a.push({ k: "paljastus", i: i }); });
       if (lopuksi().length) { a.push({ k: "vertailu" }); a.push({ k: "vtulos", l: "viini" }); }
     }
     a.push({ k: "loppu" });
@@ -852,7 +911,7 @@
     } else if (d.k === "maistelu") {
       var lasi = d.pari ? d.lasi : nro(d.i);
       h = '<div class="j-rivi"><span class="j-pallo">' + lasi + '</span><span class="j-ylatunniste">Lasi ' + lasi + "</span></div>" +
-        '<h1 class="j-otsikko">Haistele, maistele, anna tähdet</h1><p class="j-ala">Valitse puhelimessa kaikki aromit, jotka löydät, ja anna 0–5 tähteä.</p>' +
+        '<h1 class="j-otsikko">Haistele, maistele, anna tähdet</h1><p class="j-ala">' + (d.i != null && kierrosTila() && onKaveriKierros(d.i) ? "Viimeinen lasi. Kaada viereen suosikkisi aiemmista ja vertaile. Viini paljastuu, kun olet antanut aromit ja tähdet." : d.pari && kierrosTila() ? "Maistele molemmat lasit ja arvioi ne puhelimessa. Viinien tiedot aukeavat, kun molemmat on arvioitu." : "Valitse puhelimessa kaikki aromit, jotka löydät, ja anna 0–5 tähteä.") + "</p>" +
         '<div class="j-aromit">' + (T.aromit || []).map(function (a) { return "<span>" + aromiHtml(a) + "</span>"; }).join("") + "</div>" +
         (url ? '<div class="j-qr-pieni"><span>Myöhästyitkö?<br>' + esc(lyhyt(url)) + "</span>" + qrSvg(url, "") + "</div>" : "");
     } else if (d.k === "paljastus") {
@@ -1303,13 +1362,21 @@
     var kd = koontiData(i), aromiN = 0;
     (kd.a || []).forEach(function (x) { aromiN += Math.max(0, x || 0); });
     (kd.o || []).forEach(function (x) { aromiN += Math.max(0, (x && x.n) || 0); });
-    return '<section class="o-osio" style="padding-bottom:0">' + jtLaatikko("Lasi " + nro(i) + " livenä",
+    var kaveriOsa = "";
+    if (kierrosTila() && onKaveriKierros(i)) {
+      var aiemmat = T.viinit.map(function (w, j) { return j; }).filter(function (j) { return j < i; });
+      var kl = liveLuvut("L-kaveri", aiemmat.length) || aiemmat.map(function () { return 0; }), kmax = Math.max.apply(null, kl.concat([1]));
+      kaveriOsa = '<p class="jt-pieni">Viereen valittu</p><ul class="jt-kaverit">' + aiemmat.map(function (j, x) {
+        return '<li><span>Lasi ' + nro(j) + " · " + esc(lyhytNimi(j)) + '</span><i style="width:' + Math.round(kl[x] / kmax * 100) + '%"></i><b>' + kl[x] + "</b></li>";
+      }).join("") + "</ul>";
+    }
+    return '<section class="o-osio" style="padding-bottom:0">' + jtLaatikko("Lasi " + nro(i) + (onSokko(T.viinit[i]) ? " · " + esc(lyhytNimi(i)) : "") + " livenä",
       '<div class="jt-luvut"><div><b>' + v + (m ? "/" + m : "") + "</b><span>" + (onSokko(T.viinit[i]) ? "lukinnut" : "painanut Valmis") + "</span></div>" +
       "<div><b>" + n + "</b><span>antanut tähdet</span></div>" +
       "<div><b>" + (ka == null ? "–" : desi(ka)) + "</b><span>tähtien ka.</span></div>" +
       "<div><b>" + aromiN + "</b><span>aromivalintaa</span></div></div>" +
       "<p class=\"jt-pieni\">Tähtijakauma · näkyy vain sinulle, vieraat näkevät keskiarvot vasta lopussa</p>" + tahtiJakauma(lv) +
-      "<p class=\"jt-pieni\">Porukan aromit näkyvät alla samoin kuin vieraille, jotka ovat vastanneet.</p>") + "</section>";
+      kaveriOsa + "<p class=\"jt-pieni\">Porukan aromit näkyvät alla samoin kuin vieraille, jotka ovat vastanneet.</p>") + "</section>";
   }
   function jtViiniLisat(w) {
     var i = T.viinit.indexOf(w), h = "";
@@ -1447,10 +1514,27 @@
       case "valitse":
         if (S.lukittu[i]) return;
         S.vastaukset[i] = S.vastaukset[i] || {}; S.vastaukset[i][+t.dataset.q] = +t.dataset.o; tallenna(); renderOsallistuja(); break;
+      case "kaveri":
+        var kv = +t.dataset.v, vanhaK = S.kaveri;
+        S.kaveri = vanhaK === kv ? null : kv;
+        if (!JT && koontiTila()) {
+          var mk = { L: { kaveri: {} } };
+          if (vanhaK != null) mk.L.kaveri[vanhaK] = -1;
+          if (S.kaveri != null) mk.L.kaveri[S.kaveri] = 1;
+          S.kirjattu.L.kaveri = S.kaveri; if (S.kaveri == null) delete S.kirjattu.L.kaveri;
+          kirjaaLoppu(mk);
+        }
+        tallenna(); renderOsallistuja(); break;
       case "lukitse":
         if (!S.kirjattu.v) S.kirjattu.v = {};
         if (!JT && !S.kirjattu.v[i] && koontiTila() && Y.koontiLisaa) { S.kirjattu.v[i] = true; Y.koontiLisaa("v" + i, { m: 1 }).catch(function () { S.kirjattu.v[i] = false; tallenna(); }); }
-        S.lukittu[i] = true; S.porukkaNahty[i] = true; tallenna(); paljastaKuplat = i; renderOsallistuja(); paljastaKuplat = null; haeKoonti(i);
+        S.lukittu[i] = true; S.porukkaNahty[i] = true; tallenna();
+        if (kierrosTila()) {
+          var keskenL = kierrosOf(i).filter(function (j) { return !S.lukittu[j]; });
+          vaihdaNakyma(keskenL.length ? keskenL[0] : kierrosOf(i)[0]);
+          haeKoonti(i); break;
+        }
+        paljastaKuplat = i; renderOsallistuja(); paljastaKuplat = null; haeKoonti(i);
         var kentta = document.getElementById("sana-" + i); if (kentta) kentta.scrollIntoView({ block: "center" });
         break;
       case "paljasta": paljasta(i); break;

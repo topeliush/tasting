@@ -292,7 +292,7 @@
       kentta("nimi", "Nimi (näkyy osallistujille)", w.nimi) +
       '<div class="h-kaksi">' + kentta("pvm", "Päivämäärä", w.pvm, "date") + kentta("asiakas", "Asiakas (vain sinulle)", w.asiakas) + "</div>" +
       kentta("kuvaus", "Esittelyteksti aloitusnäkymään", w.kuvaus, "textarea") +
-      '<label class="h-valinta"><input type="checkbox" data-p="sokkotasting"' + (w.sokkotasting ? " checked" : "") + "> Sokkotasting (juomat paljastetaan vasta vastaamisen jälkeen)</label>" +
+      '<label class="h-valinta"><input type="checkbox" data-p="sokkotasting"' + (w.sokkotasting ? " checked" : "") + "> Sokkotasting pareittain (1+2, 3+4 … ja viimeisen lasin viereen jokainen valitsee suosikkinsa; viinien tiedot aukeavat, kun kierroksen lasit on arvioitu)</label>" +
       '<label class="h-valinta"><input type="checkbox" data-p="lahjakortti.kaytossa"' + (w.lahjakortti.kaytossa ? " checked" : "") + "> Kiitoslahja lopussa (lahjakortti)</label>" +
       (w.lahjakortti.kaytossa ? '<div class="h-kaksi">' + kentta("lahjakortti.arvo", "Lahjakortin arvo (€)", w.lahjakortti.arvo, "number") + kentta("lahjakortti.tunnus", "Tunnus koodiin (esim. TEK)", w.lahjakortti.tunnus) + "</div>" : "") +
       kentta("googleArvioLinkki", "Google-arvion linkki", w.googleArvioLinkki || "") +
