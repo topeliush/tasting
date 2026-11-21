@@ -553,7 +553,9 @@
     var l = S.linja || "viini", L = S.loppu, vv = lVaihtoehdot(l);
     var h = '<section class="o-osio"><h1 class="o-h1">Yhteenveto</h1>';
     if (!L.lukittu) {
-      h += '<p class="o-ingressi">' + (omat().length === 3 ? "Kolme" : omat().length) + ' lasia takana. Nyt saa vertailla, ja maistaa vielä kerran, jos muisti pätkii.</p>';
+      var kaikkiLasit = omat().length, arvioidut = omat().filter(function (i) { return S.lukittu[i] || S.arviot[i] != null || (S.aromit[i] || []).length || omatAromit(i).length; }).length;
+      h += '<p class="o-ingressi">' + (arvioidut >= kaikkiLasit ? "Kaikki " + kaikkiLasit + " lasia takana. Nyt saa vertailla, ja maistaa vielä kerran, jos muisti pätkii." :
+        arvioidut + "/" + kaikkiLasit + " lasia arvioitu. Puuttuviin pääset yläreunan numeroista, tai voit vastata alla jo nyt.") + "</p>";
       h += lopuksi().map(function (q) {
         var napit = vv.map(function (v, o) {
           return '<button class="o-vaihtoehto" data-act="l-valitse" data-id="' + esc(q.id) + '" data-o="' + o + '" aria-pressed="' + (L.v[q.id] === o) + '">' + esc(v) + "</button>";
@@ -833,7 +835,7 @@
         '<ol class="j-kysymykset">' + lopuksi().map(function (q) { return "<li><b>" + esc(q.kysymys) + "</b></li>"; }).join("") + "</ol>";
     } else if (d.k === "vtulos") {
       var alk = d.l === "alkoholiton";
-      h = '<div class="j-rivi"><span class="vt-tyyppi vt-tyyppi--kuohu' + (alk ? " vt-tyyppi--alkoholiton" : "") + '">' + (onLinjat() ? (alk ? "Alkoholittomat" : "Kuohuviinit") : "Viinit") + "</span></div>" +
+      h = '<div class="j-rivi"><span class="vt-tyyppi vt-tyyppi--kuohu' + (alk ? " vt-tyyppi--alkoholiton" : "") + '">' + (onLinjat() ? (alk ? "Alkoholittomat" : "Kuohuviinit") : "Tulokset") + "</span></div>" +
         '<h1 class="j-otsikko" style="font-size:calc(76 * var(--u))">Illan tulokset</h1>' + tulosKortit(d, " j-tulokset--4");
     } else {
       luokka = " j-lava--loppu";
@@ -1275,10 +1277,10 @@
   }
   function jtAlapalkki() {
     var D = diat(), seuraava = D[dia + 1];
-    return '<nav class="p-ala jt-ala" aria-label="Ison näytön ohjaus"><p><button class="p-ala__nyt" data-act="p-nykyinen">Näytöllä: <b>' + esc(diaNimi(D[dia])) + "</b></button>" +
-      (seuraava ? " · Seuraavaksi: " + esc(diaNimi(seuraava)) : "") + "</p>" +
-      '<div class="p-napit"><button class="vt-painike vt-painike--toissijainen" data-act="j-ed"' + (dia === 0 ? " disabled" : "") + ' aria-label="Edellinen dia">‹</button>' +
-      '<button class="vt-painike" data-act="j-seur"' + (seuraava ? "" : " disabled") + ">Seuraava ›</button></div></nav>" +
+    return '<nav class="p-ala jt-ala" aria-label="Ison näytön ohjaus"><div class="jt-ala__rivi">' +
+      '<button class="vt-painike vt-painike--toissijainen jt-ala__ed" data-act="j-ed"' + (dia === 0 ? " disabled" : "") + ' aria-label="Edellinen dia">‹</button>' +
+      '<button class="jt-ala__tila" data-act="p-nykyinen"><span>Näytöllä</span><b>' + esc(diaNimi(D[dia])) + "</b>" + (seuraava ? "<small>Seuraavaksi: " + esc(diaNimi(seuraava)) + "</small>" : "") + "</button>" +
+      '<button class="vt-painike jt-ala__seur" data-act="j-seur"' + (seuraava ? "" : " disabled") + ' aria-label="Seuraava dia">›</button></div></nav>' +
       '<div class="p-iso" id="p-iso" hidden data-act="p-sulje"></div>';
   }
   function renderOhjaus() {
@@ -1417,7 +1419,9 @@
         var ii = +t.dataset.i, kesken = document.getElementById("oma-" + ii);
         if (kesken && kesken.value.trim() && lisaaOma(ii, kesken.value)) { var uo2 = omatAromit(ii)[omatAromit(ii).length - 1], om3 = {}; om3[avainT(uo2)] = { t: uo2, d: 1 }; kirjaaKoonti(ii, null, om3); }
         if (!S.lukittu[ii] && (S.arviot[ii] != null || (S.aromit[ii] || []).length || omatAromit(ii).length)) { S.lukittu[ii] = true; S.paljastettu[ii] = true; }
-        vaihdaNakyma(t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v);
+        var seurNak = t.dataset.v === "loppu" || t.dataset.v === "vertailu" ? t.dataset.v : +t.dataset.v;
+        if (JT) { var seurDia = jtDiat(seurNak)[0]; if (seurDia != null && seurDia !== dia) { dia = seurDia; store.set(KEY + "-juontaja", dia); laheta(); } }
+        vaihdaNakyma(seurNak);
         kiinnostavat().forEach(haeKoonti); break;
       case "kuva-iso":
         var ov = document.createElement("div"); ov.className = "o-kuva-iso"; ov.setAttribute("role", "dialog");

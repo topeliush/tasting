@@ -346,11 +346,12 @@ body.j-levossa { cursor: none; }
 .o-oma-chip button { width: 30px; height: 30px; border: 0; border-radius: var(--kulma-pilleri); background: rgba(255, 255, 255, 0.18); color: #fff; font-size: 17px; line-height: 1; cursor: pointer; }
 .o-kuplat { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0.45em; font-size: 14px; }
 .o-kupla { --s: 0; display: inline-flex; align-items: center; gap: 0.4em; padding: calc(0.35em + 0.25em * var(--s)) calc(0.8em + 0.4em * var(--s)); border-radius: 999px;
+  background: rgba(65, 133, 60, calc(0.18 + 0.6 * var(--s)));
   background: color-mix(in srgb, var(--vihrea) calc(18% + 60% * var(--s)), var(--pinta)); color: var(--teksti);
   border: 2px solid transparent; font-size: calc(1em + 0.75em * var(--s)); font-weight: 800; line-height: 1.15; }
 .o-kupla[style*="--s:1"], .o-kupla[style*="--s:0.9"], .o-kupla[style*="--s:0.8"], .o-kupla[style*="--s:0.7"], .o-kupla[style*="--s:0.6"] { color: #fff; }
 .o-kupla b { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6em; height: 1.6em; padding: 0 0.35em; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: var(--vihrea-syva); font-size: 0.62em; font-weight: 900; }
-.o-kupla--vapaa { background: color-mix(in srgb, var(--sininen) calc(15% + 60% * var(--s)), var(--pinta)); font-style: italic; }
+.o-kupla--vapaa { background: rgba(64, 100, 150, calc(0.15 + 0.6 * var(--s))); background: color-mix(in srgb, var(--sininen) calc(15% + 60% * var(--s)), var(--pinta)); font-style: italic; }
 .o-kupla--vapaa b { color: var(--sininen-syva); }
 .o-kupla--oma { border-color: var(--muste); box-shadow: 2px 2px 0 var(--muste); }
 .o-kuplat--pienet { display: flex; flex-wrap: wrap; gap: var(--vali-2); margin: var(--vali-3) 0 var(--vali-2); font-size: 14px; }
@@ -358,7 +359,7 @@ body.j-levossa { cursor: none; }
 .o-selite { display: flex; flex-wrap: wrap; align-items: center; gap: var(--vali-1) var(--vali-2); margin-top: var(--vali-3) !important; font-size: 13px !important; }
 .o-pallukka { display: inline-block; width: 12px; height: 12px; border-radius: 999px; }
 .o-pallukka--oma { border: 2px solid var(--muste); background: var(--pinta); }
-.o-pallukka--vapaa { background: color-mix(in srgb, var(--sininen) 45%, var(--pinta)); }
+.o-pallukka--vapaa { background: #a5b5c9; background: color-mix(in srgb, var(--sininen) 45%, var(--pinta)); }
 .o-tahtisana { font-weight: 700; color: var(--vihrea-syva) !important; }
 .j-tulos .o-kuplat { font-size: calc(26 * var(--u)); gap: calc(14 * var(--u)); }
 .j-tulos .o-kupla { border-width: calc(3 * var(--u)); }
@@ -417,7 +418,7 @@ body.j-levossa { cursor: none; }
 .pk li.on-karki .pk-palkki i { background: var(--muste); }
 .pk li.on-oma .pk-palkki i { background: var(--sininen); }
 .pk li.on-oikea .pk-palkki i { background: var(--vihrea); }
-.o-vs__fakta { margin: var(--vali-3) 0 0 !important; padding: var(--vali-2) var(--vali-3); border-radius: var(--kulma-s); background: color-mix(in srgb, var(--vihrea) 12%, var(--pinta)); font-size: 14.5px; line-height: 1.45; }
+.o-vs__fakta { margin: var(--vali-3) 0 0 !important; padding: var(--vali-2) var(--vali-3); border-radius: var(--kulma-s); background: #e5e7cf; background: color-mix(in srgb, var(--vihrea) 12%, var(--pinta)); font-size: 14.5px; line-height: 1.45; }
 .o-vs__fakta b { color: var(--vihrea-syva); margin-right: 0.25em; }
 .o-vs__odota { margin-top: var(--vali-3) !important; }
 /* Viimeinen sana: odotetaan juontajan paljastusta */
@@ -497,7 +498,7 @@ body.j-levossa { cursor: none; }
 .o-juomakortti > * + * { margin-top: var(--vali-2); }
 .o-juomakortti .o-ryhma { margin-top: var(--vali-4); }
 .o-juomakortti .o-lista--juomat li:last-child { border-bottom: 0; }
-.o-juomakortti .o-juoma__tahdet span { background: color-mix(in srgb, var(--voi) 45%, var(--pinta)) !important; }
+.o-juomakortti .o-juoma__tahdet span { background: #f2e4b4 !important; background: color-mix(in srgb, var(--voi) 45%, var(--pinta)) !important; }
 .o-juomakortti__kopioi { margin-top: var(--vali-4) !important; }
 .o-juomakortti .o-lista--juomat li { flex-wrap: wrap; align-items: flex-start; }
 .o-juomakortti .o-lista--juomat .vt-pallo { margin-top: 2px; }
@@ -603,7 +604,7 @@ html[data-siirto="kiinni"]::view-transition-new(aromit) { animation: vt-esiin 0.
 .jt h3 { color: var(--jt-teksti); }
 .o-tab--jt { border-color: var(--jt) !important; color: var(--jt) !important; border-style: dashed !important; }
 .o-tab--jt[aria-current="true"] { background: var(--jt) !important; color: #fff !important; }
-body.jt-tila .o-kehys { padding-bottom: 140px; }
+
 body.jt-tila .o-yla #yhteys { margin-left: auto; }
 .jt-ala { border-top: 3px solid var(--jt); }
 .p-tahdet { margin-top: var(--vali-4); }
@@ -613,3 +614,17 @@ body.jt-tila .o-yla #yhteys { margin-left: auto; }
 .p-tahdet[open] summary b::after { content: " · piilota jakaumat ▴"; }
 .p-tahdet summary span { font-size: 14px; line-height: 1.5; }
 .p-muisti .p-jaa { margin: var(--vali-3) 0; }
+
+/* Juontajan alapalkki yhdellä rivillä */
+.jt-ala { padding: var(--vali-2) var(--vali-3) calc(var(--vali-2) + env(safe-area-inset-bottom)); }
+.jt-ala__rivi { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: 52px 1fr 76px; gap: var(--vali-2); align-items: stretch; }
+.jt-ala__rivi .vt-painike { min-height: 56px; padding: 0; font-size: 26px; line-height: 1; }
+.jt-ala__tila { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 4px var(--vali-2); border: 0; border-radius: var(--kulma-s); background: var(--jt-tausta); color: var(--jt-teksti); font: inherit; text-align: left; cursor: pointer; }
+.jt-ala__tila span { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.75; }
+.jt-ala__tila b, .jt-ala__tila small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.jt-ala__tila b { font-size: 15px; }
+.jt-ala__tila small { font-size: 12px; opacity: 0.8; }
+body.jt-tila .o-kehys { padding-bottom: 110px; }
+body.jt-tila .o-yla { flex-wrap: wrap; gap: var(--vali-2); }
+body.jt-tila .o-yla #yhteys { max-width: 100%; }
+@media (max-width: 360px) { body.jt-tila .o-yla #yhteys .p-chip, body.jt-tila .o-yla #yhteys > * { font-size: 10px; } }
