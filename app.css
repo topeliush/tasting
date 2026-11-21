@@ -624,7 +624,7 @@ body.jt-tila .o-yla #yhteys { margin-left: auto; }
 .jt-ala__tila b, .jt-ala__tila small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .jt-ala__tila b { font-size: 15px; }
 .jt-ala__tila small { font-size: 12px; opacity: 0.8; }
-body.jt-tila .o-kehys { padding-bottom: 110px; }
+body.jt-tila .o-kehys { padding-bottom: 96px; }
 body.jt-tila .o-yla { flex-wrap: wrap; gap: var(--vali-2); }
 body.jt-tila .o-yla #yhteys { max-width: 100%; }
 @media (max-width: 360px) { body.jt-tila .o-yla #yhteys .p-chip, body.jt-tila .o-yla #yhteys > * { font-size: 10px; } }
@@ -695,3 +695,23 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 [data-theme="ilta"] .o-garvio { background: #2f4d78; color: #fff; }
 [data-theme="ilta"] .o-garvio__nappi { color: #2f4d78; }
 [data-theme="ilta"] .o-tahti { color: rgba(243, 233, 198, 0.3); }
+
+/* ---------- Juontaja: ison näytön ohjaus pienen napin takana ---------- */
+.jt-fab { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; width: 58px; height: 58px; border: 0; border-radius: 999px; background: var(--jt); color: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.jt-fab__ikoni { font-size: 20px; line-height: 1; }
+.jt-fab__nro { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; }
+.jt-fab.on-auki .jt-fab__ikoni { font-size: 26px; }
+.jt-paneeli { position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; max-height: 72vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: var(--vali-4) var(--vali-4) calc(84px + env(safe-area-inset-bottom)); border-top: 3px solid var(--jt); border-radius: 22px 22px 0 0; background: var(--pinta); color: var(--teksti); box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.25); animation: jt-ylos 0.22s ease-out; }
+@keyframes jt-ylos { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.jt-paneeli__yla { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--vali-3); }
+.jt-paneeli .jt-ala__rivi { max-width: none; }
+.jt-dialista { margin: var(--vali-4) 0 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.jt-dialista button { display: flex; align-items: center; gap: var(--vali-3); width: 100%; min-height: 44px; padding: 6px 12px; border: 1.5px solid var(--viiva); border-radius: 12px; background: transparent; color: inherit; font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.jt-dialista button span { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: rgba(45, 45, 42, 0.08); font-size: 12px; font-weight: 800; }
+.jt-dialista button em { margin-left: auto; font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #fff; background: var(--vihrea); padding: 2px 8px; border-radius: 999px; }
+.jt-dialista button.on-tama { border-color: var(--jt); background: var(--jt-tausta); color: var(--jt-teksti); }
+.jt-dialista button[aria-current="true"] { border-color: var(--vihrea); border-width: 2.5px; }
+.jt-paneeli__vihje { margin: var(--vali-3) 0 0; font-size: 12.5px; color: var(--teksti-vaimea); }
+.jt-paneeli__yla { gap: var(--vali-2); }
+.jt-paneeli__yla #yhteys { margin-right: auto; font-size: 11px; }
+.jt-fab.on-varoitus::after { content: ""; position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 999px; background: #c0392b; border: 2px solid #fff; }

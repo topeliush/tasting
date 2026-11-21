@@ -353,7 +353,7 @@
     if (S.nakyma === "vertailu" && !lopuksi().length) S.nakyma = "loppu";
     if (typeof S.nakyma === "number") varmistaKoonti(S.nakyma);
     var sisalto = S.nakyma === "loppu" ? yhteenveto() : S.nakyma === "vertailu" ? vertailuNakyma() : viiniNakyma(S.nakyma);
-    if (JT) sisalto = jtNaytolle(S.nakyma) + (S.nakyma === "loppu" ? jtLoppu() : "") + sisalto;
+    if (JT) sisalto = (S.nakyma === "loppu" ? jtLoppu() : "") + sisalto;
     app.innerHTML = esikatseluPalkki() + '<main class="o-kehys">' + ylapalkki() + '<div class="o-vt-sisalto' + (sisaanAnimaatio ? " o-sisaan" : "") + '">' + sisalto + "</div></main>" + (JT ? jtAlapalkki() : "");
     sisaanAnimaatio = false;
     sovitaTabit();
@@ -413,7 +413,7 @@
     tabit += '<li><button class="o-tab o-tab--loppu" data-act="siirry" data-v="loppu" aria-current="' + (S.nakyma === "loppu") + '">Kiitos</button></li>';
     var linjaNappi = onLinjat() && S.linja ? '<button class="o-linjavaihto' + (S.linja === "alkoholiton" ? " o-linjavaihto--alk" : "") + '" data-act="alkuun">' +
       (S.linja === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + '<span aria-hidden="true">⇄</span><span class="o-piilo">, vaihda setti</span></button>' : "";
-    return '<header class="o-yla"><span class="o-yla__nimi">' + (JT ? '<span class="jt-merkki">Juontaja</span> ' : "") + esc(T.nimi) + "</span>" + (JT ? '<span id="yhteys" data-luokka="p-chip"></span>' : "") + linjaNappi +
+    return '<header class="o-yla"><span class="o-yla__nimi">' + (JT ? '<span class="jt-merkki">Juontaja</span> ' : "") + esc(T.nimi) + "</span>" + linjaNappi +
       '<button class="o-teemanappi" data-act="o-teema" aria-label="' + (osallistujaTeema() === "ilta" ? "Vaihda vaaleaan tilaan" : "Vaihda iltatilaan") + '">' + (osallistujaTeema() === "ilta" ? "☀︎" : "☾") + "</button></header>" +
       '<nav aria-label="Viinit"><ul class="o-tabit">' + tabit + "</ul></nav>";
   }
@@ -956,9 +956,10 @@
   function muut() { return vastausDocs.length; }
   function paivitaYhteys() {
     var el = document.getElementById("yhteys");
-    if (!el) return;
     var ok = !!Y && yhteysTila === "yhdistetty", tila = juontajaTila();
     if (tila === "ohjaus") ok = ok && onJuontaja();
+    var fab = document.querySelector(".jt-fab"); if (fab) fab.classList.toggle("on-varoitus", !ok);
+    if (!el) return;
     el.className = el.dataset.luokka + (ok ? " on" : "");
     el.textContent = !Y ? "Paikallinen tila" : tila === "ohjaus" ? (ok ? "Yhdistetty · " + vastausDocs.length + " puhelinta" : onJuontaja() ? "Ei yhteyttä" : "Ei kirjautunut") : (ok ? (onJuontaja() ? "Yhdistetty · live · " + vastausDocs.length + " puhelinta" : "Yhdistetty") : "Ei yhteyttä");
     var ohje = document.getElementById("yhteys-ohje");
@@ -1305,18 +1306,31 @@
     var asetukset = '<div class="p-asetukset" style="margin-top:var(--vali-4)"><button class="vt-painike vt-painike--toissijainen vt-painike--pieni" data-act="j-teema">Näytön teema: ' + (teema === "ilta" ? "Ilta" : "Vaalea") + "</button>" +
       (Y && onJuontaja() ? '<button class="vt-linkki" data-act="p-ulos">Kirjaudu ulos</button>' : "") +
       '<a class="vt-linkki" href="#naytto">Avaa näyttönäkymä</a><a class="vt-linkki" href="#poytakortti">Pöytäkortit</a><a class="vt-linkki" href="#">Osallistujan näkymä</a></div>';
-    return '<section class="o-osio">' + jtNaytolle("alku") + '<h1 class="o-h1">' + esc(T.nimi) + "</h1>" +
+    return '<section class="o-osio"><h1 class="o-h1">' + esc(T.nimi) + "</h1>" +
       '<p class="o-ingressi">' + esc(T.kuvaus) + "</p>" +
       '<p class="o-vaimea">Osallistujat näkevät alussa tämän tekstin ja Aloitetaan-napin. Välilehdet yllä näyttävät saman kuin vieraiden puhelimissa. Omat napautuksesi tällä puhelimella eivät mene vieraiden laskureihin.</p>' +
       jtLaatikko("Ennen aloitusta", h + asetukset) + "</section>";
   }
+  // Ison näytön ohjaus: pieni pyöreä nappi oikeassa alakulmassa, josta paneeli aukeaa.
+  var jtPaneeliAuki = false;
   function jtAlapalkki() {
     var D = diat(), seuraava = D[dia + 1];
-    return '<nav class="p-ala jt-ala" aria-label="Ison näytön ohjaus"><div class="jt-ala__rivi">' +
+    var nappi = '<button class="jt-fab' + (jtPaneeliAuki ? " on-auki" : "") + '" data-act="jt-paneeli" aria-expanded="' + jtPaneeliAuki + '" aria-label="Ison näytön ohjaus">' +
+      '<span class="jt-fab__ikoni" aria-hidden="true">' + (jtPaneeliAuki ? "×" : "▭") + "</span><span class=\"jt-fab__nro\">" + (dia + 1) + "/" + D.length + "</span></button>";
+    if (!jtPaneeliAuki) return nappi + '<div class="p-iso" id="p-iso" hidden data-act="p-sulje"></div>';
+    var tama = jtDiat(S.nakyma);
+    var lista = D.map(function (d, k) {
+      return '<li><button data-act="p-nayta" data-v="' + k + '" aria-current="' + (k === dia) + '"' + (tama.indexOf(k) >= 0 ? ' class="on-tama"' : "") + "><span>" + (k + 1) + "</span>" + esc(diaNimi(d)) + (k === dia ? "<em>näytöllä</em>" : "") + "</button></li>";
+    }).join("");
+    return '<div class="jt-paneeli" role="dialog" aria-label="Ison näytön ohjaus">' +
+      '<div class="jt-paneeli__yla"><span class="jt-merkki">Iso näyttö</span><span id="yhteys" data-luokka="p-chip"></span><button class="vt-linkki" data-act="jt-paneeli">Sulje</button></div>' +
+      '<div class="jt-ala__rivi">' +
       '<button class="vt-painike vt-painike--toissijainen jt-ala__ed" data-act="j-ed"' + (dia === 0 ? " disabled" : "") + ' aria-label="Edellinen dia">‹</button>' +
       '<button class="jt-ala__tila" data-act="p-nykyinen"><span>Näytöllä</span><b>' + esc(diaNimi(D[dia])) + "</b>" + (seuraava ? "<small>Seuraavaksi: " + esc(diaNimi(seuraava)) + "</small>" : "") + "</button>" +
-      '<button class="vt-painike jt-ala__seur" data-act="j-seur"' + (seuraava ? "" : " disabled") + ' aria-label="Seuraava dia">›</button></div></nav>' +
-      '<div class="p-iso" id="p-iso" hidden data-act="p-sulje"></div>';
+      '<button class="vt-painike jt-ala__seur" data-act="j-seur"' + (seuraava ? "" : " disabled") + ' aria-label="Seuraava dia">›</button></div>' +
+      '<ol class="jt-dialista">' + lista + "</ol>" +
+      '<p class="jt-paneeli__vihje">Korostetut kuuluvat tähän välilehteen. Napauta diaa, niin se vaihtuu isolle näytölle.</p></div>' +
+      nappi + '<div class="p-iso" id="p-iso" hidden data-act="p-sulje"></div>';
   }
   function renderOhjaus() {
     if (Y && !onJuontaja()) { asetaJT(false); kirjautuminen(); return; }
@@ -1523,7 +1537,8 @@
         siirraDia(act === "j-ed" ? -1 : 1);
         if (JT) { var jn = jtNakymaDialle(dia); if (jn !== S.nakyma) { S.nakyma = jn; tallenna(); renderOhjaus(); window.scrollTo(0, 0); } }
         break;
-      case "p-nykyinen": var jn2 = jtNakymaDialle(dia); if (jn2 !== S.nakyma) { S.nakyma = jn2; tallenna(); renderOhjaus(); } window.scrollTo(0, 0); break;
+      case "jt-paneeli": jtPaneeliAuki = !jtPaneeliAuki; renderOhjaus(); break;
+      case "p-nykyinen": var jn2 = jtNakymaDialle(dia); jtPaneeliAuki = false; S.nakyma = jn2; tallenna(); renderOhjaus(); window.scrollTo(0, 0); break;
       case "p-nayta": asetaDia(+t.dataset.v); break;
       case "p-vierita": vieritaDiaan(+t.dataset.v); break;
       case "j-teema": vaihdaTeema(); break;
