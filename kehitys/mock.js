@@ -50,6 +50,8 @@
     tyhjennaVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return Promise.all(l.map(function (x) { return del("/api/doc/tilaisuudet/" + id + "/vastaukset/" + x.id); })).then(function () { return del("/api/doc/tilaisuudet/" + id); }).then(function () { return l.length; }); }); },
     listaaLahjat: function () { return get("/api/col/lahjakortit").then(function (l) { return l.map(function (x) { x.data.id = x.id; return x.data; }); }); },
     merkitseLahja: function (k, v) { return get("/api/doc/lahjakortit/" + k).then(function (d) { d.kaytetty = !!v; d.kaytettyMs = v ? Date.now() : null; return post("/api/doc/lahjakortit/" + k, d); }); },
+    haeVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return l.map(function (x) { return x.data; }); }); },
+    haeKoonnit: function (id) { return get("/api/col/tilaisuudet/" + id + "/koonti").then(function (l) { var r = {}; l.forEach(function (x) { r[x.id] = x.data; }); return r; }); },
     laskeVastaukset: function (id) { return get("/api/col/tilaisuudet/" + id + "/vastaukset").then(function (l) { return l.length; }); }
   };
 })();

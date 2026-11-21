@@ -214,27 +214,53 @@
     var linjat = viinit.some(function (w) { return w.alkoholiton; }) ? ["viini", "alkoholiton"] : ["viini"];
     function indeksit(l) { var r = []; viinit.forEach(function (w, i) { if ((l === "alkoholiton") === !!w.alkoholiton) r.push(i); }); return r; }
     function nimi(i) { return viinit[i].lyhyt || viinit[i].nimi; }
-    var tulos = { mukana: Math.max(0, loppu.m || 0), linjat: [] };
+    // Puhelinten tallentamat vastaukset (yksi dokumentti per osallistuja): varalähde, jos yhteiset laskurit ovat tyhjiä
+    // (esim. sokkotasting ennen 21.11.2026, jolloin aromeja ei koottu laskureihin).
+    var V = k.__vastaukset || [];
+    function vAromit(i) {
+      var a = {}, o = {};
+      V.forEach(function (d) {
+        var r = d && d.v && d.v["v" + i]; if (!r) return;
+        (r.a || []).forEach(function (j) { a[j] = (a[j] || 0) + 1; });
+        var ol = Array.isArray(r.o) ? r.o : (typeof r.o === "string" && r.o ? [r.o] : []), nahty = {};
+        ol.forEach(function (x) { var key = String(x).trim().toLowerCase(); if (!key || nahty[key]) return; nahty[key] = 1; o[key] = o[key] || { t: String(x).trim(), n: 0 }; o[key].n++; });
+      });
+      return { a: a, o: o };
+    }
+    function vTahdet(i) { var t5 = {}; V.forEach(function (d) { var r = d && d.v && d.v["v" + i]; if (r && typeof r.t === "number") t5[r.t] = (t5[r.t] || 0) + 1; }); return t5; }
+    function vKysymys(q, l, ii) { var c = {}; V.forEach(function (d) { if (!d || (d.l || "viini") !== l || !d.L) return; var x = d.L[q.id]; if (typeof x === "number") c[x] = (c[x] || 0) + 1; }); return c; }
+    var lahdeVastaukset = false;
+    var tulos = { mukana: Math.max(0, loppu.m || 0, V.length), vastauksia: V.length, linjat: [] };
     linjat.forEach(function (l) {
       var ii = indeksit(l), L = { l: l, tahdet: [], aromit: [], kysymykset: [] };
       ii.forEach(function (i, n) {
-        var t5 = (loppu.t || {})[i] || {}, cnt = 0, sum = 0;
-        for (var s = 0; s <= 5; s++) { var c = Math.max(0, t5[s] || 0); cnt += c; sum += c * s; }
-        L.tahdet.push({ i: i, nro: n + 1, nimi: nimi(i), ka: cnt ? sum / cnt : null, n: cnt });
+        var t5 = (loppu.t || {})[i] || {}, cnt = 0, sum = 0, jak = [];
+        if (!Object.keys(t5).some(function (x) { return t5[x] > 0; })) { var vt = vTahdet(i); if (Object.keys(vt).length) { t5 = vt; lahdeVastaukset = true; } }
+        for (var s = 0; s <= 5; s++) { var c = Math.max(0, t5[s] || 0); cnt += c; sum += c * s; jak.push(c); }
+        L.tahdet.push({ i: i, nro: n + 1, nimi: nimi(i), ka: cnt ? sum / cnt : null, n: cnt, jakauma: jak });
         var v = k["v" + i] || {}, lst = [];
         aromit.forEach(function (a, j) { var c = v.a && v.a[j] > 0 ? v.a[j] : 0; if (c) lst.push({ t: a, n: c }); });
         Object.keys(v.o || {}).forEach(function (h) { var x = v.o[h]; if (x && x.t && x.n > 0) lst.push({ t: x.t, n: x.n, oma: true }); });
+        if (!lst.length) {
+          var va = vAromit(i);
+          aromit.forEach(function (a, j) { if (va.a[j]) lst.push({ t: a, n: va.a[j] }); });
+          Object.keys(va.o).forEach(function (h) { lst.push({ t: va.o[h].t, n: va.o[h].n, oma: true }); });
+          if (lst.length) lahdeVastaukset = true;
+        }
         lst.sort(function (a, b) { return b.n - a.n; });
-        L.aromit.push({ nro: n + 1, nimi: nimi(i), lista: lst.slice(0, 6) });
+        L.aromit.push({ nro: n + 1, nimi: nimi(i), lista: lst });
       });
       L.tahdet.sort(function (a, b) { return (b.ka || 0) - (a.ka || 0); });
       (t.lopuksi || []).forEach(function (q) {
-        var d = ((loppu.L || {})[q.id + "-" + l]) || {}, rivit = ii.map(function (i, n) { return { nimi: "Lasi " + (n + 1) + " · " + nimi(i), n: Math.max(0, d[n] || 0) }; });
+        var d = ((loppu.L || {})[q.id + "-" + l]) || {};
+        if (!Object.keys(d).some(function (x) { return d[x] > 0; })) { var vk = vKysymys(q, l, ii); if (Object.keys(vk).length) { d = vk; lahdeVastaukset = true; } }
+        var rivit = ii.map(function (i, n) { return { nimi: "Lasi " + (n + 1) + " · " + nimi(i), n: Math.max(0, d[n] || 0) }; });
         var yht = rivit.reduce(function (a, b) { return a + b.n; }, 0);
         L.kysymykset.push({ kysymys: q.kysymys, rivit: rivit, yht: yht });
       });
       tulos.linjat.push(L);
     });
+    tulos.lahdeVastaukset = lahdeVastaukset;
     return tulos;
   }
   function koosteTeksti(t, K) {
@@ -242,7 +268,7 @@
     K.linjat.forEach(function (L) {
       if (K.linjat.length > 1) r.push(L.l === "alkoholiton" ? "ALKOHOLITTOMAT" : "KUOHUVIINIT");
       r.push("Tähdet:");
-      L.tahdet.forEach(function (x) { r.push("  " + (x.ka == null ? "–" : "★ " + desi(x.ka)) + "  " + x.nimi + " (" + x.n + " arviota)"); });
+      L.tahdet.forEach(function (x) { r.push("  " + (x.ka == null ? "–" : "★ " + desi(x.ka)) + "  " + x.nimi + " (" + x.n + " arviota" + (x.n ? "; jakauma 0–5★: " + x.jakauma.join(" / ") : "") + ")"); });
       r.push("Aromit:");
       L.aromit.forEach(function (x) { r.push("  Lasi " + x.nro + " · " + x.nimi + ": " + (x.lista.length ? x.lista.map(function (a) { return a.t + " " + a.n; }).join(", ") : "–")); });
       L.kysymykset.forEach(function (q) {
@@ -255,13 +281,14 @@
   }
   function koosteHtml(t, k) {
     var K = kooste(t, k);
-    var h = '<section class="h-kooste"><h3>Tilaisuuden yhteenveto</h3><p class="h-kooste__iso"><b>' + K.mukana + "</b> maistajaa mukana</p>";
+    var h = '<section class="h-kooste"><h3>Tilaisuuden yhteenveto</h3><p class="h-kooste__iso"><b>' + K.mukana + "</b> maistajaa mukana</p>" +
+      (K.lahdeVastaukset ? '<p class="h-ohje">Osa luvuista on koottu puhelinten tallentamista vastauksista (' + K.vastauksia + ' puhelinta). Mukana ovat lasit, jotka maistaja ehti merkitä valmiiksi.</p>' : "");
     K.linjat.forEach(function (L) {
       var tyhja = !L.tahdet.some(function (x) { return x.n; }) && !L.aromit.some(function (x) { return x.lista.length; });
       if (tyhja) { h += '<div class="h-kooste__linja' + (L.l === "alkoholiton" ? " h-kooste__linja--alk" : "") + '"><h4>' + (L.l === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + '</h4><p class="h-ohje" style="margin:var(--vali-1) 0 0">Ei vielä vastauksia.</p></div>'; return; }
       h += '<div class="h-kooste__linja' + (L.l === "alkoholiton" ? " h-kooste__linja--alk" : "") + '">' + (K.linjat.length > 1 ? "<h4>" + (L.l === "alkoholiton" ? "Alkoholittomat" : "Kuohuviinit") + "</h4>" : "") +
-        "<h5>Suosikit</h5><ol>" + L.tahdet.map(function (x) { return "<li><span>" + esc(x.nimi) + "</span><b>" + (x.ka == null ? "–" : "★ " + desi(x.ka)) + '</b><small>' + x.n + " arviota</small></li>"; }).join("") + "</ol>" +
-        "<h5>Yleisimmät aromit</h5>" + L.aromit.map(function (x) {
+        "<h5>Suosikit</h5><ol>" + L.tahdet.map(function (x) { return "<li><span>" + esc(x.nimi) + "</span><b>" + (x.ka == null ? "–" : "★ " + desi(x.ka)) + '</b><small>' + x.n + " arviota" + (x.n ? " · 0–5★: " + x.jakauma.join(" / ") : "") + "</small></li>"; }).join("") + "</ol>" +
+        "<h5>Kaikki aromit</h5>" + L.aromit.map(function (x) {
           return '<p class="h-kooste__aromit"><b>Lasi ' + x.nro + " · " + esc(x.nimi) + "</b>" + (x.lista.length ? x.lista.map(function (a) { return '<span class="' + (a.oma ? "oma" : "") + '">' + emoji(a.t) + esc(a.t) + " <i>" + a.n + "</i></span>"; }).join("") : "<span>–</span>") + "</p>";
         }).join("") +
         L.kysymykset.map(function (q) {
@@ -507,7 +534,8 @@
         break;
       case "kooste":
         t.disabled = true;
-        window.VTData.haeKoonnit(t.dataset.id).then(function (k) { koosteet[t.dataset.id] = k || {}; render(); }, function () { t.disabled = false; ilmoita("Yhteenvedon haku epäonnistui."); });
+        Promise.all([window.VTData.haeKoonnit(t.dataset.id), window.VTData.haeVastaukset ? window.VTData.haeVastaukset(t.dataset.id).catch(function () { return []; }) : Promise.resolve([])])
+          .then(function (r) { var k = r[0] || {}; k.__vastaukset = r[1] || []; koosteet[t.dataset.id] = k; render(); }, function () { t.disabled = false; ilmoita("Yhteenvedon haku epäonnistui."); });
         break;
       case "kooste-kopioi":
         var kt = (lista || []).filter(function (x) { return x.id === t.dataset.id; })[0];

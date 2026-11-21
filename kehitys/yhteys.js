@@ -96,5 +96,6 @@ window.VTData = {
     });
   },
   merkitseLahja: function (koodi, kaytetty) { var db = perus().db; return updateDoc(doc(db, "lahjakortit", koodi), { kaytetty: !!kaytetty, kaytettyMs: kaytetty ? Date.now() : null }); },
+  haeVastaukset: function (id) { var db = perus().db; return getDocs(collection(db, "tilaisuudet", id, "vastaukset")).then(function (qs) { return qs.docs.map(function (d) { return d.data(); }); }); },
   laskeVastaukset: function (id) { var db = perus().db; return getDocs(collection(db, "tilaisuudet", id, "vastaukset")).then(function (qs) { return qs.size; }); }
 };
