@@ -13,6 +13,7 @@ Tastingien sisältö ja kuvat ovat Firestoressa (`tastingit/{tunnus}`, `tastingi
 - `hallinta/` – hallintanäkymä.
 - `pohjat/` – Clauden valmistelemat setit, jotka tuodaan hallinnasta painikkeella "Tuo setti".
 - `kuvat/<setti>/` – settien valmiit kuvat (esim. karttakuvat). Pohjassa kuvan polku alkaa `/kuvat/`; jo tuotuun settiin ne saa hallinnan painikkeella "Hae kuvat valmiista setistä" (muista tallentaa).
+- `kehitys/kartat/` – karttakuvien generaattori (d3-geo + world-atlas, renderöinti headless Chromella): `npm i d3-geo topojson-client world-atlas @fontsource/nunito`, sitten `bash tee.sh`.
 - `asetukset.js` – Firebase-yhteys ja juontajan sähköposti.
 - `yhteys.js` – Firebase SDK (13.4.0) ja yhteyskerros, rakennettu tiedostosta `kehitys/yhteys.js` esbuildilla.
 - `firestore.rules` – Firestoren tietoturvasäännöt (liitetään Firebase-konsoliin).

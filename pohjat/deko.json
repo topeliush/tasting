@@ -66,7 +66,9 @@
    "sokko": false,
    "paljastussana": "",
    "juontajalle": "Burgundin haastaja 1. Kerro tulvaviinistä: merkinnättömät tynnyrit kelluivat mudassa, ja Alexander maistoi ne sokkona. Syntyi Pegel 735, nimetty vedenkorkeuden mukaan. Vertaa liusketta seuraavan lasin laavaan.",
-   "kuvat": []
+   "kuvat": [
+    "/kuvat/deko/kartta-1-ahr.jpg"
+   ]
   },
   {
    "nimi": "Tenuta delle Terre Nere Etna Rosso 2024",
@@ -83,7 +85,9 @@
    "sokko": false,
    "paljastussana": "",
    "juontajalle": "Burgundin haastaja 2. Kysy ensin: onko pullo Burgundin vai Bordeaux'n mallinen, ja miksi? Pinot, Nerello ja Nebbiolo ovat de Grazian mukaan kolme sisarusta: vaalea väri, korkea happo ja tanniini. Kaikki kolme ovat tänään lasissa.",
-   "kuvat": []
+   "kuvat": [
+    "/kuvat/deko/kartta-2-etna.jpg"
+   ]
   },
   {
    "nimi": "Boutari Naoussa 2022",
@@ -100,7 +104,9 @@
    "sokko": false,
    "paljastussana": "",
    "juontajalle": "Barolon haastaja 1. Pyydä vieraita etsimään tomaattia ja oliivia: ne ovat Xinomavron tunnusmerkit, joita Nebbiololla ei ole. Seuraava lasi on oikeaa Nebbioloa.",
-   "kuvat": []
+   "kuvat": [
+    "/kuvat/deko/kartta-3-naoussa.jpg"
+   ]
   },
   {
    "nimi": "Taliano Michele Bric Bossola Roero Riserva 2021",
@@ -117,7 +123,9 @@
    "sokko": false,
    "paljastussana": "",
    "juontajalle": "Barolon haastaja 2. Edellinen vuosikerta sai kansainvälisiltä arvioijilta 94–95 pistettä, ja hinta on noin 32 €. Vertaa Naoussaan: kumpi on enemmän Baroloa?",
-   "kuvat": []
+   "kuvat": [
+    "/kuvat/deko/kartta-4-roero.jpg"
+   ]
   },
   {
    "nimi": "Bava Piano Alto Barbera d'Asti Superiore Nizza 2013",
@@ -134,7 +142,9 @@
    "sokko": false,
    "paljastussana": "",
    "juontajalle": "Aliarvostetun rypäleen haastaja. Maistakaa Roeron rinnalla: Nebbiolon tanniini vastaan Barberan happo. Kysy ensin, minkä ikäiseksi viiniä arvataan.",
-   "kuvat": []
+   "kuvat": [
+    "/kuvat/deko/kartta-5-nizza.jpg"
+   ]
   }
  ]
 }
