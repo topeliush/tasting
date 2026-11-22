@@ -1,5 +1,11 @@
 [
   {
+    "id": "deko",
+    "nimi": "Klassikoiden haastajat – punaviini",
+    "pvm": "2026-11-26",
+    "asiakas": "Dekostudio"
+  },
+  {
     "id": "tek",
     "nimi": "Juhlakuohuvat",
     "pvm": "2026-12-04",

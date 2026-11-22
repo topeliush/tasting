@@ -1,0 +1,140 @@
+{
+ "nimi": "Klassikoiden haastajat – punaviini",
+ "kuvaus": "Viisi edullisempaa haastajaa kuuluisille klassikoille, Burgundille ja Barololle. Löydä aromit, anna tähdet. Lopuksi nähdään, mitä porukka löysi.",
+ "juontaja": "Topias Haavisto",
+ "kaytaPaljastussanaa": false,
+ "varausLinkki": "https://viinitasting.com",
+ "varausTeksti": "Tuon tastingin teille, te valitsette porukan.",
+ "googleArvioLinkki": "https://g.page/r/Ccf877ZSMJM8ECE/review",
+ "lahjakortti": {
+  "kaytossa": true,
+  "arvo": 40,
+  "tunnus": "DEKO",
+  "voimassaKk": 12,
+  "myontaja": "Il Top Oy"
+ },
+ "aromit": [
+  "Kirsikka",
+  "Vadelma ja mansikka",
+  "Mustaherukka ja karhunvatukka",
+  "Luumu",
+  "Orvokki ja kukat",
+  "Pippuri ja mausteet",
+  "Vanilja ja tammi",
+  "Tupakka ja nahka",
+  "Maa ja sieni",
+  "Yrtit",
+  "Tomaatti ja oliivi",
+  "Lakritsi"
+ ],
+ "lopuksi": [
+  {
+   "id": "paras",
+   "kysymys": "Mikä viidestä oli paras?"
+  },
+  {
+   "id": "haastaja",
+   "kysymys": "Mikä haastoi klassikkonsa parhaiten?",
+   "fakta": {
+    "viini": "Burgundin haastajat olivat Spätburgunder ja Etna Rosso, Barolon haastajat Naoussa ja Roero. Bava Nizza edusti Barberaa, Piemonten aliarvostettua rypälettä."
+   }
+  },
+  {
+   "id": "hintalaatu",
+   "kysymys": "Mikä oli illan hinta–laatuvoittaja?",
+   "fakta": {
+    "viini": "Hinnat: Boutari Naoussa 20,95 €, Jean Stodden 24,50 €, Taliano Roero Riserva 31,96 €, Terre Nere Etna Rosso 34,90 € ja Bava Nizza 2013 51,03 €."
+   }
+  }
+ ],
+ "pvm": "2026-11-26",
+ "asiakas": "Dekostudio",
+ "sokkotasting": false,
+ "viinit": [
+  {
+   "nimi": "Jean Stodden Spätburgunder trocken",
+   "lyhyt": "Stodden Spätburgunder",
+   "tyyppi": "punainen",
+   "tyyppiNimi": "Spätburgunder",
+   "tuottaja": "Weingut Jean Stodden",
+   "alue": "Ahr",
+   "maa": "Saksa",
+   "rypaleet": "Pinot Noir (Spätburgunder)",
+   "tarina": "Ahr on yksi Saksan pohjoisimmista viinialueista ja silti punaviinialue: Pinot Noir kasvaa siellä jyrkillä liuskerinteillä, jotka varastoivat päivän lämmön. Gerhard Stodden oli 1980-luvulla niitä, jotka nostivat Ahrin kuivan, tammessa kypsytetyn Pinot Noirin maailmankartalle. Poika Alexander kutsuu kyläviiniään omaksi Gevrey-Chambertinikseen. Heinäkuun 2021 tulvassa tilan kellari oli 1,7 metriä veden alla.",
+   "maistele": "Vadelma, kirsikka ja karpalo, hento mausteisuus. Viileä ilmasto näkyy: alkoholia vain 12,5 % ja raikas happo.",
+   "ruoaksi": "Kevyt liha, porsas, pikkuriista",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Burgundin haastaja 1. Kerro tulvaviinistä: merkinnättömät tynnyrit kelluivat mudassa, ja Alexander maistoi ne sokkona. Syntyi Pegel 735, nimetty vedenkorkeuden mukaan. Vertaa liusketta seuraavan lasin laavaan.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Tenuta delle Terre Nere Etna Rosso 2024",
+   "lyhyt": "Terre Nere Etna Rosso",
+   "tyyppi": "punainen",
+   "tyyppiNimi": "Etna Rosso",
+   "tuottaja": "Tenuta delle Terre Nere",
+   "alue": "Etna, Sisilia",
+   "maa": "Italia",
+   "rypaleet": "Nerello Mascalese, Nerello Cappuccio",
+   "tarina": "Euroopan korkein aktiivinen tulivuori ja sen musta vulkaaninen hiekka: Terre Nere tarkoittaa mustia maita. Marco de Grazia toi 1980-luvulla Piemonten Barolo Boys -modernistit Amerikkaan ja perusti Etnalle tilan 2002. Hän kirjoitti ensimmäisen viininsä takaetikettiin, että Etna on Välimeren Burgundi, ja vaihtoi pullon Bordeaux-mallista Burgundin malliseksi. Muu vuori seurasi perässä.",
+   "maistele": "Metsämansikka, kirsikka ja ruusu, tuhkainen mineraalisuus. Väri on vaalea, mutta tanniinia ja alkoholia (14 %) on enemmän kuin Spätburgunderissa.",
+   "ruoaksi": "Riista, lammas, sieniruoat",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Burgundin haastaja 2. Kysy ensin: onko pullo Burgundin vai Bordeaux'n mallinen, ja miksi? Pinot, Nerello ja Nebbiolo ovat de Grazian mukaan kolme sisarusta: vaalea väri, korkea happo ja tanniini. Kaikki kolme ovat tänään lasissa.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Boutari Naoussa 2022",
+   "lyhyt": "Boutari Naoussa",
+   "tyyppi": "punainen",
+   "tyyppiNimi": "Naoussa",
+   "tuottaja": "Boutari",
+   "alue": "Naoussa, Makedonia",
+   "maa": "Kreikka",
+   "rypaleet": "Xinomavro",
+   "tarina": "Xinomavro tarkoittaa hapanta mustaa. Sitä kutsutaan kreikkalaiseksi Nebbioloksi, vaikka rypäleet eivät ole sukua. Boutari pullotti viiniä jo 1879, kun Kreikassa viini myytiin vielä tynnyreissä ja nahkasäkeissä. Naoussa oli 1971 Kreikan ensimmäisiä apellaatioita. Talo myytiin 2022, ja koripallotähti Giannis Antetokounmpo veljineen omistaa siitä noin 10 %.",
+   "maistele": "Hapankirsikka, mansikka, kuivattu tomaatti ja musta oliivi. Tiukka tanniini ja raikas happo, alkoholia 12,5 %.",
+   "ruoaksi": "Lammaspata, moussaka, pasta tomaattikastikkeella",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Barolon haastaja 1. Pyydä vieraita etsimään tomaattia ja oliivia: ne ovat Xinomavron tunnusmerkit, joita Nebbiololla ei ole. Seuraava lasi on oikeaa Nebbioloa.",
+   "kuvat": []
+  },
+  {
+   "nimi": "Taliano Michele Bric Bossola Roero Riserva 2021",
+   "lyhyt": "Taliano Roero Riserva",
+   "tyyppi": "punainen",
+   "tyyppiNimi": "Roero",
+   "tuottaja": "Taliano Michele",
+   "alue": "Roero, Piemonte",
+   "maa": "Italia",
+   "rypaleet": "Nebbiolo",
+   "tarina": "Roero on Tanaro-joen toisella puolella Barolosta ja Barbarescosta. Maa on entisen merenpohjan hiekkaa, jossa on yhä simpukankuoria, ja siksi Nebbiolo on täällä tuoksuvampaa ja pehmeämpää kuin Langhen savimailla. Bric Bossola on virallinen cru ja Talianon suvun ensimmäistä viinimaata vuodelta 1930. Riserva kypsyy laissa vähintään 32 kuukautta.",
+   "maistele": "Punainen kirsikka, mansikka, orvokki, nahka ja lakritsi. Kiinteät mutta kypsät tanniinit, alkoholia 14–14,5 %.",
+   "ruoaksi": "Punainen liha, riista, kypsät juustot",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Barolon haastaja 2. Edellinen vuosikerta sai kansainvälisiltä arvioijilta 94–95 pistettä, ja hinta on noin 32 €. Vertaa Naoussaan: kumpi on enemmän Baroloa?",
+   "kuvat": []
+  },
+  {
+   "nimi": "Bava Piano Alto Barbera d'Asti Superiore Nizza 2013",
+   "lyhyt": "Bava Nizza 2013",
+   "tyyppi": "punainen",
+   "tyyppiNimi": "Nizza",
+   "tuottaja": "Bava",
+   "alue": "Nizza, Piemonte",
+   "maa": "Italia",
+   "rypaleet": "Barbera",
+   "tarina": "Barbera oli pitkään Piemonten arkiviini Nebbiolon varjossa, ja 1986 halpa Barbera oli Italian metanoliskandaalin symboli. Nyt Nizzalla on oma DOCG ja oma konsortio. Tämä 2013 on viimeisiä vuosikertoja, joiden etiketissä luki vielä Barbera d'Asti. Viileä vuosi jätti viiniin paljon happoa, ja siksi lähes 13-vuotias Barbera on yhä elossa. Bavan perhe omistaa myös kuohuviinitalo Cocchin.",
+   "maistele": "Luumu, tumma kirsikka, kuivattu karpalo, nahka. Barberan korkea happo pitää kypsän viinin raikkaana, alkoholia 14 %.",
+   "ruoaksi": "Nauta, riista, voimakkaat juustot",
+   "sokko": false,
+   "paljastussana": "",
+   "juontajalle": "Aliarvostetun rypäleen haastaja. Maistakaa Roeron rinnalla: Nebbiolon tanniini vastaan Barberan happo. Kysy ensin, minkä ikäiseksi viiniä arvataan.",
+   "kuvat": []
+  }
+ ]
+}
