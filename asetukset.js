@@ -11,5 +11,9 @@ window.VT_ASETUKSET = {
     messagingSenderId: "820618087305",
     appId: "1:820618087305:web:fcbb1eb8f19998b12faf58"
   },
-  juontajat: ["tophaavisto@icloud.com"]
+  juontajat: ["tophaavisto@icloud.com"],
+  // Etusivun ja vanhentuneen linkin napit. Tyhjä kauppaLinkki = nappia ei näytetä (lisää osoite, kun verkkokauppa on julkinen).
+  varausLinkki: "https://viinitasting.com/laske",
+  arvioLinkki: "https://g.page/r/Ccf877ZSMJM8ECE/review",
+  kauppaLinkki: ""
 };

@@ -10,24 +10,16 @@
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" href="/app.js?v=36" as="script">
+<link rel="preload" href="/app.js?v=37" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=30">
+<link rel="stylesheet" href="/app.css?v=31">
 <style>
 .lataus { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--vali-6) var(--vali-5); }
-.lataus > div { max-width: 480px; }
-/* Tervetulo- ja latausanimaatio: Viinitasting.com-sanamerkki keinuu ja sen läpi nousee kuplia. */
-.sanamerkki { display: block; width: 180px; height: auto; margin: 0 auto var(--vali-5); overflow: visible; }
-.sanamerkki .sana { font-family: var(--font-display); font-size: 34px; fill: var(--vihrea); text-anchor: middle; }
-.sanamerkki .rivi { animation: sm-keinu 2.6s ease-in-out infinite; animation-delay: var(--d); }
-.sanamerkki .kupla { fill: none; stroke: var(--viini-kuohu); stroke-width: 2.5; opacity: 0; animation: sm-nousu var(--t) linear infinite; animation-delay: var(--d); }
-@keyframes sm-keinu { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes sm-nousu { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: .9; } 50% { transform: translate(6px, -80px); } 90% { opacity: .9; } 100% { transform: translate(-4px, -160px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .sanamerkki * { animation: none !important; } }
+.lataus > div { width: 100%; max-width: 420px; }
 </style>
 </head>
 <body>
-<div id="app"><main class="lataus"><div><svg class="sanamerkki" viewBox="0 0 200 150" role="img" aria-label="viinitasting.com"><g aria-hidden="true"><circle class="kupla" cx="30" cy="160" r="5" style="--t:4.2s;--d:-1s"/><circle class="kupla" cx="52" cy="160" r="3" style="--t:3.4s;--d:-2.6s"/><circle class="kupla" cx="78" cy="160" r="6" style="--t:5s;--d:-0.4s"/><circle class="kupla" cx="104" cy="160" r="4" style="--t:3.8s;--d:-3s"/><circle class="kupla" cx="128" cy="160" r="5" style="--t:4.6s;--d:-1.8s"/><circle class="kupla" cx="150" cy="160" r="3" style="--t:3.2s;--d:-0.9s"/><circle class="kupla" cx="172" cy="160" r="6" style="--t:5.4s;--d:-3.6s"/><circle class="kupla" cx="90" cy="160" r="3" style="--t:3s;--d:-2s"/><circle class="kupla" cx="140" cy="160" r="4" style="--t:4s;--d:-3.2s"/><circle class="kupla" cx="64" cy="160" r="4" style="--t:4.4s;--d:-4s"/></g><g class="rivi" style="--d:0s"><text class="sana" x="100" y="44">viini</text></g><g class="rivi" style="--d:.25s"><text class="sana" x="100" y="86">tasting</text></g><g class="rivi" style="--d:.5s"><text class="sana" x="100" y="128">.com</text></g></svg><p class="o-display">Tervetuloa</p><p class="o-ingressi" style="margin-top:var(--vali-4)" id="lataus-teksti">Ladataan tastingia…</p></div></main></div>
+<div id="app"><main class="lataus"><div><svg class="sanamerkki" viewBox="0 0 200 150" role="img" aria-label="viinitasting.com"><g aria-hidden="true"><circle class="kupla" cx="30" cy="160" r="5" style="--t:4.2s;--d:-1s"/><circle class="kupla" cx="52" cy="160" r="3" style="--t:3.4s;--d:-2.6s"/><circle class="kupla" cx="78" cy="160" r="6" style="--t:5s;--d:-0.4s"/><circle class="kupla" cx="104" cy="160" r="4" style="--t:3.8s;--d:-3s"/><circle class="kupla" cx="128" cy="160" r="5" style="--t:4.6s;--d:-1.8s"/><circle class="kupla" cx="150" cy="160" r="3" style="--t:3.2s;--d:-0.9s"/><circle class="kupla" cx="172" cy="160" r="6" style="--t:5.4s;--d:-3.6s"/><circle class="kupla" cx="90" cy="160" r="3" style="--t:3s;--d:-2s"/><circle class="kupla" cx="140" cy="160" r="4" style="--t:4s;--d:-3.2s"/><circle class="kupla" cx="64" cy="160" r="4" style="--t:4.4s;--d:-4s"/></g><g class="rivi" style="--d:0s"><text class="sana" x="100" y="44">viini</text></g><g class="rivi" style="--d:.25s"><text class="sana" x="100" y="86">tasting</text></g><g class="rivi" style="--d:.5s"><text class="sana" x="100" y="128">.com</text></g></svg><div id="etusivu" class="e-sisus"><p class="o-vaimea" id="lataus-teksti">Avataan illan tastingia…</p></div></div></main></div>
 <noscript>Tämä sivu tarvitsee JavaScriptin.</noscript>
 <script src="/asetukset.js"></script>
 <script src="/emojit.js?v=20"></script>
@@ -35,51 +27,76 @@
 <script src="/qr.js"></script>
 <script>
 (function () {
+  var A = window.VT_ASETUKSET || {};
   var haku = new URLSearchParams(location.search);
   var id = (haku.get("t") || "").trim().toLowerCase();
   var esikatselu = (haku.get("esikatselu") || "").trim().toLowerCase();
   // Kokeilu (?t=<tunnus>&kokeilu=1): asiakas voi kokeilla settiä etukäteen. Mitään ei tallenneta, eikä kokeilu sekoita illan tilaa samalla puhelimella.
   var kokeilu = haku.get("kokeilu") === "1";
-  var teksti = document.getElementById("lataus-teksti");
-  function viesti(t, linkki) {
-    teksti.textContent = t;
-    if (linkki) {
-      var p = document.createElement("p"); p.style.marginTop = "var(--vali-6)";
-      p.innerHTML = '<a class="vt-painike" href="https://viinitasting.com">Varaa oma tasting</a>';
-      teksti.parentNode.appendChild(p);
-    }
+  var alue = document.getElementById("etusivu");
+  var VARAUS = A.varausLinkki || "https://viinitasting.com", ARVIO = A.arvioLinkki || "", KAUPPA = A.kauppaLinkki || "";
+  function esc(x) { return String(x == null ? "" : x).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function teksti(t) { alue.innerHTML = '<p class="o-vaimea">' + esc(t) + "</p>"; }
+  // Etusivu: QR-koodi tai juontajan kertoma koodi. Väärä koodi näytetään samalla sivulla, jotta voi yrittää heti uudelleen.
+  function etusivu(virhe, koodi) {
+    document.title = "Viinitasting.com · Tasting";
+    alue.innerHTML = '<p class="o-display">Tervetuloa</p>' +
+      '<p class="e-ohje">Skannaa pöydän QR-koodi tai kirjoita koodi, jonka juontaja kertoi.</p>' +
+      '<form class="e-koodi" id="koodilomake" novalidate><label class="e-piilo" for="koodi">Tastingin koodi</label>' +
+      '<input class="o-kentta" id="koodi" name="koodi" placeholder="Koodi" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="60" value="' + esc((koodi || "").toUpperCase()) + '"' + (virhe ? ' aria-invalid="true" aria-describedby="koodivirhe"' : "") + ">" +
+      '<button class="vt-painike" type="submit">Avaa</button></form>' +
+      (virhe ? '<p class="e-virhe" id="koodivirhe" role="alert">' + esc(virhe) + "</p>" : "") +
+      '<div class="e-oma"><p>Haluatko oman tastingin?</p><div class="e-linkit"><a class="vt-linkki" href="' + esc(VARAUS) + '">Juontaja paikalle</a>' +
+      (KAUPPA ? '<a class="vt-linkki" href="' + esc(KAUPPA) + '">Omatoimitasting kotiin</a>' : "") + "</div></div>";
+    document.getElementById("koodilomake").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var v = document.getElementById("koodi").value.trim().toLowerCase().replace(/[åä]/g, "a").replace(/ö/g, "o").replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      if (!v) { etusivu("Kirjoita koodi, niin avaan tastingin.", ""); return; }
+      location.href = "/?t=" + encodeURIComponent(v);
+    });
+    if (virhe) { var k = document.getElementById("koodi"); k.focus(); k.select(); }
+  }
+  // Vanhentunut linkki: kiitos ja seuraavat askeleet umpikujan sijaan.
+  function kiitos() {
+    document.title = "Kiitos illasta · Viinitasting.com";
+    alue.innerHTML = '<p class="o-display">Kiitos illasta!</p>' +
+      '<p class="e-ohje">Tämän tastingin linkki on päättynyt. Toivottavasti ilta oli hyvä.</p>' +
+      '<div class="e-askeleet"><a class="vt-painike vt-painike--leveä" href="' + esc(VARAUS) + '">Varaa juontaja paikalle</a>' +
+      '<p class="o-vaimea">Saitko illan lopuksi lahjakortin? Se käy juontajan varaukseen.</p>' +
+      (KAUPPA ? '<a class="vt-painike vt-painike--toissijainen vt-painike--leveä" href="' + esc(KAUPPA) + '">Valitse seuraava omatoimiteema</a>' : "") +
+      (ARVIO ? '<a class="vt-painike vt-painike--toissijainen vt-painike--leveä" href="' + esc(ARVIO) + '">Kerro, miten ilta meni</a>' : "") + "</div>";
   }
   function kaynnista(t, tunnus) {
     t.id = tunnus;
     t.osoite = location.origin + "/?t=" + (t.kokeilu ? id : t.esikatselu ? esikatselu : tunnus);
     window.TASTING = t;
     document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
-    var s = document.createElement("script"); s.src = "/app.js?v=36"; document.body.appendChild(s);
+    var s = document.createElement("script"); s.src = "/app.js?v=37"; document.body.appendChild(s);
   }
   // Esikatselu hallinnasta: tallentamaton setti tulee selaimen muistista, eikä mitään tallenneta palvelimelle.
   if (esikatselu && /^[a-z0-9-]{1,60}$/.test(esikatselu)) {
     var data = null;
     try { data = JSON.parse(localStorage.getItem("vt-esikatselu") || "null"); localStorage.removeItem("vt-tasting-esikatselu-" + esikatselu); } catch (e) {}
-    if (!data) { viesti("Esikatselu ei auennut. Avaa se uudelleen hallinnasta."); return; }
+    if (!data) { teksti("Esikatselu ei auennut. Avaa se uudelleen hallinnasta."); return; }
     data.esikatselu = true;
     kaynnista(data, "esikatselu-" + esikatselu);
     return;
   }
-  if (!id) { viesti("Skannaa tilaisuuden QR-koodi, niin pääset illan tastingiin.", true); return; }
-  if (!/^[a-z0-9-]{1,60}$/.test(id) || !window.VTData) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
-  var aikaraja = setTimeout(function () { viesti("Yhteys on hidas. Odota hetki tai lataa sivu uudelleen."); }, 10000);
-  var EI_VOIMASSA = "Tämä tasting-linkki ei ole enää voimassa. Kiitos, että maistelitte kanssamme!";
+  var EI_LOYDY = "Tällä koodilla tai linkillä ei löytynyt tastingia. Tarkista koodi tai kysy järjestäjältä.";
+  if (!id) { etusivu(); return; }
+  if (!/^[a-z0-9-]{1,60}$/.test(id) || !window.VTData) { etusivu(EI_LOYDY, id); return; }
+  var aikaraja = setTimeout(function () { teksti("Yhteys on hidas. Odota hetki tai lataa sivu uudelleen."); }, 10000);
   window.VTData.haeTasting(id).then(function (t) {
     clearTimeout(aikaraja);
-    if (!t) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
-    if (t.voimassaAstiMs && t.voimassaAstiMs < Date.now()) { viesti(EI_VOIMASSA, true); return; }
+    if (!t) { etusivu(EI_LOYDY, id); return; }
+    if (t.voimassaAstiMs && t.voimassaAstiMs < Date.now()) { kiitos(); return; }
     if (kokeilu) { t.esikatselu = true; t.kokeilu = true; kaynnista(t, "kokeilu-" + id); return; }
     kaynnista(t, id);
   }, function (e) {
     clearTimeout(aikaraja);
     // Firestore-säännöt eivät näytä vanhentunutta omatoimisettiä eivätkä omatoimipohjaa.
-    if (e && e.code === "permission-denied") { viesti(EI_VOIMASSA, true); return; }
-    viesti("Tastingin lataus epäonnistui. Lataa sivu uudelleen.");
+    if (e && e.code === "permission-denied") { kiitos(); return; }
+    teksti("Tastingin lataus epäonnistui. Lataa sivu uudelleen.");
   });
 })();
 </script>

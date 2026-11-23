@@ -69,25 +69,11 @@
   }
   function pvmMs(ms) { return new Date(ms).toLocaleDateString("fi-FI"); }
   function vanhentunut(t) { return !!(t && t.voimassaAstiMs && t.voimassaAstiMs < Date.now()); }
-  function ostoslista(t) {
-    var v = (t.viinit || []).filter(function (w) { return !w.alkoholiton; });
-    if (!v.length) return "";
-    var tyypit = v.map(function (w) { return w.tyyppi; });
-    var lampo = [];
-    if (tyypit.some(function (x) { return x === "kuohu" || x === "valkoinen" || x === "rose"; })) lampo.push("kuohu-, valko- ja roseeviinit jääkaappikylminä (nostakaa jääkaappiin viimeistään 3 tuntia ennen)");
-    if (tyypit.indexOf("punainen") >= 0) lampo.push("punaviinit viileässä huoneenlämmössä (ottakaa ne esiin noin 30 minuuttia ennen)");
-    return "\n\nOstoslista (Alko):\n" + v.map(function (w, k) { return (k + 1) + ". " + w.nimi; }).join("\n") +
-      "\n\nYksi pullo kutakin riittää noin 12 hengelle (noin 6 cl lasiin). Numeroikaa pullot 1–" + v.length + " ja kaatakaa ne illan aikana tässä järjestyksessä." +
-      (lampo.length ? "\nTarjoilu: " + lampo.join(", ") + "." : "") +
-      "\nLisäksi tarvitaan lasit, vettä ja vähän leipää. Juustot ovat vapaaehtoisia.";
-  }
   function asiakasViesti(t) {
     var u = osoite(t.id);
-    return "Hei!\n\nKiitos tilauksesta. Tässä teidän oma tasting-linkkinne:\n" + u + ostoslista(t) +
-      "\n\nHaluatteko kurkata etukäteen? Tällä kokeilulinkillä voi testata kaiken, eikä vastauksia tallenneta:\n" + u + "&kokeilu=1" +
-      "\nVarsinaisella linkillä kannattaa vastata vasta illan aikana, jotta tulokset ovat vain illan porukan." +
-      "\n\nKun ilta alkaa, jokainen avaa linkin omalla puhelimellaan. Tulostettava pöytäkortti QR-koodilla löytyy täältä:\n" + u + "#poytakortti" +
-      "\n\nLinkki toimii " + pvmMs(t.voimassaAstiMs) + " asti. Se on tehty vain teille, joten jakakaa se vain illan porukalle." +
+    return "Hei!\n\nKiitos tilauksesta! Kaikki iltaa varten löytyy täältä: ostoslista, pullomäärät, aikataulu ja QR-koodi.\n" + u + "#valmistelu" +
+      "\n\nIllan aikana jokainen avaa tämän linkin omalla puhelimellaan:\n" + u +
+      "\n\nLinkit toimivat " + pvmMs(t.voimassaAstiMs) + " asti. Ne on tehty vain teille, joten jakakaa ne vain illan porukalle." +
       "\n\nHyviä hetkiä viinien parissa!\nTopias Haavisto\nViinitasting.com";
   }
   function vapaaId(perus) {
@@ -273,7 +259,9 @@
       ? '<div class="h-kentta"><label for="u-kaytto">Mitä teet</label><select class="o-kentta" id="u-kaytto">' +
           '<option value="omatoimi"' + (pohjaLista.length ? " selected" : "") + ">Setti asiakkaalle (linkki " + OMATOIMI_PV + " pv)</option>" +
           '<option value="pohja"' + (pohjaLista.length ? "" : " selected") + ">Uusi pohja (ei avaudu linkillä)</option></select></div>"
-      : '<input type="hidden" id="u-kaytto" value="tilaisuus">';
+      : '<input type="hidden" id="u-kaytto" value="tilaisuus">' +
+        '<div class="h-kentta"><label for="u-koodi">Koodi (vapaaehtoinen)</label><input class="o-kentta" id="u-koodi" placeholder="esim. JOULU" autocapitalize="characters" maxlength="16">' +
+        '<p class="h-ohje">Lyhyt koodi, jonka osallistuja voi kirjoittaa osoitteeseen tasting.viinitasting.com, jos QR ei toimi. Se näkyy myös pöytäkortissa.</p></div>';
     return '<section class="h-osio' + (om ? " h-osio--omatoimi" : "") + '"><h2 class="h-alaotsikko">' + (om ? "Uusi omatoimisetti" : "Uusi juonnettava tasting") + "</h2>" +
       (om ? '<p class="h-ohje">Valitse pohja, kirjoita asiakkaan nimi ja luo. Saat heti linkin ja valmiin viestin asiakkaalle.</p>' : "") + '<div class="h-lomake">' +
       kaytto +
@@ -292,7 +280,8 @@
       '<button class="h-pieni" data-act="viesti" data-id="' + esc(t.id) + '">Kopioi viesti asiakkaalle</button>' +
       '<button class="h-pieni" data-act="jatka" data-id="' + esc(t.id) + '">Jatka ' + OMATOIMI_PV + " pv</button></div>" +
       '<p class="h-ohje" style="margin-bottom:var(--vali-3)">' + (vanhentunut(t) ? "Linkki on vanhentunut " + esc(pvmMs(t.voimassaAstiMs)) + ". Asiakas näkee vain ilmoituksen ja varauslinkin." : "Linkki toimii " + esc(pvmMs(t.voimassaAstiMs)) + " asti ja avaa vain tämän setin.") + "</p>" : "";
-    return '<div class="h-linkit">' + qrSvg(u) + '<div>' + omatoimi + '<span class="h-label">Osallistujien linkki ja QR</span><span class="h-url">' + esc(u) + "</span>" +
+    var koodiRivi = !t.omatoimi && t.id.length <= 16 ? '<p class="h-ohje" style="margin-bottom:var(--vali-3)">Koodi: <b>' + esc(t.id.toUpperCase()) + "</b> · osallistuja voi kirjoittaa sen osoitteeseen tasting.viinitasting.com</p>" : "";
+    return '<div class="h-linkit">' + qrSvg(u) + '<div>' + omatoimi + koodiRivi + '<span class="h-label">Osallistujien linkki ja QR</span><span class="h-url">' + esc(u) + "</span>" +
       '<div class="h-rivi" style="margin:var(--vali-2) 0 var(--vali-3)"><button class="h-pieni" data-act="kopioi" data-url="' + esc(u) + '">Kopioi linkki</button>' +
       '<a class="h-pieni" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit" href="' + esc(u) + '" target="_blank" rel="noopener">Testaa osallistujana</a></div>' +
       "<ul>" +
@@ -586,7 +575,13 @@
     }
     if (!nimi) { ilmoita("Anna nimi."); return; }
     // Omatoimisetti saa arvaamattoman tunnuksen, jotta linkki avaa vain tämän asiakkaan setin.
-    var id = kaytto === "omatoimi" ? vapaaId("o-" + satunnainen(12))
+    var koodiRaaka = ((document.getElementById("u-koodi") || {}).value || "").trim();
+    var koodi = koodiRaaka ? slug(koodiRaaka).slice(0, 16) : "";
+    if (kaytto === "tilaisuus" && koodi) {
+      if ((lista || []).some(function (t) { return t.id === koodi; }) || pohjat.some(function (p) { return p && p.id === koodi; })) { ilmoita("Koodi " + koodi.toUpperCase() + " on jo käytössä. Valitse toinen."); return; }
+    }
+    var id = kaytto === "tilaisuus" && koodi ? koodi
+      : kaytto === "omatoimi" ? vapaaId("o-" + satunnainen(12))
       : kaytto === "pohja" ? vapaaId("pohja-" + slug(nimi))
       : vapaaId(slug(nimi) + (pvm ? "-" + pvm.slice(8, 10) + pvm.slice(5, 7) : ""));
     var data, kuvaKopiot = Promise.resolve();

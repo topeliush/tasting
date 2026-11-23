@@ -760,3 +760,48 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 
 .o-vastanneet { margin: 0; padding: var(--vali-2) var(--vali-4); border-radius: var(--kulma-pilleri); background: var(--pinta); border: 2px solid var(--vihrea-syva); font-size: 15px; font-weight: 700; color: var(--teksti); text-align: center; }
 .o-vastanneet__luku { font-weight: 800; color: var(--vihrea-syva); }
+
+/* Sanamerkki: latausruudun ja aloitussivun yhteinen tunnus. Sama view-transition-name, jotta se liukuu latauksesta aloitukseen. */
+.sanamerkki { display: block; width: 180px; height: auto; margin: 0 auto var(--vali-5); overflow: visible; view-transition-name: sanamerkki; }
+.sanamerkki--pieni { width: 136px; margin: 0 0 var(--vali-2); }
+.sanamerkki .sana { font-family: var(--font-display); font-size: 34px; fill: var(--vihrea); text-anchor: middle; }
+.sanamerkki .rivi { animation: sm-keinu 2.6s ease-in-out infinite; animation-delay: var(--d); }
+.sanamerkki .kupla { fill: none; stroke: var(--viini-kuohu); stroke-width: 2.5; opacity: 0; animation: sm-nousu var(--t) linear infinite; animation-delay: var(--d); }
+@keyframes sm-keinu { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes sm-nousu { 0% { transform: translate(0, 0); opacity: 0; } 10% { opacity: .9; } 50% { transform: translate(6px, -80px); } 90% { opacity: .9; } 100% { transform: translate(-4px, -160px); opacity: 0; } }
+::view-transition-group(sanamerkki) { animation-duration: .55s; animation-timing-function: cubic-bezier(.3,.7,.3,1); }
+@media (prefers-reduced-motion: reduce) { .sanamerkki * { animation: none !important; } }
+
+/* Etusivu: koodilla sisään ja vanhentuneen linkin kiitos */
+.e-sisus > * + * { margin-top: var(--vali-4); }
+.e-ohje { margin: var(--vali-3) 0 0; font-size: 18px; }
+.e-koodi { display: flex; gap: var(--vali-2); margin-top: var(--vali-5); }
+.e-koodi .o-kentta { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; text-align: center; }
+.e-koodi .vt-painike { flex: none; }
+.e-virhe { margin: var(--vali-3) 0 0; color: var(--virhe); font-weight: 700; }
+.e-oma { margin-top: var(--vali-7, 40px); padding-top: var(--vali-4); border-top: 2px solid var(--teksti); }
+.e-oma p { margin: 0; font-weight: 700; }
+.e-linkit { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--vali-2) var(--vali-5); margin-top: var(--vali-2); }
+.e-askeleet { display: flex; flex-direction: column; gap: var(--vali-3); margin-top: var(--vali-5); }
+.e-askeleet .o-vaimea { margin: 0; font-size: 14px; }
+.e-piilo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Pöytäkortin koodi */
+.k-koodi { margin-top: 8px; font-size: 11px; line-height: 1.35; }
+.k-koodi b { font-size: 14px; letter-spacing: .08em; }
+
+/* Valmistelusivu omatoimiostajalle */
+.v-kortti > * + * { margin-top: var(--vali-3); }
+.v-vaihe { display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--vihrea-syva); }
+.v-maara { display: flex; align-items: center; gap: var(--vali-3); }
+.v-maara .o-kentta { width: 96px; text-align: center; font-size: 22px; font-weight: 800; }
+.v-lista { list-style: none; margin: 0; padding: 0; }
+.v-lista li { display: grid; grid-template-columns: 36px 1fr auto; gap: var(--vali-1) var(--vali-3); align-items: start; padding: var(--vali-3) 0; border-top: 1px solid color-mix(in srgb, var(--teksti) 20%, transparent); }
+.v-lista li:first-child { border-top: 0; }
+.v-nro { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--vihrea); color: var(--on-vihrea); font-weight: 800; }
+.v-nimi { font-weight: 700; }
+.v-pullot { font-weight: 800; white-space: nowrap; color: var(--vihrea-syva); }
+.v-lisa { grid-column: 2 / -1; font-size: 14px; color: var(--teksti-vaimea); }
+.v-aikataulu { margin: 0; padding-left: 1.2em; }
+.v-aikataulu li + li { margin-top: var(--vali-2); }
+.v-napit { display: flex; flex-direction: column; gap: var(--vali-3); }

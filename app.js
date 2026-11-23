@@ -378,6 +378,7 @@
     document.documentElement.dataset.theme = ot;
     var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute("content", ot === "ilta" ? "#22221f" : "#e8d390");
     document.body.className = "osallistuja" + (JT ? " jt-tila" : "");
+    if (location.hash === "#valmistelu" && !JT) { renderValmistelu(); return; }
     if (!S.aloitettu) { app.innerHTML = esikatseluPalkki() + aloitus(); return; }
     if (JT && S.nakyma === "alku") {
       app.innerHTML = '<main class="o-kehys">' + ylapalkki() + '<div class="o-vt-sisalto">' + jtAlku() + "</div></main>" + jtAlapalkki();
@@ -452,9 +453,13 @@
       '<nav aria-label="Viinit"><ul class="o-tabit">' + tabit + "</ul></nav>";
   }
 
+  // Sama sanamerkki kuin latausruudulla, jotta tunnus liukuu latauksesta aloitussivulle (view-transition-name: sanamerkki).
+  function sanamerkkiSvg(luokka) {
+    return '<svg class="' + luokka + '" viewBox="0 0 200 150" role="img" aria-label="viinitasting.com"><g aria-hidden="true"><circle class="kupla" cx="30" cy="160" r="5" style="--t:4.2s;--d:-1s"/><circle class="kupla" cx="52" cy="160" r="3" style="--t:3.4s;--d:-2.6s"/><circle class="kupla" cx="78" cy="160" r="6" style="--t:5s;--d:-0.4s"/><circle class="kupla" cx="104" cy="160" r="4" style="--t:3.8s;--d:-3s"/><circle class="kupla" cx="128" cy="160" r="5" style="--t:4.6s;--d:-1.8s"/><circle class="kupla" cx="150" cy="160" r="3" style="--t:3.2s;--d:-0.9s"/><circle class="kupla" cx="172" cy="160" r="6" style="--t:5.4s;--d:-3.6s"/><circle class="kupla" cx="90" cy="160" r="3" style="--t:3s;--d:-2s"/><circle class="kupla" cx="140" cy="160" r="4" style="--t:4s;--d:-3.2s"/><circle class="kupla" cx="64" cy="160" r="4" style="--t:4.4s;--d:-4s"/></g><g class="rivi" style="--d:0s"><text class="sana" x="100" y="44">viini</text></g><g class="rivi" style="--d:.25s"><text class="sana" x="100" y="86">tasting</text></g><g class="rivi" style="--d:.5s"><text class="sana" x="100" y="128">.com</text></g></svg>';
+  }
   function aloitus() {
     return '<main class="o-kehys"><section class="o-osio" style="padding-top:var(--vali-6)">' +
-      '<div class="o-aloituslogo"><img src="' + esc(T.logo || "/logo-vihrea.png") + '" alt="Viinitasting.com" onerror="this.parentNode.className+=\' ei-kuvaa\';this.remove()"><span class="o-sanamerkki">viinitasting.com</span></div>' +
+      (T.logo ? '<div class="o-aloituslogo"><img src="' + esc(T.logo) + '" alt="Viinitasting.com" onerror="this.parentNode.className+=\' ei-kuvaa\';this.remove()"><span class="o-sanamerkki">viinitasting.com</span></div>' : sanamerkkiSvg("sanamerkki sanamerkki--pieni")) +
       '<p class="o-display">Tervetuloa</p>' +
       '<div><h1 class="o-h1">' + esc(T.nimi) + '</h1><p class="o-vaimea" style="margin-top:var(--vali-2)">' + (onOmatoimi() ? "Tastingin on koonnut " : "Juontajana ") + esc(T.juontaja) + "</p></div>" +
       '<p class="o-ingressi">' + esc(T.kuvaus) + "</p>" +
@@ -1494,18 +1499,72 @@
   }
 
   /* ================= Pöytäkortti ================= */
+  // Lyhyt koodi = juonnetun setin oma tunnus (esim. joulu), jonka voi kirjoittaa etusivulle. Omatoimiseteillä ei ole koodia.
+  function lyhytKoodi() {
+    var id = T.id || "";
+    if (T.esikatselu || onOmatoimi() || /^(o-|kokeilu-|esikatselu-)/.test(id) || id.length > 16) return "";
+    return id.toUpperCase();
+  }
   function renderKortti() {
     document.documentElement.dataset.theme = "vaalea";
     document.body.className = "kortti";
     var url = osallistujaUrl();
     var kortti = '<div class="k-kortti">' + logo(T.logo || "/logo-vihrea.png", "logo") + '<span class="k-nimi">' + esc(T.nimi) + "</span><h2>Skannaa ja tule mukaan</h2>" +
       "<p>" + (T.sokkotasting ? "Arvaa lasit, löydä aromit ja anna tähdet." : "Löydä aromit, anna tähdet ja katso, mitä porukka löysi.") + " Ei sovellusta, ei kirjautumista.</p>" +
-      qrSvg(url, "") + (url ? '<div class="k-osoite">' + esc(lyhyt(url)) + "</div>" : "") + "</div>";
+      qrSvg(url, "") + (url ? '<div class="k-osoite">' + esc(lyhyt(url)) + "</div>" : "") +
+      (lyhytKoodi() ? '<div class="k-koodi">Ei kameraa? Mene osoitteeseen tasting.viinitasting.com ja kirjoita koodi <b>' + esc(lyhytKoodi()) + "</b></div>" : "") + "</div>";
     app.innerHTML = '<div class="k-tyokalut"><p>Neljä A6-korttia A4-arkilla. Tulosta paksulle kartongille ja leikkaa katkoviivoja pitkin.' +
       (url ? "" : " Liitä ensin osallistujien osoite juontajan näkymän kanteen.") + "</p>" +
-      '<button class="vt-painike" data-act="tulosta">Tulosta</button><a class="vt-linkki" href="#juontaja">Takaisin</a></div>' +
+      '<button class="vt-painike" data-act="tulosta">Tulosta</button><a class="vt-linkki" href="' + (onOmatoimi() ? "#valmistelu" : "#juontaja") + '">Takaisin</a></div>' +
       '<div class="k-sivu">' + kortti + kortti + kortti + kortti + "</div>";
   }
+
+  /* ================= Valmistelusivu (omatoimiostaja) ================= */
+  var valmisteluMaara = +store.get("vt-maara-" + T.id, 8) || 8;
+  function pulloja(n) { return Math.max(1, Math.ceil(n / 12)); }
+  function renderValmistelu() {
+    var v = T.viinit || [], n = valmisteluMaara, url = osallistujaUrl();
+    var tyypit = v.filter(function (w) { return !w.alkoholiton; }).map(function (w) { return w.tyyppi; });
+    var kylma = tyypit.some(function (x) { return x === "kuohu" || x === "valkoinen" || x === "rose"; }), puna = tyypit.indexOf("punainen") >= 0;
+    var lista = v.map(function (w, i) {
+      var lisa = [[w.tuottaja, [w.alue, w.maa].filter(Boolean).join(", ")].filter(Boolean).join(" · ")];
+      if (w.alkoholiton) lisa.push("Alkoholiton vaihtoehto: ostakaa sen mukaan, montako sitä haluaa.");
+      if (w.korvaava) lisa.push("Jos loppu: " + w.korvaava);
+      return '<li><span class="v-nro">' + nro(i) + '</span><span class="v-nimi">' + esc(w.nimi) + "</span>" +
+        '<span class="v-pullot" data-pullot="' + (w.alkoholiton ? "" : "1") + '">' + (w.alkoholiton ? "" : pulloja(n) + " pll") + "</span>" +
+        '<span class="v-lisa">' + lisa.filter(Boolean).map(esc).join("<br>") + (w.alko ? ' <a class="vt-linkki" href="' + esc(w.alko) + '" target="_blank" rel="noopener">Alkossa</a>' : "") + "</span></li>";
+    }).join("");
+    var ruoat = v.filter(function (w) { return w.ruoaksi; }).map(function (w) { return "<li>Lasi " + nro(v.indexOf(w)) + ": " + esc(w.ruoaksi) + "</li>"; }).join("");
+    app.innerHTML = '<main class="o-kehys"><section class="o-osio" style="padding-top:var(--vali-6)">' +
+      sanamerkkiSvg("sanamerkki sanamerkki--pieni") +
+      '<div><span class="v-vaihe">Valmistautuminen</span><h1 class="o-h1">' + esc(T.nimi) + "</h1>" +
+      '<p class="o-ingressi" style="margin-top:var(--vali-2)">Kaikki, mitä tarvitsette iltaa varten.' + (T.voimassaAstiMs ? " Illan linkki toimii " + pvm(new Date(T.voimassaAstiMs).toISOString().slice(0, 10)) + " asti." : "") + "</p></div>" +
+      '<div class="vt-kortti v-kortti"><span class="v-vaihe">1 · Montako teitä on?</span>' +
+      '<div class="v-maara"><input class="o-kentta" id="v-maara" type="number" inputmode="numeric" min="1" max="99" value="' + n + '" aria-label="Maistajien määrä"><span>maistajaa</span></div>' +
+      '<p class="o-vaimea">Yksi pullo riittää noin 12 maistajalle (noin 6 cl lasiin).</p></div>' +
+      '<div class="vt-kortti v-kortti"><span class="v-vaihe">2 · Ostoslista</span><ul class="v-lista">' + lista + "</ul></div>" +
+      '<div class="vt-kortti v-kortti"><span class="v-vaihe">3 · Aikataulu</span><ol class="v-aikataulu">' +
+      "<li>Viimeistään 3 päivää ennen: ostakaa viinit.</li>" +
+      (kylma ? "<li>Viimeistään 3 tuntia ennen: kuohu-, valko- ja roseeviinit jääkaappiin.</li>" : "") +
+      (puna ? "<li>Noin 30 minuuttia ennen: punaviinit esiin, viileään huoneenlämpöön.</li>" : "") +
+      "<li>Juuri ennen: numeroikaa pullot 1–" + v.length + " ja kattakaa lasit, vettä ja vähän leipää.</li></ol></div>" +
+      '<div class="vt-kortti v-kortti"><span class="v-vaihe">4 · Pöytään</span>' +
+      "<p>Lasi tai kaksi jokaiselle, vettä, vähän leipää ja kaatokuppi.</p>" +
+      (ruoat ? '<p class="o-vaimea">Juustot ja suolaiset ovat vapaaehtoisia. Näin ne sopivat viineihin:</p><ul class="v-aikataulu">' + ruoat + "</ul>" : "") + "</div>" +
+      '<div class="vt-kortti v-kortti"><span class="v-vaihe">5 · Kun ilta alkaa</span>' +
+      "<p>Jokainen avaa illan linkin omalla puhelimellaan. Puhelin kertoo, mitkä lasit kaadetaan ja kuka lukee tarinan.</p>" +
+      '<div class="v-napit"><a class="vt-painike vt-painike--leveä" href="#poytakortti">Näytä QR-koodi</a>' +
+      '<a class="vt-painike vt-painike--toissijainen vt-painike--leveä" href="' + esc(url + "&kokeilu=1") + '">Kokeile etukäteen</a>' +
+      '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="v-kopioi">Kopioi illan linkki</button>' +
+      '<p class="o-vaimea" id="v-tila" role="status">Kokeilussa mitään ei tallenneta. Illan linkillä kannattaa vastata vasta illan aikana.</p></div></div>' +
+      "</section></main>";
+  }
+  app.addEventListener("input", function (e) {
+    if (e.target.id !== "v-maara") return;
+    var n = Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1));
+    valmisteluMaara = n; store.set("vt-maara-" + T.id, n);
+    Array.prototype.forEach.call(app.querySelectorAll('[data-pullot="1"]'), function (x) { x.textContent = pulloja(n) + " pll"; });
+  });
 
   /* ================= Reititys ja tapahtumat ================= */
   function reitti() {
@@ -1515,7 +1574,7 @@
     asetaPresence();
     if (juontajaReitti()) { if (juontajaTila() === "ohjaus") renderOhjaus(); else renderJuontaja(); }
     else if (h === "poytakortti") renderKortti();
-    else renderOsallistuja();
+    else renderOsallistuja(); // myös #valmistelu
   }
   var tyhjennysVarmistus = false;
 
@@ -1524,6 +1583,10 @@
     if (!t) return;
     var act = t.dataset.act, i = t.dataset.i != null ? +t.dataset.i : null;
     switch (act) {
+      case "v-kopioi":
+        var vu = osallistujaUrl(), vt = document.getElementById("v-tila");
+        (navigator.clipboard ? navigator.clipboard.writeText(vu) : Promise.reject()).then(function () { if (vt) vt.textContent = "Linkki kopioitu: " + lyhyt(vu); }, function () { if (vt) vt.textContent = vu; });
+        break;
       case "linja":
         S.linja = t.dataset.v; tallenna();
         Array.prototype.forEach.call(app.querySelectorAll('[data-act="linja"]'), function (b) { var on = b.dataset.v === S.linja; b.setAttribute("aria-pressed", on); b.setAttribute("aria-checked", on); });
@@ -1752,6 +1815,8 @@
     skaalaa();
   });
   window.addEventListener("hashchange", function () { reitti(); window.scrollTo(0, 0); });
-  reitti();
+  // Ensimmäinen piirto: latausruudun sanamerkki liukuu aloitussivun tunnukseksi, jos selain tukee siirtymiä.
+  if (document.startViewTransition && !vahennaLiiketta && document.querySelector(".lataus .sanamerkki")) document.startViewTransition(reitti);
+  else reitti();
   alustaYhteys();
 })();
