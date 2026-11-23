@@ -103,3 +103,22 @@
 .h-jakauma__yla span { white-space: nowrap; font-weight: 700; }
 .h-jakauma .jt-tahdet { height: 70px; }
 .h-jakauma .jt-tahdet__sarake i { background: var(--vihrea); }
+
+/* Juonnettavat vs. omatoimiset: välilehdet ja korttien värikoodi */
+.h-valilehdet { display: grid; grid-template-columns: 1fr 1fr; gap: var(--vali-2); padding: var(--vali-1); background: var(--pinta); border: 2px solid var(--viiva); border-radius: var(--kulma-pilleri); }
+.h-valilehti { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 56px; padding: var(--vali-1) var(--vali-3); border: 0; border-radius: var(--kulma-pilleri); background: transparent; color: var(--teksti); font-family: var(--font-leipa); font-size: 16px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; }
+.h-valilehti span { font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--teksti-vaimea); }
+.h-valilehti--auki { background: var(--vihrea); color: var(--on-vihrea); }
+.h-valilehti--omatoimi.h-valilehti--auki { background: var(--sininen); color: var(--pinta); }
+.h-valilehti--auki span { color: inherit; opacity: 0.9; }
+.h-ryhma > * + * { margin-top: var(--vali-4); }
+.h-ryhma__otsikko { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teksti-vaimea); }
+.h-kortti--juonnat { border-left: 10px solid var(--vihrea); }
+.h-kortti--omatoimi { border-left: 10px solid var(--sininen); }
+.h-kortti--himmea { opacity: 0.7; }
+.h-merkki--juonnat { color: var(--pinta); background: var(--vihrea-syva); border-color: var(--vihrea-syva); }
+.h-merkki--omatoimi { color: var(--pinta); background: var(--sininen-syva); border-color: var(--sininen-syva); }
+.vt-painike--omatoimi { background: var(--sininen); border-color: var(--sininen); color: var(--pinta); }
+.h-osio--omatoimi { border-left: 10px solid var(--sininen); }
+.h-linkit--ohje { display: block; }
+.h-linkit--ohje > * + * { margin-top: var(--vali-3); }
