@@ -66,7 +66,8 @@
   }
 
   function onSokko(w) { return !!T.sokkotasting && w.sokko !== false; }
-  function onAuki(i) { return !onSokko(T.viinit[i]) || !!S.paljastettu[i] || (kierrosTila() && kierrosValmis(i)); }
+  // Omatoimitastingissa ei ole juontajaa paljastamassa: sokkolasi aukeaa, kun oma vastaus on lukittu.
+  function onAuki(i) { return !onSokko(T.viinit[i]) || !!S.paljastettu[i] || (kierrosTila() && kierrosValmis(i)) || (onOmatoimi() && !!S.lukittu[i]); }
   // Sokkotastingin kierrokset: viinit maistetaan pareittain (1+2, 3+4, ...). Pariton viimeinen viini
   // maistetaan yksin, ja sen viereen jokainen valitsee itse suosikkinsa aiemmista. Tiedot aukeavat,
   // kun osallistuja on arvioinut kaikki kierroksen lasit.
@@ -203,7 +204,8 @@
   }
   function naytettavat(avain, n) {
     var j = jaetut[avain];
-    if (!j) return null;
+    // Omatoimitastingissa ei ole juontajaa jakamassa tuloksia: porukan luvut näytetään suoraan live-koonnista.
+    if (!j) return onOmatoimi() && koontiTila() && n ? liveLuvut(avain, n) : null;
     return (koontiTila() && liveLuvut(avain, n || j.length)) || j;
   }
   function koontiData(i) {
@@ -606,7 +608,7 @@
       return h + "</section>";
     }
     if (!onAuki(i)) {
-      h += '<h1 class="o-h1">' + iso(sana(w)) + " " + nro(i) + '</h1><p class="o-ingressi">Haistele ja maistele. Juontaja paljastaa ' + (w.alkoholiton ? "juoman" : "viinin") + ', kun kaikki ovat vastanneet.</p>';
+      h += '<h1 class="o-h1">' + iso(sana(w)) + " " + nro(i) + '</h1><p class="o-ingressi">Haistele ja maistele. ' + (onOmatoimi() ? "Kun lukitset vastauksesi, näet mikä " + (w.alkoholiton ? "juoma" : "viini") + " oli." : "Juontaja paljastaa " + (w.alkoholiton ? "juoman" : "viinin") + ", kun kaikki ovat vastanneet.") + '</p>';
       h += maistelu(i);
       if (!S.lukittu[i]) {
         var valmis = S.arviot[i] != null;
@@ -662,7 +664,8 @@
         var juontajaNimi = String(T.juontaja || "Juontaja").split(" ")[0];
         h += '<div class="o-odotus" role="status" aria-live="polite"><span class="o-odotus__ikoni" aria-hidden="true"><i></i><i></i><i></i></span>' +
           '<div class="o-odotus__sisus"><p class="o-odotus__otsikko">Tulokset tulossa</p>' +
-          '<p class="o-odotus__teksti">' + esc(juontajaNimi) + " paljastaa porukan vastaukset kaikille yhtä aikaa. Pidä sivu auki, niin tulokset ilmestyvät tähän itsestään.</p>" +
+          '<p class="o-odotus__teksti">' + (onOmatoimi() ? "Porukan vastaukset ilmestyvät tähän sitä mukaa, kun muut lukitsevat omansa. Pidä sivu auki." :
+            esc(juontajaNimi) + " paljastaa porukan vastaukset kaikille yhtä aikaa. Pidä sivu auki, niin tulokset ilmestyvät tähän itsestään.") + "</p>" +
           (kasassa ? '<p class="o-odotus__luku">' + kpl(kasassa, "vastaus", "vastausta") + " jo kasassa</p>" : "") + "</div></div>";
       }
       var kortit = lopuksi().map(function (q) {
@@ -680,7 +683,7 @@
         if (j && summa(j)) {
           r += '<div class="o-jakauma"><span class="o-jakauma__otsikko">Koko porukka · ' + kpl(summa(j), "vastaus", "vastausta") + "</span>" + palkit(vv, j, o, v) + "</div>";
         } else {
-          r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · paljastetaan pian</span><ul class="pk pk--haamu" aria-hidden="true">' +
+          r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · ' + (onOmatoimi() ? "odottaa vastauksia" : "paljastetaan pian") + '</span><ul class="pk pk--haamu" aria-hidden="true">' +
             vv.map(function (vt, o) { return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">? %</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
         }
         if (f) r += '<p class="o-vs__fakta"><b>Tiesitkö?</b> ' + esc(f) + "</p>";
@@ -688,7 +691,7 @@
       }).join("");
       if (pk) h += '<div class="o-tulos"><span class="o-tulos__luku">' + ok + "/" + pk + '</span><span class="o-tulos__teksti">oikein vertailussa</span></div>';
       h += kortit;
-      h += tahtitaulukko(omat()) || '<p class="o-vaimea">Illan tähtitaulukko paljastetaan ihan lopuksi. Jännitys säilyy.</p>';
+      h += tahtitaulukko(omat()) || '<p class="o-vaimea">' + (onOmatoimi() ? "Illan tähtitaulukko ilmestyy tähän, kun tähtiä on annettu." : "Illan tähtitaulukko paljastetaan ihan lopuksi. Jännitys säilyy.") + "</p>";
       h += arvioPyynto(true);
     }
     if (JT) h += jtVertailu();
@@ -836,7 +839,7 @@
       '<h2 class="o-garvio__otsikko">Anna illalle tähdet</h2>' +
       "<p>Pari sanaa tai kuva illasta Googleen auttaa muita löytämään tastingit. Kiitos, että olit mukana!</p>" +
       '<a class="vt-painike vt-painike--leveä o-garvio__nappi" href="' + esc(linkki) + '" target="_blank" rel="noopener">Arvioi Googlessa ★</a>' +
-      '<p class="o-garvio__allekirjoitus">– ' + esc(T.juontaja || "Topias") + ", juontaja</p>" +
+      '<p class="o-garvio__allekirjoitus">– ' + esc(T.juontaja || "Topias") + (onOmatoimi() ? ", Viinitasting.com" : ", juontaja") + "</p>" +
       "</div>";
   }
 

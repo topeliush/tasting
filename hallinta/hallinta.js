@@ -69,9 +69,21 @@
   }
   function pvmMs(ms) { return new Date(ms).toLocaleDateString("fi-FI"); }
   function vanhentunut(t) { return !!(t && t.voimassaAstiMs && t.voimassaAstiMs < Date.now()); }
+  function ostoslista(t) {
+    var v = (t.viinit || []).filter(function (w) { return !w.alkoholiton; });
+    if (!v.length) return "";
+    var tyypit = v.map(function (w) { return w.tyyppi; });
+    var lampo = [];
+    if (tyypit.some(function (x) { return x === "kuohu" || x === "valkoinen" || x === "rose"; })) lampo.push("kuohu-, valko- ja roseeviinit jääkaappikylminä (nostakaa jääkaappiin viimeistään 3 tuntia ennen)");
+    if (tyypit.indexOf("punainen") >= 0) lampo.push("punaviinit viileässä huoneenlämmössä (ottakaa ne esiin noin 30 minuuttia ennen)");
+    return "\n\nOstoslista (Alko):\n" + v.map(function (w, k) { return (k + 1) + ". " + w.nimi; }).join("\n") +
+      "\n\nYksi pullo kutakin riittää noin 12 hengelle (noin 6 cl lasiin). Numeroikaa pullot 1–" + v.length + " ja kaatakaa ne illan aikana tässä järjestyksessä." +
+      (lampo.length ? "\nTarjoilu: " + lampo.join(", ") + "." : "") +
+      "\nLisäksi tarvitaan lasit, vettä ja vähän leipää. Juustot ovat vapaaehtoisia.";
+  }
   function asiakasViesti(t) {
     var u = osoite(t.id);
-    return "Hei!\n\nKiitos tilauksesta. Tässä teidän oma tasting-linkkinne:\n" + u +
+    return "Hei!\n\nKiitos tilauksesta. Tässä teidän oma tasting-linkkinne:\n" + u + ostoslista(t) +
       "\n\nKun ilta alkaa, jokainen avaa linkin omalla puhelimellaan. Tulostettava pöytäkortti QR-koodilla löytyy täältä:\n" + u + "#poytakortti" +
       "\n\nLinkki toimii " + pvmMs(t.voimassaAstiMs) + " asti. Se on tehty vain teille, joten jakakaa se vain illan porukalle." +
       "\n\nHyviä hetkiä viinien parissa!\nTopias Haavisto\nViinitasting.com";
