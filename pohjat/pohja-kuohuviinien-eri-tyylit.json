@@ -1,0 +1,162 @@
+{
+  "nimi": "Kuohuviinien eri tyylit",
+  "kuvaus": "Viisi kuohuviiniä ja viisi tapaa tehdä kuplat: terässäiliöstä pulloon ja Venetosta Champagneen. Lukekaa tarinat ääneen, löytäkää aromit ja antakaa tähdet. Lopuksi nähdään, mitä porukka löysi.",
+  "juontaja": "Topias Haavisto",
+  "pohja": true,
+  "kaytaPaljastussanaa": false,
+  "sokkotasting": false,
+  "varausLinkki": "https://viinitasting.com",
+  "varausTeksti": "Haluatteko juontajan paikalle? Tuon tastingin teille, te valitsette porukan.",
+  "googleArvioLinkki": "https://g.page/r/Ccf877ZSMJM8ECE/review",
+  "lahjakortti": {
+    "kaytossa": true,
+    "arvo": 40,
+    "tunnus": "KUOHU",
+    "voimassaKk": 12,
+    "myontaja": "Il Top Oy"
+  },
+  "aromit": [
+    "Vihreä omena",
+    "Keltainen omena ja päärynä",
+    "Sitrus",
+    "Persikka ja aprikoosi",
+    "Punaiset marjat",
+    "Kukat",
+    "Hunaja",
+    "Paahtoleipä ja brioche",
+    "Manteli ja pähkinä",
+    "Voi ja kerma",
+    "Mineraalisuus ja liitu",
+    "Yrtit"
+  ],
+  "lopuksi": [
+    {
+      "id": "paras",
+      "kysymys": "Mikä viidestä oli paras?"
+    },
+    {
+      "id": "sailio",
+      "kysymys": "Missä lasissa kuplat tehtiin terässäiliössä?",
+      "fakta": {
+        "viini": "Lasi 1, Prosecco. Kaikissa muissa toinen käyminen tapahtui pullossa, kuten samppanjassa."
+      },
+      "oikea": {
+        "viini": 0
+      }
+    },
+    {
+      "id": "kuivin",
+      "kysymys": "Mikä tuntui kuivimmalta?",
+      "fakta": {
+        "viini": "Kripta Icònic on Brut Nature, eli siihen ei lisätä lainkaan sokeria. Muut ovat bruteja, joissa annostelusokeria on alle 12 g/l."
+      },
+      "oikea": {
+        "viini": 2
+      }
+    }
+  ],
+  "pvm": "",
+  "asiakas": "Omatoimipohja",
+  "viinit": [
+    {
+      "nimi": "Pizzolato Valdobbiadene Prosecco Superiore Biologico Brut",
+      "lyhyt": "Pizzolato Prosecco",
+      "tyyppi": "kuohu",
+      "tyyppiNimi": "Prosecco",
+      "tuottaja": "La Cantina Pizzolato",
+      "alue": "Valdobbiadene, Veneto",
+      "maa": "Italia",
+      "rypaleet": "Glera",
+      "tarina": "Aloitetaan Venetosta, Valdobbiadenen rinteiltä, joilta tulevat Proseccon arvostetuimmat Superiore-viinit. Pizzolato on perheen viinitila, jota isännöi suvun viides polvi, ja tila viljelee luomuna. Tämän viinin kuplat on tehty isossa paineenkestävässä terässäiliössä, ei jokaisessa pullossa erikseen. Siksi viini on raikas, hedelmäinen ja kohtuuhintainen. Moni luulee Proseccoa makeaksi, mutta tämä on brut eli kuiva. Kuka teistä luuli?",
+      "maistele": "Keltainen omena, sitrus ja hento kukkaisuus. Brut tarkoittaa kuivaa, joten tämä ei ole makea Prosecco.",
+      "ruoaksi": "Aperitiivi, kevyet alkupalat, kala",
+      "sokko": false,
+      "paljastussana": "",
+      "juontajalle": "Kysy, kuka luuli Proseccon olevan aina makeaa. Kerro Charmat-säiliöstä vertailukohtana seuraaville pullossa käyneille.",
+      "kuvat": [
+        "/kuvat/omatoimi-kuohu/kartta-1-valdobbiadene.jpg"
+      ],
+      "ohje": "Kaatakaa lasit 1 ja 2 vierekkäin. Ne ovat illan ensimmäinen pari: maistakaa ensin ykkönen."
+    },
+    {
+      "nimi": "Langlois Crémant de Loire Brut Réserve",
+      "lyhyt": "Langlois Crémant",
+      "tyyppi": "kuohu",
+      "tyyppiNimi": "Crémant",
+      "tuottaja": "Langlois-Château",
+      "alue": "Crémant de Loire, Saumur",
+      "maa": "Ranska",
+      "rypaleet": "Chenin Blanc, Chardonnay, Cabernet Franc",
+      "tarina": "Lasi kaksi tulee Loiren laaksosta Saumurista. Langlois perustettiin vuonna 1885, ja vuodesta 1973 se on kuulunut samppanjatalo Bollingerin perheyhtiöön, saman talon, jonka samppanjaa James Bond juo. Tämä viini tehdään kuten samppanja: toinen käyminen tapahtuu jokaisessa pullossa erikseen. Pullossa se on kypsynyt vähintään 24 kuukautta, vaikka sääntö vaatii vain 12. Maistakaa nyt lasit 1 ja 2 rinnakkain: kummassa on enemmän tuoretta hedelmää, kummassa leipää? Kumman kupla tuntuu pehmeämmältä?",
+      "maistele": "Vihreä omena, greippi ja ripaus hunajaa. Pullokäyminen tuo kuplaan pehmeyttä Proseccoon verrattuna.",
+      "ruoaksi": "Aperitiivi, kala ja äyriäiset, kevyet kasvisruoat",
+      "sokko": false,
+      "paljastussana": "",
+      "juontajalle": "Bollinger on James Bondin samppanja. Hyvä koukku: samppanjatalon osaamista Loiren hinnalla. Lasi 2: alkoholittomien lasissa on myös Chenin Blancia (Divin).",
+      "kuvat": [
+        "/kuvat/face/kartta-1-loire.jpg"
+      ],
+      "ohje": "Lasi 2 maistetaan lasin 1 rinnalla. Vertailkaa niitä vuorotellen."
+    },
+    {
+      "nimi": "Celler Kripta Icònic Corpinnat Gran Reserva Brut Nature 2018",
+      "lyhyt": "Kripta Icònic",
+      "tyyppi": "kuohu",
+      "tyyppiNimi": "Corpinnat",
+      "tuottaja": "Agustí Torelló Mata · Celler Kripta",
+      "alue": "Corpinnat, Penedès, Katalonia",
+      "maa": "Espanja",
+      "rypaleet": "Parellada, Macabeo, Xarel·lo",
+      "tarina": "Siirrytään Espanjaan, Penedèsiin Barcelonan lähelle. Joukko huippukuohuviinien tekijöitä erosi Cava-alkuperänimityksestä ja sopi tiukemmista säännöistä: syntyi Corpinnat. Rypäleet ovat luomua, käsin poimittuja ja Katalonian omia lajikkeita. Celler Kripta kuuluu Corpinnatin perustajiin. Tämä viini on kypsynyt pullossa pohjasakan päällä kuusi vuotta, kun vuosikerraton samppanja vaatii vain 15 kuukautta. Ja se on Brut Nature: pulloon ei ole lisätty lainkaan sokeria.",
+      "maistele": "Sitrus, vihreä omena ja hento paahteisuus. Kuiva ja raikas, ja pitkä kypsytys tekee kuplasta hyvin hienon.",
+      "ruoaksi": "Äyriäiset, osterit, sushi, suolaiset tapakset",
+      "sokko": false,
+      "paljastussana": "",
+      "juontajalle": "Kuusi vuotta sakan päällä on enemmän kuin useimmissa samppanjoissa: vuosikerraton samppanja vaatii vain 15 kuukautta. Illan kuivin viini, nolla annostelusokeria. Talon kuuluisin viini on Kripta amforan muotoisessa pullossa, jota ei voi laskea pystyyn.",
+      "kuvat": [
+        "/kuvat/face/kartta-3-penedes.jpg"
+      ],
+      "ohje": "Kaatakaa lasit 3 ja 4 vierekkäin. Tämä on illan toinen pari."
+    },
+    {
+      "nimi": "Cocchi Alta Langa Bianc 'd Bianc Brut 2017",
+      "lyhyt": "Cocchi Alta Langa",
+      "tyyppi": "kuohu",
+      "tyyppiNimi": "Alta Langa",
+      "tuottaja": "Giulio Cocchi",
+      "alue": "Alta Langa, Piemonte",
+      "maa": "Italia",
+      "rypaleet": "Chardonnay",
+      "tarina": "Lasi neljä tulee Piemonten kukkuloilta. Cocchin perusti firenzeläinen konditori Giulio Cocchi Astiin vuonna 1891, ja talo tunnetaan yhä vermuteistaan, kuten baarien Cocchi Americanosta. Alta Langa on aina vuosikertaviini, ja pohjasakan päällä sitä kypsytetään vähintään 30 kuukautta. Bianc ’d Bianc on Piemonten murretta ja tarkoittaa, että viini on tehty pelkästä Chardonnaysta. Vuosikerta 2017 on illan vanhin. Vertailkaa lasia 3: kumpi on kuivempi, kumpi kermaisempi?",
+      "maistele": "Valkoinen hedelmä, aprikoosi ja ripaus valkosuklaata. Pitkä kypsytys tuo kermaisuutta ja paahteisuutta.",
+      "ruoaksi": "Kala, vaalea liha, risotto, tryffelipasta",
+      "sokko": false,
+      "paljastussana": "",
+      "juontajalle": "Sama talo kuin baarien Cocchi Americano ja Storico-vermutti. Ainoa pelkästä Chardonnaysta tehty viini illassa: vertaa Drappierin Pinot Noir -painotteiseen tyyliin.",
+      "kuvat": [
+        "/kuvat/face/kartta-4-alta-langa.jpg"
+      ],
+      "ohje": "Lasi 4 maistetaan lasin 3 rinnalla."
+    },
+    {
+      "nimi": "Drappier Carte d'Or Champagne Brut",
+      "lyhyt": "Drappier Champagne",
+      "tyyppi": "kuohu",
+      "tyyppiNimi": "Samppanja",
+      "tuottaja": "Champagne Drappier",
+      "alue": "Champagne, Côte des Bar",
+      "maa": "Ranska",
+      "rypaleet": "Pinot Noir, Chardonnay, Meunier",
+      "tarina": "Ja sitten illan samppanja. Drappier on ollut saman perheen hallussa vuodesta 1808, ja kotikylä Urville on Champagnen eteläosassa Côte des Barilla. Talo tunnetaan Pinot Noirista: tässä viinissä sitä on 80 prosenttia, ja tumma rypäle tuo runkoa ja pyöreyttä. Naapurikylässä asui kenraali Charles de Gaulle, ja Drappier oli hänen suosikkisamppanjansa. Maistakaa samppanjaa lasin 2 rinnalla. Olisitteko tunnistaneet samppanjan sokkona?",
+      "maistele": "Persikka, hunajainen omena ja valkoiset kukat, taustalla kypsää punaista hedelmää. Tummat rypäleet tuovat runkoa ja pyöreyttä.",
+      "ruoaksi": "Aperitiivi, vaalea liha, kiinteä kala, Chaource-juusto",
+      "sokko": false,
+      "paljastussana": "",
+      "juontajalle": "Illan samppanja ja vertailukohta kaikille haastajille. De Gaulle -tarina toimii aina. Kysy lopuksi, kuka olisi tunnistanut samppanjan sokkona.",
+      "kuvat": [
+        "/kuvat/face/kartta-5-cote-des-bar.jpg"
+      ],
+      "ohje": "Viimeinen lasi. Kaatakaa sen viereen vielä lasi 2, Loiren Crémant: menetelmä on sama, alue eri."
+    }
+  ]
+}

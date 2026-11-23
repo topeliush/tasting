@@ -38,7 +38,8 @@ const KARTAT = [
   { tiedosto: "kartta-4-roero", nimi: "Roero", lon: 7.95, lat: 44.78, pill: [-30, 34], ...ITALIA,
     kaupungit: ITALIA.kaupungit.map((k) => k[0] === "Genova" ? ["Genova", 8.93, 44.41, "o"] : k) },
   { tiedosto: "kartta-5-nizza", nimi: "Nizza", lon: 8.36, lat: 44.77, pill: [-20, 34], ...ITALIA,
-    kaupungit: ITALIA.kaupungit.map((k) => k[0] === "Genova" ? ["Genova", 8.93, 44.41, "o"] : k) }
+    kaupungit: ITALIA.kaupungit.map((k) => k[0] === "Genova" ? ["Genova", 8.93, 44.41, "o"] : k) },
+  { tiedosto: "kartta-valdobbiadene", nimi: "Valdobbiadene", lon: 11.99, lat: 45.9, pill: [-150, -34], ...ITALIA }
 ];
 
 function svg(k) {

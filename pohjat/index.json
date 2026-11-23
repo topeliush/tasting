@@ -16,5 +16,12 @@
     "nimi": "Samppanja ja haastajat",
     "pvm": "2026-11-21",
     "asiakas": "Face Helsinki (Marika)"
+  },
+  {
+    "id": "pohja-kuohuviinien-eri-tyylit",
+    "nimi": "Kuohuviinien eri tyylit",
+    "pvm": "",
+    "asiakas": "Omatoimipohja",
+    "pohja": true
   }
 ]

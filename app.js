@@ -132,6 +132,7 @@
     }).join("") + "</ul>";
   }
   var koonti = {}, koontiAika = 0;
+  function onOmatoimi() { return !!(T && (T.omatoimi || T.pohja)); }
   function koontiTila() { return !!(Y && Y.koontiMuutos); }
   function avainT(t) { var s = String(t).toLowerCase(), x = 5381; for (var k = 0; k < s.length; k++) x = ((x << 5) + x + s.charCodeAt(k)) | 0; return "h" + (x >>> 0).toString(36); }
   function kirjaaKoonti(i, a, o) {
@@ -437,8 +438,12 @@
     return '<main class="o-kehys"><section class="o-osio" style="padding-top:var(--vali-6)">' +
       '<div class="o-aloituslogo"><img src="' + esc(T.logo || "/logo-vihrea.png") + '" alt="Viinitasting.com" onerror="this.parentNode.className+=\' ei-kuvaa\';this.remove()"><span class="o-sanamerkki">viinitasting.com</span></div>' +
       '<p class="o-display">Tervetuloa</p>' +
-      '<div><h1 class="o-h1">' + esc(T.nimi) + '</h1><p class="o-vaimea" style="margin-top:var(--vali-2)">Juontajana ' + esc(T.juontaja) + "</p></div>" +
+      '<div><h1 class="o-h1">' + esc(T.nimi) + '</h1><p class="o-vaimea" style="margin-top:var(--vali-2)">' + (onOmatoimi() ? "Tastingin on koonnut " : "Juontajana ") + esc(T.juontaja) + "</p></div>" +
       '<p class="o-ingressi">' + esc(T.kuvaus) + "</p>" +
+      (onOmatoimi() ? '<div class="vt-vinkki o-omatoimi-ohje"><span class="vt-vinkki__nimi">Näin tämä toimii</span><ol>' +
+        "<li>Kaatakaa lasit numerojärjestyksessä. Puhelin kertoo, mitkä lasit kaadetaan yhdessä.</li>" +
+        "<li>Yksi lukee lasin tarinan ääneen, kaikki maistavat. Lukijavuoro voi kiertää.</li>" +
+        "<li>Valitse aromit ja tähdet. Porukan havainnot näet heti oman vastauksesi jälkeen.</li></ol></div>" : "") +
       (onLinjat() ? '<div><span class="o-label">Mitä lasiin tänään?</span><div class="o-linjat' + (S.linja ? " on-valittu" : "") + '" role="radiogroup" aria-label="Mitä lasiin tänään?">' +
         '<button class="o-linja" role="radio" data-act="linja" data-v="viini" aria-checked="' + (S.linja === "viini") + '" aria-pressed="' + (S.linja === "viini") + '"><span class="o-linja__merkki" aria-hidden="true"></span>Kuohuviinit</button>' +
         '<button class="o-linja o-linja--alk" role="radio" data-act="linja" data-v="alkoholiton" aria-checked="' + (S.linja === "alkoholiton") + '" aria-pressed="' + (S.linja === "alkoholiton") + '"><span class="o-linja__merkki" aria-hidden="true"></span>Alkoholittomat</button>' +
@@ -514,14 +519,14 @@
     });
   }
   new MutationObserver(function () { taytaKuvat(); }).observe(document.getElementById("app"), { childList: true, subtree: true });
-  function viiniKortti(w, ilmanOtsikkoa) {
+  function viiniKortti(w, ilmanOtsikkoa, ilmanTarinaa) {
     var tiedot = [["Tuottaja", w.tuottaja], ["Alue", w.alue], ["Maa", w.maa], ["Rypäleet", w.rypaleet]]
       .filter(function (r) { return r[1]; })
       .map(function (r) { return "<dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("");
     return '<article class="vt-kortti o-viini o-vt-tarina">' + (ilmanOtsikkoa ? '<h2 class="o-h2" style="margin-bottom:var(--vali-2)">' + (w.alkoholiton ? "Juoman tarina" : "Viinin tarina") + "</h2>" : tyyppi(w) +
       '<h2 class="o-viini__nimi">' + esc(w.nimi) + "</h2>") +
       '<dl class="o-tiedot">' + tiedot + "</dl>" +
-      (w.tarina ? "<p>" + esc(w.tarina) + "</p>" : "") +
+      (w.tarina && !ilmanTarinaa ? "<p>" + esc(w.tarina) + "</p>" : "") +
       kuvaGalleria(w) +
       (w.maistele ? "<h3>Mitä lasista voi löytää</h3><p>" + esc(w.maistele) + "</p>" : "") +
       (w.ruoaksi ? "<h3>Ruoaksi</h3><p>" + esc(w.ruoaksi) + "</p>" : "") +
@@ -574,8 +579,12 @@
       var seurNb = omat()[omat().indexOf(i) + 1], loppuNb = lopuksi().length ? "vertailu" : "loppu";
       h += '<h1 class="o-viini__nimi" style="margin-top:0">' + esc(w.nimi) + "</h1>" +
         '<p class="o-vaimea">' + esc([w.tuottaja, [w.alue, w.maa].filter(Boolean).join(", ")].filter(Boolean).join(" · ")) + "</p>";
+      // Omatoimitastingissa järjestys on: kaada, lue tarina ääneen, maista. Tarina siirtyy siksi aromien yläpuolelle.
+      if (onOmatoimi() && (w.ohje || w.tarina)) h += '<div class="vt-vinkki o-kaato"><span class="vt-vinkki__nimi">Lasi ' + nro(i) + "</span>" +
+        (w.ohje ? "<p>" + esc(w.ohje) + "</p>" : "") +
+        (w.tarina ? '<span class="o-lue-aaneen">Lue ääneen</span><p>' + esc(w.tarina) + "</p>" : "") + "</div>";
       h += maistelu(i);
-      h += viiniKortti(w, true);
+      h += viiniKortti(w, true, onOmatoimi());
       h += '<button class="vt-painike vt-painike--leveä" data-act="seuraava" data-i="' + i + '" data-v="' + (seurNb == null ? loppuNb : seurNb) + '">' +
         (seurNb == null ? (lopuksi().length ? "Yhteenveto →" : "Kiitos →") : "Seuraava lasi →") + "</button>";
       return h + "</section>";

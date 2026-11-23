@@ -185,12 +185,13 @@
     h += uusiAuki ? uusiLomake() : '<button class="vt-painike vt-painike--leveä' + (nakyma === "omatoimi" ? " vt-painike--omatoimi" : "") + '" data-act="uusi-auki">' +
       (nakyma === "omatoimi" ? "+ Uusi omatoimisetti asiakkaalle" : "+ Uusi juonnettava tasting") + "</button>";
 
+    function tuoKortti(p) {
+      return '<div class="h-kortti h-kortti--tuo"><h2>' + esc(p.nimi || p.id) + '</h2><div class="h-meta">' + (p.pohja ? "Omatoimipohja" : esc(pvmTeksti(p.pvm)) + (p.asiakas ? " · " + esc(p.asiakas) : "")) +
+        '</div><p class="h-ohje">Claude on valmistellut tämän ' + (p.pohja ? "pohjan" : "setin") + ". Tuo se hallintaan, niin voit muokata ja käyttää sitä.</p>" +
+        '<button class="vt-painike' + (p.pohja ? " vt-painike--omatoimi" : "") + '" data-act="tuo" data-id="' + esc(p.id) + '">Tuo ' + (p.pohja ? "pohja" : "setti") + "</button></div>";
+    }
     if (nakyma === "juonnettavat") {
-      var tuo = tuotavat.map(function (p) {
-        return '<div class="h-kortti h-kortti--tuo"><h2>' + esc(p.nimi || p.id) + '</h2><div class="h-meta">' + esc(pvmTeksti(p.pvm)) + (p.asiakas ? " · " + esc(p.asiakas) : "") +
-          '</div><p class="h-ohje">Claude on valmistellut tämän setin. Tuo se hallintaan, niin voit muokata ja käyttää sitä.</p>' +
-          '<button class="vt-painike" data-act="tuo" data-id="' + esc(p.id) + '">Tuo setti</button></div>';
-      }).join("");
+      var tuo = tuotavat.filter(function (p) { return !p.pohja; }).map(tuoKortti).join("");
       var tulevat = juonn.filter(function (t) { return !t.pvm || t.pvm >= nyt; }).sort(function (a, b) { return String(a.pvm || "9").localeCompare(String(b.pvm || "9")); });
       var pidetyt = juonn.filter(function (t) { return t.pvm && t.pvm < nyt; });
       if (!juonn.length && !tuotavat.length) h += '<p class="h-ohje">Ei vielä juonnettavia tastingeja.</p>';
@@ -201,8 +202,9 @@
       var vanhat = oma.filter(vanhentunut).sort(function (a, b) { return (b.voimassaAstiMs || 0) - (a.voimassaAstiMs || 0); });
       h += '<p class="h-ohje">Asiakkaat pitävät nämä itse omalla linkillään. Sinun ei tarvitse olla paikalla.</p>';
       h += ryhma("Asiakkaiden setit", voimassa.length ? "" : "Ei voimassa olevia omatoimisettejä.", voimassa.map(function (t) { return kortti(t, nyt); }).join("") || " ");
+      var tuoPohjat = tuotavat.filter(function (p) { return p.pohja; }).map(tuoKortti).join("");
       h += ryhma("Pohjat", "Pohjista kopioidaan asiakkaiden setit. Pohja ei avaudu linkillä kenellekään.",
-        pohjatL.map(function (t) { return kortti(t, nyt); }).join("") || '<p class="h-ohje">Ei vielä pohjia. Tee pohja kohdasta Uusi → Käyttö: Omatoimipohja.</p>');
+        (tuoPohjat + pohjatL.map(function (t) { return kortti(t, nyt); }).join("")) || '<p class="h-ohje">Ei vielä pohjia. Tee pohja kohdasta Uusi → Käyttö: Omatoimipohja.</p>');
       h += ryhma("Vanhentuneet", "", vanhat.map(function (t) { return kortti(t, nyt); }).join(""));
     }
     h += lahjaOsio();
