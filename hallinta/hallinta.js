@@ -59,6 +59,23 @@
     return fetch("/pohjat/index.json", { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : []; })
       .then(function (p) { pohjat = Array.isArray(p) ? p : []; render(); }, function () { pohjat = []; });
   }
+  var OMATOIMI_PV = 30;
+  // Arvaamaton tunnus: 12 merkkiä 32 merkin aakkostosta (60 bittiä). Ei sekoittuvia merkkejä (0/o, 1/l).
+  function satunnainen(n) {
+    var merkit = "abcdefghijkmnpqrstuvwxyz23456789", t = new Uint8Array(n), s = "";
+    (window.crypto || window.msCrypto).getRandomValues(t);
+    for (var k = 0; k < n; k++) s += merkit.charAt(t[k] % merkit.length);
+    return s;
+  }
+  function pvmMs(ms) { return new Date(ms).toLocaleDateString("fi-FI"); }
+  function vanhentunut(t) { return !!(t && t.voimassaAstiMs && t.voimassaAstiMs < Date.now()); }
+  function asiakasViesti(t) {
+    var u = osoite(t.id);
+    return "Hei!\n\nKiitos tilauksesta. Tässä teidän oma tasting-linkkinne:\n" + u +
+      "\n\nKun ilta alkaa, jokainen avaa linkin omalla puhelimellaan. Tulostettava pöytäkortti QR-koodilla löytyy täältä:\n" + u + "#poytakortti" +
+      "\n\nLinkki toimii " + pvmMs(t.voimassaAstiMs) + " asti. Se on tehty vain teille, joten jakakaa se vain illan porukalle." +
+      "\n\nHyviä hetkiä viinien parissa!\nTopias Haavisto\nViinitasting.com";
+  }
   function vapaaId(perus) {
     var olemassa = (lista || []).map(function (t) { return t.id; }), id = perus, n = 2;
     while (olemassa.indexOf(id) >= 0) id = perus + "-" + n++;
@@ -137,7 +154,10 @@
     lista.forEach(function (t) {
       var alk = (t.viinit || []).filter(function (w) { return w.alkoholiton; }).length, juomia = (t.viinit || []).length;
       var tuleva = !t.pvm || t.pvm >= nyt;
-      h += '<article class="h-kortti"><div class="h-rivi"><span class="h-merkki ' + (tuleva ? "h-merkki--tuleva" : "h-merkki--mennyt") + '">' + (tuleva ? "Tuleva" : "Pidetty") + "</span>" +
+      var merkki = t.pohja ? '<span class="h-merkki h-merkki--mennyt">Omatoimipohja</span>'
+        : t.omatoimi ? (vanhentunut(t) ? '<span class="h-merkki h-merkki--mennyt">Omatoimi · vanhentunut</span>' : '<span class="h-merkki h-merkki--tuleva">Omatoimi · voimassa ' + esc(pvmMs(t.voimassaAstiMs)) + " asti</span>")
+        : '<span class="h-merkki ' + (tuleva ? "h-merkki--tuleva" : "h-merkki--mennyt") + '">' + (tuleva ? "Tuleva" : "Pidetty") + "</span>";
+      h += '<article class="h-kortti"><div class="h-rivi">' + merkki +
         (alk ? '<span class="h-merkki h-merkki--alk">Alkoholittomat</span>' : "") + "</div>" +
         "<h2>" + esc(t.nimi || t.id) + '</h2><div class="h-meta">' + esc(pvmTeksti(t.pvm)) + (t.asiakas ? " · " + esc(t.asiakas) : "") + " · " + juomia + " juomaa · " + (t.lopuksi || []).length + " loppukysymystä</div>" +
         '<div class="h-rivi"><button class="vt-painike vt-painike--pieni" data-act="linkit" data-id="' + esc(t.id) + '">' + (auki[t.id] ? "Piilota linkit" : "Linkit ja QR") + "</button>" +
@@ -181,19 +201,28 @@
 
   function uusiLomake() {
     var vaihtoehdot = '<option value="tyhja:kuohu">Tyhjä · kuohuviinit</option><option value="tyhja:valkoinen">Tyhjä · valkoviinit</option><option value="tyhja:punainen">Tyhjä · punaviinit</option>' +
-      (lista || []).map(function (t) { return '<option value="kopio:' + esc(t.id) + '">Kopio: ' + esc(t.nimi || t.id) + " (" + esc(pvmTeksti(t.pvm)) + ")</option>"; }).join("");
+      (lista || []).map(function (t) { return '<option value="kopio:' + esc(t.id) + '">Kopio: ' + esc(t.nimi || t.id) + (t.pohja ? " (omatoimipohja)" : " (" + esc(pvmTeksti(t.pvm)) + ")") + "</option>"; }).join("");
     return '<section class="h-osio"><h2 class="h-alaotsikko">Uusi tasting</h2><div class="h-lomake">' +
       '<div class="h-kentta"><label for="u-nimi">Nimi (näkyy osallistujille)</label><input class="o-kentta" id="u-nimi" placeholder="esim. Joulun tärpit"></div>' +
       '<div class="h-kaksi"><div class="h-kentta"><label for="u-pvm">Päivämäärä</label><input class="o-kentta" id="u-pvm" type="date" value="' + tanaan() + '"></div>' +
       '<div class="h-kentta"><label for="u-asiakas">Asiakas (vain sinulle)</label><input class="o-kentta" id="u-asiakas" placeholder="esim. Snowflake, Helsinki"></div></div>' +
       '<div class="h-kentta"><label for="u-pohja">Pohja</label><select class="o-kentta" id="u-pohja">' + vaihtoehdot + "</select></div>" +
+      '<div class="h-kentta"><label for="u-kaytto">Käyttö</label><select class="o-kentta" id="u-kaytto">' +
+        '<option value="tilaisuus">Oma tilaisuus (sinä juonnat)</option>' +
+        '<option value="omatoimi">Omatoimisetti asiakkaalle: oma salainen linkki, voimassa ' + OMATOIMI_PV + ' pv</option>' +
+        '<option value="pohja">Omatoimipohja: ei avaudu linkillä, siitä kopioidaan asiakkaiden setit</option></select></div>' +
       '<div class="h-rivi"><button class="vt-painike" data-act="luo">Luo ja muokkaa</button><button class="vt-linkki" data-act="uusi-kiinni">Peruuta</button></div></div></section>';
   }
 
   function linkit(t) {
     var u = osoite(t.id);
     var n = laskut[t.id];
-    return '<div class="h-linkit">' + qrSvg(u) + '<div><span class="h-label">Osallistujien linkki ja QR</span><span class="h-url">' + esc(u) + "</span>" +
+    if (t.pohja) return '<div class="h-linkit"><p class="h-ohje">Omatoimipohja ei avaudu linkillä kenellekään. Testaa se muokkausnäkymän Esikatsele-napilla. Asiakkaan setti tehdään kohdasta + Uusi tasting → Pohja: Kopio tästä → Käyttö: Omatoimisetti asiakkaalle.</p></div>';
+    var omatoimi = t.omatoimi ? '<div class="h-rivi" style="margin:0 0 var(--vali-3)">' +
+      '<button class="h-pieni" data-act="viesti" data-id="' + esc(t.id) + '">Kopioi viesti asiakkaalle</button>' +
+      '<button class="h-pieni" data-act="jatka" data-id="' + esc(t.id) + '">Jatka ' + OMATOIMI_PV + " pv</button></div>" +
+      '<p class="h-ohje" style="margin-bottom:var(--vali-3)">' + (vanhentunut(t) ? "Linkki on vanhentunut " + esc(pvmMs(t.voimassaAstiMs)) + ". Asiakas näkee vain ilmoituksen ja varauslinkin." : "Linkki toimii " + esc(pvmMs(t.voimassaAstiMs)) + " asti ja avaa vain tämän setin.") + "</p>" : "";
+    return '<div class="h-linkit">' + qrSvg(u) + '<div>' + omatoimi + '<span class="h-label">Osallistujien linkki ja QR</span><span class="h-url">' + esc(u) + "</span>" +
       '<div class="h-rivi" style="margin:var(--vali-2) 0 var(--vali-3)"><button class="h-pieni" data-act="kopioi" data-url="' + esc(u) + '">Kopioi linkki</button>' +
       '<a class="h-pieni" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit" href="' + esc(u) + '" target="_blank" rel="noopener">Testaa osallistujana</a></div>' +
       "<ul>" +
@@ -480,8 +509,12 @@
     var pvm = document.getElementById("u-pvm").value || "";
     var asiakas = (document.getElementById("u-asiakas").value || "").trim();
     var pohja = document.getElementById("u-pohja").value;
+    var kaytto = (document.getElementById("u-kaytto") || {}).value || "tilaisuus";
     if (!nimi) { ilmoita("Anna nimi."); return; }
-    var id = vapaaId(slug(nimi) + (pvm ? "-" + pvm.slice(8, 10) + pvm.slice(5, 7) : ""));
+    // Omatoimisetti saa arvaamattoman tunnuksen, jotta linkki avaa vain tämän asiakkaan setin.
+    var id = kaytto === "omatoimi" ? vapaaId("o-" + satunnainen(12))
+      : kaytto === "pohja" ? vapaaId("pohja-" + slug(nimi))
+      : vapaaId(slug(nimi) + (pvm ? "-" + pvm.slice(8, 10) + pvm.slice(5, 7) : ""));
     var data, kuvaKopiot = Promise.resolve();
     if (pohja.indexOf("kopio:") === 0) {
       var lahde = (lista || []).filter(function (t) { return t.id === pohja.slice(6); })[0];
@@ -501,10 +534,15 @@
     data.kuvaus = data.kuvaus || "Löydä aromit, anna tähdet. Lopuksi nähdään, mitä porukka löysi.";
     data.lahjakortti = Object.assign({}, PERUS.lahjakortti, data.lahjakortti || {});
     if (!data.lahjakortti.tunnus) data.lahjakortti.tunnus = slug(asiakas || nimi).split("-")[0].toUpperCase().slice(0, 8);
+    delete data.omatoimi; delete data.voimassaAstiMs; delete data.pohja;
+    if (kaytto === "omatoimi") { data.omatoimi = true; data.voimassaAstiMs = Date.now() + OMATOIMI_PV * 864e5; }
+    if (kaytto === "pohja") data.pohja = true;
     ilmoita("Luodaan…");
     kuvaKopiot.then(function () { return window.VTData.tallenna(id, data); }).then(function () {
       lista = (lista || []).concat([Object.assign({ id: id }, data)]);
       uusiAuki = false;
+      // Asiakkaan setti on yleensä valmis kopio pohjasta: näytetään heti linkki ja viesti asiakkaalle.
+      if (kaytto === "omatoimi" && pohja.indexOf("kopio:") === 0) { auki[id] = true; ilmoita("Omatoimisetti luotu"); render(); return; }
       location.hash = "muokkaa-" + id;
     }, function () { ilmoita("Luonti epäonnistui."); });
   }
@@ -534,6 +572,20 @@
         break;
       case "luo": luo(); break;
       case "linkit": auki[t.dataset.id] = !auki[t.dataset.id]; render(); break;
+      case "viesti":
+        var vt = (lista || []).filter(function (x) { return x.id === t.dataset.id; })[0];
+        if (!vt) return;
+        (navigator.clipboard ? navigator.clipboard.writeText(asiakasViesti(vt)) : Promise.reject()).then(function () { ilmoita("Viesti kopioitu"); }, function () { ilmoita("Kopiointi ei onnistunut"); });
+        break;
+      case "jatka":
+        var jt = (lista || []).filter(function (x) { return x.id === t.dataset.id; })[0];
+        if (!jt) return;
+        t.disabled = true;
+        var jatkettu = Object.assign({}, jt, { voimassaAstiMs: Math.max(Date.now(), jt.voimassaAstiMs || 0) + OMATOIMI_PV * 864e5 });
+        window.VTData.tallenna(jt.id, puhdista(jatkettu)).then(function () {
+          jt.voimassaAstiMs = jatkettu.voimassaAstiMs; ilmoita("Voimassa " + pvmMs(jt.voimassaAstiMs) + " asti"); render();
+        }, function () { t.disabled = false; ilmoita("Tallennus epäonnistui."); });
+        break;
       case "kopioi":
         (navigator.clipboard ? navigator.clipboard.writeText(t.dataset.url) : Promise.reject()).then(function () { ilmoita("Linkki kopioitu"); }, function () { ilmoita(t.dataset.url); });
         break;

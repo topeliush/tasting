@@ -17,3 +17,9 @@ Tastingien sisältö ja kuvat ovat Firestoressa (`tastingit/{tunnus}`, `tastingi
 - `asetukset.js` – Firebase-yhteys ja juontajan sähköposti.
 - `yhteys.js` – Firebase SDK (13.4.0) ja yhteyskerros, rakennettu tiedostosta `kehitys/yhteys.js` esbuildilla.
 - `firestore.rules` – Firestoren tietoturvasäännöt (liitetään Firebase-konsoliin).
+
+## Omatoimisetit
+- **Omatoimipohja** (`pohja: true`): hallinnan Uusi tasting → Käyttö: Omatoimipohja. Ei avaudu linkillä kenellekään (Firestore-säännöt), testataan Esikatsele-napilla. Tunnus `pohja-<nimi>`.
+- **Omatoimisetti asiakkaalle** (`omatoimi: true`, `voimassaAstiMs`): Uusi tasting → Pohja: Kopio pohjasta → Käyttö: Omatoimisetti asiakkaalle. Saa arvaamattoman tunnuksen `o-` + 12 merkkiä ja on voimassa 30 pv. Linkit ja QR -kohdassa: Kopioi viesti asiakkaalle ja Jatka 30 pv.
+- Säännöt: yksittäisen setin saa lukea tunnuksella, settilistaa ei voi hakea ilman juontajan kirjautumista. Vanhentunut omatoimisetti ja pohja eivät avaudu, eikä niihin voi kirjata vastauksia, aromeja tai lahjakortteja. Lahjakortin arvon on vastattava setin lahjakorttia.
+- Älä tallenna omatoimipohjia `pohjat/`-kansioon: kansio ja repo ovat julkisia.
