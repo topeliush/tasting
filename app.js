@@ -232,12 +232,17 @@
     if (juontajaReitti() && juontajaTila() === "ohjaus") { var l = ["loppu"]; diat().forEach(function (x) { if (x.k === "paljastus") l.push(x.i); }); return l; }
     if (juontajaReitti()) { var d = diat()[dia]; return d && d.k === "paljastus" ? [d.i, "loppu"] : d && (d.k === "kansi" || d.k === "vertailu" || d.k === "vtulos" || d.k === "loppu") ? ["loppu"] : []; }
     if (!S.aloitettu) return [];
-    if (typeof S.nakyma === "number") return [S.nakyma];
+    if (typeof S.nakyma === "number") return onOmatoimi() ? [S.nakyma, "loppu"] : [S.nakyma];
     if (S.nakyma === "loppu" || (S.nakyma === "vertailu" && S.loppu.lukittu)) return ["loppu"];
     return [];
   }
   function paivitaKoontiNakyma(i, uusi) {
     if (juontajaReitti()) { if (uusi) { if (juontajaTila() === "ohjaus") paivitaPian(); else reitti(); } return; }
+    if (onOmatoimi() && typeof S.nakyma === "number") {
+      var vl = document.getElementById("vastanneet-" + S.nakyma);
+      if (vl) vl.innerHTML = vastanneetSisus(S.nakyma);
+      if (typeof i === "string") return; // mukana-luvun muutos ei piirrä lasin sivua uudelleen
+    }
     if (typeof i === "string") {
       if (!uusi && !loppuOdottaa) return;
       var ae = document.activeElement;
@@ -249,6 +254,17 @@
   }
   setInterval(function () { if (!document.hidden) kiinnostavat().forEach(haeKoonti); }, 8000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) kiinnostavat().forEach(haeKoonti); });
+  // Omatoimitastingissa ei ole juontajaa tahdittamassa: lasin sivulla näkyy, moniko porukasta on jo vastannut.
+  function vastanneetSisus(i) {
+    var v = Math.max(0, (koonti[i] && typeof koonti[i].m === "number") ? koonti[i].m : 0), m = mukana();
+    var kaikki = m ? Math.max(m, v) : null;
+    return '<span class="o-vastanneet__luku">' + v + (kaikki ? "/" + kaikki : "") + "</span> " +
+      (kaikki && v >= kaikki ? "Kaikki ovat vastanneet tähän lasiin." : "vastannut tähän lasiin." + (kaikki ? " Odottakaa muita ennen seuraavaa lasia." : ""));
+  }
+  function vastanneet(i) {
+    if (!onOmatoimi() || T.esikatselu) return ""; // kokeilussa ja esikatselussa ei porukkaa
+    return '<p class="o-vastanneet" id="vastanneet-' + i + '" role="status" aria-live="polite">' + vastanneetSisus(i) + "</p>";
+  }
   function porukkaHtml(i) {
     var on = koontiTila() ? koontiData(i).on : (jaetut["a" + i] || jaetut["o" + i]);
     var hetki = koontiTila() ? koontiAika : jaetutAika;
@@ -418,7 +434,7 @@
   }
   function vieNakyviin(el, rako) { if (el) window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - rako)); }
   function esikatseluPalkki() {
-    return T.esikatselu ? '<div class="o-esikatselupalkki">Esikatselu · mitään ei tallenneta <button class="vt-linkki" data-act="tyhjenna-esikatselu">Alusta</button></div>' : "";
+    return T.esikatselu ? '<div class="o-esikatselupalkki">' + (T.kokeilu ? "Kokeilu · vastauksia ei tallenneta" : "Esikatselu · mitään ei tallenneta") + ' <button class="vt-linkki" data-act="tyhjenna-esikatselu">Alusta</button></div>' : "";
   }
 
   function ylapalkki() {
@@ -546,7 +562,7 @@
       (minun ? '<div class="o-kuplat o-kuplat--pienet">' + minun + "</div>" : '<p class="o-vaimea">Ei aromeja. Mysteerilasi.</p>') +
       (koontiTila() ? "" : '<div class="o-jakauma"><span class="o-jakauma__otsikko">Muiden löytämät aromit</span>' +
       (jaettu ? kuplat(i, true)
-              : '<p class="o-vaimea">Porukan havainnot ilmestyvät tähän, kun juontaja jakaa ne. Sillä välin toinen hörppy on täysin sallittu.</p>') +
+              : '<p class="o-vaimea">' + (onOmatoimi() ? "Illan aikana tässä näkyvät porukan havainnot. Kokeilussa vastauksia ei tallenneta." : "Porukan havainnot ilmestyvät tähän, kun juontaja jakaa ne. Sillä välin toinen hörppy on täysin sallittu.") + "</p>") +
       "</div>") + "</div>" +
       (koontiTila() ? '<div class="o-vt-porukka" id="porukka-' + i + '">' + porukkaHtml(i) + "</div>" : "");
   }
@@ -585,6 +601,7 @@
       if (onOmatoimi() && (w.ohje || w.tarina)) h += '<div class="vt-vinkki o-kaato"><span class="vt-vinkki__nimi">Lasi ' + nro(i) + "</span>" +
         (w.ohje ? "<p>" + esc(w.ohje) + "</p>" : "") +
         (w.tarina ? '<span class="o-lue-aaneen">Lue ääneen</span><p>' + esc(w.tarina) + "</p>" : "") + "</div>";
+      h += vastanneet(i);
       h += maistelu(i);
       h += viiniKortti(w, true, onOmatoimi());
       h += '<button class="vt-painike vt-painike--leveä" data-act="seuraava" data-i="' + i + '" data-v="' + (seurNb == null ? loppuNb : seurNb) + '">' +
@@ -1539,7 +1556,7 @@
         tallenna(); renderOsallistuja(); break;
       case "lukitse":
         if (!S.kirjattu.v) S.kirjattu.v = {};
-        if (!JT && !S.kirjattu.v[i] && koontiTila() && Y.koontiLisaa) { S.kirjattu.v[i] = true; Y.koontiLisaa("v" + i, { m: 1 }).catch(function () { S.kirjattu.v[i] = false; tallenna(); }); }
+        if (!JT && !S.kirjattu.v[i] && koontiTila() && Y.koontiLisaa) { S.kirjattu.v[i] = true; Y.koontiLisaa("v" + i, { m: 1 }).then(function () { haeKoonti(i); }, function () { S.kirjattu.v[i] = false; tallenna(); }); }
         S.lukittu[i] = true; S.porukkaNahty[i] = true; tallenna();
         if (kierrosTila()) {
           var keskenL = kierrosOf(i).filter(function (j) { return !S.lukittu[j]; });
@@ -1579,7 +1596,7 @@
         if (keskenK && keskenK.value.trim() && lisaaOma(i, keskenK.value)) { var uoK = omatAromit(i)[omatAromit(i).length - 1], omK = {}; omK[avainT(uoK)] = { t: uoK, d: 1 }; kirjaaKoonti(i, null, omK); vastattu(i); }
         var ekaKerta = !S.porukkaNahty[i];
         if (!S.kirjattu.v) S.kirjattu.v = {};
-        if (!JT && !S.kirjattu.v[i] && koontiTila() && Y.koontiLisaa) { S.kirjattu.v[i] = true; Y.koontiLisaa("v" + i, { m: 1 }).catch(function () { S.kirjattu.v[i] = false; tallenna(); }); }
+        if (!JT && !S.kirjattu.v[i] && koontiTila() && Y.koontiLisaa) { S.kirjattu.v[i] = true; Y.koontiLisaa("v" + i, { m: 1 }).then(function () { haeKoonti(i); }, function () { S.kirjattu.v[i] = false; tallenna(); }); }
         siirtyma("kiinni", function () {
           S.aromiKiinni[i] = true; S.porukkaNahty[i] = true; tallenna();
           if (ekaKerta) paljastaKuplat = i;

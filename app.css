@@ -757,3 +757,6 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 .o-omatoimi-ohje li + li { margin-top: var(--vali-1); }
 .o-lue-aaneen { display: inline-block; margin-top: var(--vali-3); padding: 0 var(--vali-2); border-radius: var(--kulma-pilleri); border: 2px solid var(--vihrea-syva); color: var(--vihrea-syva); font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.7; }
 .o-lue-aaneen + p { margin-top: var(--vali-2); }
+
+.o-vastanneet { margin: 0; padding: var(--vali-2) var(--vali-4); border-radius: var(--kulma-pilleri); background: var(--pinta); border: 2px solid var(--vihrea-syva); font-size: 15px; font-weight: 700; color: var(--teksti); text-align: center; }
+.o-vastanneet__luku { font-weight: 800; color: var(--vihrea-syva); }

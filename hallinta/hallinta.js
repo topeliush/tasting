@@ -84,6 +84,8 @@
   function asiakasViesti(t) {
     var u = osoite(t.id);
     return "Hei!\n\nKiitos tilauksesta. Tässä teidän oma tasting-linkkinne:\n" + u + ostoslista(t) +
+      "\n\nHaluatteko kurkata etukäteen? Tällä kokeilulinkillä voi testata kaiken, eikä vastauksia tallenneta:\n" + u + "&kokeilu=1" +
+      "\nVarsinaisella linkillä kannattaa vastata vasta illan aikana, jotta tulokset ovat vain illan porukan." +
       "\n\nKun ilta alkaa, jokainen avaa linkin omalla puhelimellaan. Tulostettava pöytäkortti QR-koodilla löytyy täältä:\n" + u + "#poytakortti" +
       "\n\nLinkki toimii " + pvmMs(t.voimassaAstiMs) + " asti. Se on tehty vain teille, joten jakakaa se vain illan porukalle." +
       "\n\nHyviä hetkiä viinien parissa!\nTopias Haavisto\nViinitasting.com";

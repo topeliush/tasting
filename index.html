@@ -10,9 +10,9 @@
 <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" href="/app.js?v=34" as="script">
+<link rel="preload" href="/app.js?v=36" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/app.css?v=29">
+<link rel="stylesheet" href="/app.css?v=30">
 <style>
 .lataus { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: var(--vali-6) var(--vali-5); }
 .lataus > div { max-width: 480px; }
@@ -30,6 +30,8 @@
   var haku = new URLSearchParams(location.search);
   var id = (haku.get("t") || "").trim().toLowerCase();
   var esikatselu = (haku.get("esikatselu") || "").trim().toLowerCase();
+  // Kokeilu (?t=<tunnus>&kokeilu=1): asiakas voi kokeilla settiä etukäteen. Mitään ei tallenneta, eikä kokeilu sekoita illan tilaa samalla puhelimella.
+  var kokeilu = haku.get("kokeilu") === "1";
   var teksti = document.getElementById("lataus-teksti");
   function viesti(t, linkki) {
     teksti.textContent = t;
@@ -41,10 +43,10 @@
   }
   function kaynnista(t, tunnus) {
     t.id = tunnus;
-    t.osoite = location.origin + "/?t=" + (t.esikatselu ? esikatselu : tunnus);
+    t.osoite = location.origin + "/?t=" + (t.kokeilu ? id : t.esikatselu ? esikatselu : tunnus);
     window.TASTING = t;
     document.title = (t.nimi || "Tasting") + " · Viinitasting.com";
-    var s = document.createElement("script"); s.src = "/app.js?v=34"; document.body.appendChild(s);
+    var s = document.createElement("script"); s.src = "/app.js?v=36"; document.body.appendChild(s);
   }
   // Esikatselu hallinnasta: tallentamaton setti tulee selaimen muistista, eikä mitään tallenneta palvelimelle.
   if (esikatselu && /^[a-z0-9-]{1,60}$/.test(esikatselu)) {
@@ -63,6 +65,7 @@
     clearTimeout(aikaraja);
     if (!t) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
     if (t.voimassaAstiMs && t.voimassaAstiMs < Date.now()) { viesti(EI_VOIMASSA, true); return; }
+    if (kokeilu) { t.esikatselu = true; t.kokeilu = true; kaynnista(t, "kokeilu-" + id); return; }
     kaynnista(t, id);
   }, function (e) {
     clearTimeout(aikaraja);
