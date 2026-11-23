@@ -58,11 +58,18 @@
   if (!id) { viesti("Skannaa tilaisuuden QR-koodi, niin pääset illan tastingiin.", true); return; }
   if (!/^[a-z0-9-]{1,60}$/.test(id) || !window.VTData) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
   var aikaraja = setTimeout(function () { viesti("Yhteys on hidas. Odota hetki tai lataa sivu uudelleen."); }, 10000);
+  var EI_VOIMASSA = "Tämä tasting-linkki ei ole enää voimassa. Kiitos, että maistelitte kanssamme!";
   window.VTData.haeTasting(id).then(function (t) {
     clearTimeout(aikaraja);
     if (!t) { viesti("Tastingia ei löytynyt. Tarkista linkki.", true); return; }
+    if (t.voimassaAstiMs && t.voimassaAstiMs < Date.now()) { viesti(EI_VOIMASSA, true); return; }
     kaynnista(t, id);
-  }, function () { clearTimeout(aikaraja); viesti("Tastingin lataus epäonnistui. Lataa sivu uudelleen."); });
+  }, function (e) {
+    clearTimeout(aikaraja);
+    // Firestore-säännöt eivät näytä vanhentunutta omatoimisettiä eivätkä omatoimipohjaa.
+    if (e && e.code === "permission-denied") { viesti(EI_VOIMASSA, true); return; }
+    viesti("Tastingin lataus epäonnistui. Lataa sivu uudelleen.");
+  });
 })();
 </script>
 </body>

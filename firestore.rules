@@ -4,31 +4,55 @@ service cloud.firestore {
     function juontaja() {
       return request.auth != null && request.auth.token.email in ['tophaavisto@icloud.com'];
     }
-    // Tastingien sisältö ja kuvat: kaikki lukevat, vain juontaja muokkaa.
+    // Setti on osallistujien käytettävissä, jos se ei ole omatoimipohja (pohja: true)
+    // eikä sen voimassaolo (voimassaAstiMs, millisekunteina) ole päättynyt.
+    // Olematon setti antaa get()-virheen, jolloin ehto ei täyty.
+    function voimassaData(d) {
+      return d.get('pohja', false) != true
+        && (!('voimassaAstiMs' in d) || request.time.toMillis() < d.voimassaAstiMs);
+    }
+    function voimassa(tasting) {
+      return voimassaData(get(/databases/$(database)/documents/tastingit/$(tasting)).data);
+    }
+
+    // Tastingien sisältö ja kuvat: yksittäisen setin saa lukea sen tunnuksella (linkki),
+    // mutta settilistaa ei saa hakea. Omatoimipohja ei avaudu lainkaan, ja omatoimisetti lakkaa näkymästä voimassaolon päätyttyä.
     match /tastingit/{tasting} {
-      allow read: if true;
+      allow get: if resource == null || juontaja() || voimassaData(resource.data);
+      allow list: if juontaja();
       allow write: if juontaja();
       match /kuvat/{kuva} {
-        allow read: if true;
+        allow get: if juontaja() || voimassa(tasting);
+        allow list: if juontaja();
         allow write: if juontaja();
       }
     }
-    // Kiitoslahjojen koodit: osallistuja luo oman koodinsa kerran, vain juontaja näkee listan ja merkitsee käytetyksi.
+
+    // Kiitoslahjojen koodit: osallistuja luo oman koodinsa kerran olemassa olevaan, voimassa olevaan settiin,
+    // ja arvon on oltava sama kuin setin lahjakortin arvo. Vain juontaja näkee listan ja merkitsee käytetyksi.
     match /lahjakortit/{koodi} {
       allow read, update, delete: if juontaja();
       allow create: if request.auth != null && koodi.size() <= 40
         && request.resource.data.keys().hasOnly(['koodi', 'arvo', 'tasting', 'asiakas', 'nimi', 'voimassa', 'valinta', 'luotu', 'kaytetty'])
-        && request.resource.data.koodi == koodi && request.resource.data.kaytetty == false;
+        && request.resource.data.koodi == koodi && request.resource.data.kaytetty == false
+        && request.resource.data.tasting is string
+        && voimassa(request.resource.data.tasting)
+        && get(/databases/$(database)/documents/tastingit/$(request.resource.data.tasting)).data.lahjakortti.kaytossa == true
+        && request.resource.data.arvo == get(/databases/$(database)/documents/tastingit/$(request.resource.data.tasting)).data.lahjakortti.arvo;
     }
-    // Tilaisuuden tila (dia, teema, jaetut tulokset): kaikki lukevat, vain juontaja kirjoittaa.
+
+    // Tilaisuuden tila (dia, teema, jaetut tulokset): luetaan tunnuksella, listaa ei saa hakea, vain juontaja kirjoittaa.
     match /tilaisuudet/{tilaisuus} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if juontaja();
       allow write: if juontaja();
-      // Aromikoonti: osallistujat kasvattavat laskureita, kaikki lukevat. Vain juontaja poistaa.
+      // Aromikoonti: osallistujat kasvattavat laskureita vain olemassa olevassa, voimassa olevassa setissä. Vain juontaja poistaa ja listaa.
       match /koonti/{v} {
-        allow read: if true;
+        allow get: if true;
+        allow list: if juontaja();
         allow create, update: if request.auth != null && v.matches('v[0-9]+|loppu')
-          && request.resource.data.keys().hasOnly(['a', 'o', 't', 'L', 'm']);
+          && request.resource.data.keys().hasOnly(['a', 'o', 't', 'L', 'm'])
+          && voimassa(tilaisuus);
         allow delete: if juontaja();
       }
       match /vastaukset/{uid} {
@@ -37,7 +61,8 @@ service cloud.firestore {
         allow create, update: if request.auth != null && request.auth.uid == uid
           && request.resource.data.keys().hasOnly(['l', 'v', 'L', 'paivitetty'])
           && request.resource.data.l in ['viini', 'alkoholiton']
-          && request.resource.data.v is map;
+          && request.resource.data.v is map
+          && voimassa(tilaisuus);
         allow delete: if juontaja();
       }
     }
