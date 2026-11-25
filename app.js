@@ -144,6 +144,8 @@
   }
   var koonti = {}, koontiAika = 0;
   function onOmatoimi() { return !!(T && (T.omatoimi || T.pohja)); }
+  // Tulokset päivittyvät kaikille itsestään yhteisistä laskureista: juontajan ei tarvitse julkaista mitään.
+  function liveTulokset() { return onOmatoimi() || koontiTila(); }
   function koontiTila() { return !!(Y && Y.koontiMuutos); }
   function avainT(t) { var s = String(t).toLowerCase(), x = 5381; for (var k = 0; k < s.length; k++) x = ((x << 5) + x + s.charCodeAt(k)) | 0; return "h" + (x >>> 0).toString(36); }
   function kirjaaKoonti(i, a, o) {
@@ -215,7 +217,7 @@
   function naytettavat(avain, n) {
     var j = jaetut[avain];
     // Omatoimitastingissa ei ole juontajaa jakamassa tuloksia: porukan luvut näytetään suoraan live-koonnista.
-    if (!j) return onOmatoimi() && koontiTila() && n ? liveLuvut(avain, n) : null;
+    if (!j) return koontiTila() && n ? liveLuvut(avain, n) : null;
     return (koontiTila() && liveLuvut(avain, n || j.length)) || j;
   }
   function koontiData(i) {
@@ -731,7 +733,7 @@
         var juontajaNimi = String(T.juontaja || "Juontaja").split(" ")[0];
         h += '<div class="o-odotus" role="status" aria-live="polite"><span class="o-odotus__ikoni" aria-hidden="true"><i></i><i></i><i></i></span>' +
           '<div class="o-odotus__sisus"><p class="o-odotus__otsikko">Tulokset tulossa</p>' +
-          '<p class="o-odotus__teksti">' + (onOmatoimi() ? "Porukan vastaukset ilmestyvät tähän sitä mukaa, kun muut lukitsevat omansa. Pidä sivu auki." :
+          '<p class="o-odotus__teksti">' + (liveTulokset() ? "Porukan vastaukset ilmestyvät tähän sitä mukaa, kun muut lukitsevat omansa. Pidä sivu auki." :
             esc(juontajaNimi) + " paljastaa porukan vastaukset kaikille yhtä aikaa. Pidä sivu auki, niin tulokset ilmestyvät tähän itsestään.") + "</p>" +
           (kasassa ? '<p class="o-odotus__luku">' + kpl(kasassa, "vastaus", "vastausta") + " jo kasassa</p>" : "") + "</div></div>";
       }
@@ -751,7 +753,7 @@
         if (j && summa(j)) {
           r += '<div class="o-jakauma"><span class="o-jakauma__otsikko">Koko porukka · ' + kpl(summa(j), "vastaus", "vastausta") + "</span>" + palkit(vv, j, o, v, pari ? 6 : 0) + "</div>";
         } else {
-          r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · ' + (onOmatoimi() ? "odottaa vastauksia" : "paljastetaan pian") + '</span><ul class="pk pk--haamu" aria-hidden="true">' +
+          r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · ' + (liveTulokset() ? "odottaa vastauksia" : "paljastetaan pian") + '</span><ul class="pk pk--haamu" aria-hidden="true">' +
             vv.map(function (vt, o) { if (pari && o !== v) return ""; return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">? %</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
         }
         if (f) r += '<p class="o-vs__fakta"><b>Tiesitkö?</b> ' + esc(f) + "</p>";
@@ -759,7 +761,7 @@
       }).join("");
       if (pk) h += '<div class="o-tulos"><span class="o-tulos__luku">' + ok + "/" + pk + '</span><span class="o-tulos__teksti">oikein vertailussa</span></div>';
       h += kortit;
-      h += tahtitaulukko(omat()) || '<p class="o-vaimea">' + (onOmatoimi() ? "Illan tähtitaulukko ilmestyy tähän, kun tähtiä on annettu." : "Illan tähtitaulukko paljastetaan ihan lopuksi. Jännitys säilyy.") + "</p>";
+      h += tahtitaulukko(omat()) || '<p class="o-vaimea">' + (liveTulokset() ? "Illan tähtitaulukko ilmestyy tähän, kun tähtiä on annettu." : "Illan tähtitaulukko paljastetaan ihan lopuksi. Jännitys säilyy.") + "</p>";
       h += arvioPyynto(true);
     }
     if (JT) h += jtVertailu();
@@ -1259,7 +1261,7 @@
     var l = omatHavainnot(i), j = jaetut["o" + i];
     return '<div class="p-muisti"><h3>Omin sanoin puhelimista (' + l.length + ")" + (j ? " · jaettu" : "") + "</h3>" +
       (l.length ? '<div class="o-omat">' + l.map(function (x) { return "<span>" + esc(x.t) + (x.n > 1 ? " ×" + x.n : "") + "</span>"; }).join("") + "</div>" : '<p class="p-ohje" style="margin:0">Ei vielä omia havaintoja.</p>') +
-      '<p class="p-ohje">Jaetaan samalla Näytä kaikille -painikkeella.</p></div>';
+      (koontiTila() ? "" : '<p class="p-ohje">Jaetaan samalla Näytä kaikille -painikkeella.</p>') + "</div>";
   }
   var saannotOk = null, tyhjennysVarma = false;
   function tarkistaSaannot() {
@@ -1305,7 +1307,7 @@
         return '<div class="p-laskuri p-laskuri--live"><h3>' + esc(x.kysymys) + "</h3><ul>" + (x.pari && !nakyvat.length ? '<li><span>Ei vielä pareja.</span><b></b></li>' : "") + nakyvat.map(function (o) {
           var v = x.vaihtoehdot[o];
           return '<li class="' + (o === x.oikea ? "on-oikea" : "") + '"><span>' + (o === x.oikea ? "✓ " : "") + (x.tahdet ? "★ " : "") + esc(v) + "</span><b>" + lv[o] + "</b></li>";
-        }).join("") + '</ul><span class="p-tila' + (j ? " on" : "") + '">' + (j ? "Näkyy kaikille" : "Piilossa") + " · " + summa(lv) + " vastausta" +
+        }).join("") + '</ul><span class="p-tila on">Näkyy kaikille itsestään · ' + summa(lv) + " vastausta" +
           (x.tahdet && keskiarvo(lv) != null ? " · ★ " + desi(keskiarvo(lv)) : "") + "</span></div>";
       }
       return '<div class="p-laskuri"><h3>' + esc(x.kysymys) + "</h3><ul>" + x.vaihtoehdot.map(function (v, o) {
@@ -1318,11 +1320,11 @@
     var tav = X.filter(function (x) { return !x.tahdet; }), tah = X.filter(function (x) { return x.tahdet; });
     var liveRivi = (koontiTila() && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)"><b>Aromit päivittyvät kaikille itsestään</b>, vaikka tämä näkymä olisi kiinni. Laskurit alla ovat sinun käsiäänestystäsi varten.</p>' : (!T.sokkotasting && d.k === "paljastus") ? '<p class="p-ohje" style="margin:0 0 var(--vali-2)">' + (store.get(KEY + "-live", true) !== false ? "<b>Aromit livenä:</b> porukan aromit päivittyvät kaikille itsestään. Tähdet pysyvät piilossa. " : "<b>Live-jako pois.</b> Jaa aromit napista. ") +
       '<button class="vt-linkki" data-act="p-live">' + (store.get(KEY + "-live", true) !== false ? "Laita pois" : "Laita päälle") + "</button></p>" : "";
-    if (koontiTila()) liveRivi = '<p class="p-ohje" style="margin:0 0 var(--vali-2)">Luvut päivittyvät itsestään. Paina <b>Näytä kaikille</b>, kun haluat paljastaa tulokset puhelimiin ja isolle näytölle.</p>';
+    if (koontiTila()) liveRivi = '<p class="p-ohje" style="margin:0 0 var(--vali-2)">Luvut päivittyvät itsestään puhelimiin ja isolle näytölle. Sinun ei tarvitse julkaista mitään.</p>';
     var jaaNapit = '<div class="p-jaa"><button class="vt-painike" data-act="p-jaa" data-d="' + dk + '">' + (jaettu && !koontiTila() ? "Päivitä kaikille" : "Näytä kaikille") + "</button>" +
       '<button class="vt-painike vt-painike--toissijainen" data-act="p-piilota" data-d="' + dk + '"' + (jaettu ? "" : " disabled") + ">Piilota</button></div>";
     var tahtiRivi = tah.map(function (x) { var lv = (koontiTila() && liveLuvut(x.avain, 6)) || luvut(x.avain, 6), ka = keskiarvo(lv); return esc(x.kysymys.replace(/^★\s*/, "")) + ": " + (ka == null ? "–" : "★ " + desi(ka)) + " (" + summa(lv) + ")"; });
-    return '<div class="p-muisti"><h3>Vastaukset · ' + (jaettu ? "näkyvät kaikille" : "eivät vielä näy") + "</h3>" + liveRivi + jaaNapit +
+    return '<div class="p-muisti"><h3>Vastaukset · ' + (jaettu || koontiTila() ? "näkyvät kaikille" : "eivät vielä näy") + "</h3>" + liveRivi + (koontiTila() ? "" : jaaNapit) +
       (koontiTila() ? "" : '<p class="p-ohje" style="margin:0">📱 = puhelimista tulleet. Lisää käsiäänet + ja − napeilla.</p>') +
       tav.map(kortti).join("") +
       (tah.length ? '<h3 style="margin-top:var(--vali-5)">Tähdet viineittäin</h3><p class="p-ohje" style="margin:0 0 var(--vali-2)">Jakaumat näkyvät vain sinulle. Vieraille ja isolle näytölle näytetään keskiarvot.</p>' +
