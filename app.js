@@ -361,7 +361,7 @@
       return '<li class="' + (o === oma ? "on-oma " : "") + (o === oikea ? "on-oikea " : "") + (karki ? "on-karki " : "") + (n ? "" : "on-nolla") + '">' +
         '<span class="pk-n" aria-label="' + kpl(n, "ääni", "ääntä") + '">' + n + "</span>" +
         '<span class="pk-teksti">' + (o === oikea ? "✓ " : "") + nimi + (merkit ? '<span class="pk-merkit">' + merkit + "</span>" : "") + "</span>" +
-        '<span class="pk-luku">' + (s >= 5 ? pros + " %" : "") + "</span>" +
+        '<span class="pk-luku">' + kpl(n, "ääni", "ääntä") + '<small class="pk-pros">' + pros + " %</small></span>" +
         '<span class="pk-palkki"><i style="width:' + pros + '%"></i></span></li>';
     }).join("") + "</ul>";
   }
