@@ -817,3 +817,6 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 .o-pari__juusto:active { transform: scale(0.97); }
 .o-pari__juusto[aria-pressed="true"] { background: var(--sininen); border-color: var(--sininen); color: var(--valkoinen); }
 .o-pari__valinta { margin: var(--vali-3) 0 0; font-size: 15px; }
+/* Tulosrivit: äänimäärä isona, osuus pienenä sen alla */
+.pk-luku { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.15; white-space: nowrap; }
+.pk-pros { font-size: 0.72em; font-weight: 700; color: var(--teksti-vaimea); }

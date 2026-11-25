@@ -354,7 +354,7 @@
       var v = vaihtoehdot[o];
       var n = luvut[o] || 0, pros = s ? Math.round(100 * n / s) : 0;
       return '<li class="' + (o === oma ? "on-oma " : "") + (o === oikea ? "on-oikea " : "") + (huippu > 0 && n === huippu ? "on-karki" : "") + '"><span class="pk-teksti">' + (o === oikea ? "✓ " : "") + esc(v) +
-        (o === oma ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">' + pros + ' %</span><span class="pk-palkki"><i style="width:' + pros + '%"></i></span></li>';
+        (o === oma ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">' + kpl(n, "ääni", "ääntä") + '<small class="pk-pros">' + pros + ' %</small></span><span class="pk-palkki"><i style="width:' + pros + '%"></i></span></li>';
     }).join("") + "</ul>";
   }
   function nakyvissa(i) { if (onOma(i)) return onAuki(i); var o = omat()[nro(i) - 1]; return o == null || onAuki(o); }
@@ -754,7 +754,7 @@
           r += '<div class="o-jakauma"><span class="o-jakauma__otsikko">Koko porukka · ' + kpl(summa(j), "vastaus", "vastausta") + "</span>" + palkit(vv, j, o, v, pari ? 6 : 0) + "</div>";
         } else {
           r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · ' + (liveTulokset() ? "odottaa vastauksia" : "paljastetaan pian") + '</span><ul class="pk pk--haamu" aria-hidden="true">' +
-            vv.map(function (vt, o) { if (pari && o !== v) return ""; return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">? %</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
+            vv.map(function (vt, o) { if (pari && o !== v) return ""; return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">?</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
         }
         if (f) r += '<p class="o-vs__fakta"><b>Tiesitkö?</b> ' + esc(f) + "</p>";
         return r + "</section>";
