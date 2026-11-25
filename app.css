@@ -805,3 +805,15 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 .v-aikataulu { margin: 0; padding-left: 1.2em; }
 .v-aikataulu li + li { margin-top: var(--vali-2); }
 .v-napit { display: flex; flex-direction: column; gap: var(--vali-3); }
+/* Lopuksi: viini + juusto -parikysymys (ensin viini, sen alle juustot) */
+.o-pari__lista { clear: both; display: grid; gap: var(--vali-2); }
+.o-pari__rivi { display: grid; }
+.o-pari__viini { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; width: 100%; text-align: left; padding-left: var(--vali-4); }
+.o-pari__pari { font-size: 14px; font-weight: 700; opacity: 0.9; }
+.o-pari__rivi.on-auki .o-pari__viini { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.o-pari__juustot { display: grid; gap: var(--vali-2); padding: var(--vali-3) var(--vali-3) var(--vali-3) var(--vali-6); border: 2px solid var(--vihrea); border-top: 0; border-radius: 0 0 var(--kulma-m) var(--kulma-m); background: var(--tausta); }
+.o-pari__ohje { font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--teksti-vaimea); }
+.o-pari__juusto { min-height: 48px; padding: var(--vali-2) var(--vali-4); border: 2px solid var(--viiva); border-radius: var(--kulma-pilleri); background: var(--pinta); color: var(--teksti); font: inherit; font-size: 16px; font-weight: 700; line-height: 1.25; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 0.12s ease, background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease; }
+.o-pari__juusto:active { transform: scale(0.97); }
+.o-pari__juusto[aria-pressed="true"] { background: var(--sininen); border-color: var(--sininen); color: var(--valkoinen); }
+.o-pari__valinta { margin: var(--vali-3) 0 0; font-size: 15px; }

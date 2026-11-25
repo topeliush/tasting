@@ -45,6 +45,16 @@
    "fakta": {
     "viini": "Hinnat: Boutari Naoussa 20,95 €, Jean Stodden 24,50 €, Taliano Roero Riserva 31,96 €, Terre Nere Etna Rosso 34,90 € ja Bava Nizza 2013 51,03 €."
    }
+  },
+  {
+   "id": "pari",
+   "kysymys": "Mikä viini- ja juustopari toimi parhaiten?",
+   "tyyppi": "pari",
+   "juustot": [
+    "Juustoportti Vuohen brandypähkinä",
+    "Herkkujuustola Marmori",
+    "Parmigiano Reggiano 30 kk"
+   ]
   }
  ],
  "pvm": "2026-11-26",

@@ -102,7 +102,17 @@
   function lopuksi() { return T.lopuksi || []; }
   function lyhytNimi(i) { var w = T.viinit[i]; return w.lyhyt || w.nimi; }
   function lVaihtoehdot(l) { return linjanViinit(l).map(function (i) { return "Lasi " + nro(i) + " · " + lyhytNimi(i); }); }
-  function lOikea(q, l) { return q.oikea && typeof q.oikea[l] === "number" ? q.oikea[l] : null; }
+  function lOikea(q, l) { return !onPari(q) && q.oikea && typeof q.oikea[l] === "number" ? q.oikea[l] : null; }
+  // Viini + juusto -parikysymys: vastaus on yksi luku (viinin indeksi × juustojen määrä + juuston indeksi),
+  // joten yhteiset laskurit, jakaminen ja yhteenvedot toimivat samalla tavalla kuin tavallisissa kysymyksissä.
+  function qJuustot(q) { return (q && Array.isArray(q.juustot) ? q.juustot : []).map(function (x) { return String(x || "").trim(); }).filter(Boolean); }
+  function onPari(q) { return !!q && q.tyyppi === "pari" && qJuustot(q).length > 0; }
+  function qVaihtoehdot(q, l) {
+    if (!onPari(q)) return lVaihtoehdot(l);
+    var jj = qJuustot(q), r = [];
+    linjanViinit(l).forEach(function (i) { jj.forEach(function (j) { r.push(lyhytNimi(i) + " + " + j); }); });
+    return r;
+  }
   function lFakta(q, l) { return (q.fakta && (typeof q.fakta === "string" ? q.fakta : q.fakta[l])) || ""; }
   function aromit(i) { var w = T.viinit[i]; return w.aromit || T.aromit || []; }
   function aromiEmoji(t) { return window.VTAromiEmoji ? window.VTAromiEmoji(t) : ""; }
@@ -327,9 +337,19 @@
       }).join("") + "</ol></section>";
   }
   function summa(a) { var s = 0; (a || []).forEach(function (n) { s += n; }); return s; }
-  function palkit(vaihtoehdot, luvut, oikea, oma) {
+  function palkit(vaihtoehdot, luvut, oikea, oma, max) {
     var s = summa(luvut), huippu = Math.max.apply(null, (luvut || []).concat([0]));
-    return '<ul class="pk">' + vaihtoehdot.map(function (v, o) {
+    var jarj = vaihtoehdot.map(function (v, o) { return o; });
+    // Paljon vaihtoehtoja (viini + juusto -parit): näytetään vain saaneet, suurimmasta alkaen, ja aina oma valinta.
+    if (max) {
+      jarj = jarj.filter(function (o) { return (luvut[o] || 0) > 0 || o === oma; })
+        .sort(function (a, b) { return (luvut[b] || 0) - (luvut[a] || 0) || a - b; });
+      var ylin = jarj.slice(0, max);
+      if (oma != null && ylin.indexOf(oma) < 0 && jarj.indexOf(oma) >= 0) ylin.push(oma);
+      jarj = ylin;
+    }
+    return '<ul class="pk">' + jarj.map(function (o) {
+      var v = vaihtoehdot[o];
       var n = luvut[o] || 0, pros = s ? Math.round(100 * n / s) : 0;
       return '<li class="' + (o === oma ? "on-oma " : "") + (o === oikea ? "on-oikea " : "") + (huippu > 0 && n === huippu ? "on-karki" : "") + '"><span class="pk-teksti">' + (o === oikea ? "✓ " : "") + esc(v) +
         (o === oma ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">' + pros + ' %</span><span class="pk-palkki"><i style="width:' + pros + '%"></i></span></li>';
@@ -662,6 +682,30 @@
     return h + "</section>";
   }
 
+  // Parikysymys: ensin klikataan viini, sen alle avautuvat juustot, ja juuston valinta tekee parin.
+  function pariKysymys(q, l, L) {
+    var jj = qJuustot(q), nJ = jj.length, v = L.v[q.id];
+    var auki = L.pv && L.pv[q.id] != null ? L.pv[q.id] : (v != null ? Math.floor(v / nJ) : null);
+    var lasit = lVaihtoehdot(l);
+    var rivit = lasit.map(function (vt, o) {
+      var valittuJuusto = v != null && Math.floor(v / nJ) === o ? jj[v % nJ] : "";
+      var r = '<div class="o-pari__rivi' + (o === auki ? " on-auki" : "") + '">' +
+        '<button class="o-vaihtoehto o-pari__viini" data-act="l-pari-viini" data-id="' + esc(q.id) + '" data-o="' + o + '" aria-pressed="' + (o === auki) + '" aria-expanded="' + (o === auki) + '">' +
+        '<span class="o-pari__nimi">' + esc(vt) + "</span>" + (valittuJuusto ? '<span class="o-pari__pari">+ ' + esc(valittuJuusto) + "</span>" : "") + "</button>";
+      if (o === auki) {
+        r += '<div class="o-pari__juustot" role="group" aria-label="Juusto viinille ' + esc(vt) + '"><span class="o-pari__ohje">Mikä juusto sopi tälle parhaiten?</span>' +
+          jj.map(function (ju, k) {
+            var arvo = o * nJ + k;
+            return '<button class="o-pari__juusto" data-act="l-valitse" data-id="' + esc(q.id) + '" data-o="' + arvo + '" aria-pressed="' + (v === arvo) + '">' +
+              '<span aria-hidden="true">🧀</span> ' + esc(ju) + "</button>";
+          }).join("") + "</div>";
+      }
+      return r + "</div>";
+    }).join("");
+    var ohje = v != null ? '<p class="o-pari__valinta">Parisi: <b>' + esc(qVaihtoehdot(q, l)[v]) + "</b></p>"
+      : '<p class="o-pari__valinta o-vaimea">' + (auki == null ? "Valitse ensin viini." : "Valitse vielä juusto.") + "</p>";
+    return '<fieldset class="o-kysymys o-pari"><legend>' + esc(q.kysymys) + '</legend><div class="o-pari__lista">' + rivit + "</div>" + ohje + "</fieldset>";
+  }
   function vertailuNakyma() {
     var l = S.linja || "viini", L = S.loppu, vv = lVaihtoehdot(l);
     var h = '<section class="o-osio"><h1 class="o-h1">Yhteenveto</h1>';
@@ -670,6 +714,7 @@
       h += '<p class="o-ingressi">' + (arvioidut >= kaikkiLasit ? "Kaikki " + kaikkiLasit + " lasia takana. Nyt saa vertailla, ja maistaa vielä kerran, jos muisti pätkii." :
         arvioidut + "/" + kaikkiLasit + " lasia arvioitu. Puuttuviin pääset yläreunan numeroista, tai voit vastata alla jo nyt.") + "</p>";
       h += lopuksi().map(function (q) {
+        if (onPari(q)) return pariKysymys(q, l, L);
         var napit = vv.map(function (v, o) {
           return '<button class="o-vaihtoehto" data-act="l-valitse" data-id="' + esc(q.id) + '" data-o="' + o + '" aria-pressed="' + (L.v[q.id] === o) + '">' + esc(v) + "</button>";
         }).join("");
@@ -680,9 +725,9 @@
       if (!valmis) h += '<p class="o-vaimea">Vastaa kaikkiin, niin pääset kurkkaamaan muiden vastaukset.</p>';
     } else {
       var ok = 0, pk = 0, kasassa = 0;
-      var odottaa = !lopuksi().some(function (q) { var j = naytettavat(lAvain(q.id, l), vv.length); return j && summa(j); });
+      var odottaa = !lopuksi().some(function (q) { var j = naytettavat(lAvain(q.id, l), qVaihtoehdot(q, l).length); return j && summa(j); });
       if (odottaa) {
-        lopuksi().forEach(function (q) { kasassa = Math.max(kasassa, summa(liveLuvut(lAvain(q.id, l), vv.length) || [])); });
+        lopuksi().forEach(function (q) { kasassa = Math.max(kasassa, summa(liveLuvut(lAvain(q.id, l), qVaihtoehdot(q, l).length) || [])); });
         var juontajaNimi = String(T.juontaja || "Juontaja").split(" ")[0];
         h += '<div class="o-odotus" role="status" aria-live="polite"><span class="o-odotus__ikoni" aria-hidden="true"><i></i><i></i><i></i></span>' +
           '<div class="o-odotus__sisus"><p class="o-odotus__otsikko">Tulokset tulossa</p>' +
@@ -691,6 +736,7 @@
           (kasassa ? '<p class="o-odotus__luku">' + kpl(kasassa, "vastaus", "vastausta") + " jo kasassa</p>" : "") + "</div></div>";
       }
       var kortit = lopuksi().map(function (q) {
+        var vv = qVaihtoehdot(q, l), pari = onPari(q);
         var v = L.v[q.id], o = lOikea(q, l), j = naytettavat(lAvain(q.id, l), vv.length), f = lFakta(q, l);
         var r = '<section class="vt-kortti o-vs"><h2 class="o-vs__k">' + esc(q.kysymys) + "</h2>";
         if (o != null) {
@@ -703,10 +749,10 @@
           r += '<p class="o-vs__oma">Sinä: <b>' + esc(v == null ? "ei vastausta" : vv[v]) + "</b></p>";
         }
         if (j && summa(j)) {
-          r += '<div class="o-jakauma"><span class="o-jakauma__otsikko">Koko porukka · ' + kpl(summa(j), "vastaus", "vastausta") + "</span>" + palkit(vv, j, o, v) + "</div>";
+          r += '<div class="o-jakauma"><span class="o-jakauma__otsikko">Koko porukka · ' + kpl(summa(j), "vastaus", "vastausta") + "</span>" + palkit(vv, j, o, v, pari ? 6 : 0) + "</div>";
         } else {
           r += '<div class="o-jakauma o-jakauma--odottaa"><span class="o-jakauma__otsikko">Koko porukka · ' + (onOmatoimi() ? "odottaa vastauksia" : "paljastetaan pian") + '</span><ul class="pk pk--haamu" aria-hidden="true">' +
-            vv.map(function (vt, o) { return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">? %</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
+            vv.map(function (vt, o) { if (pari && o !== v) return ""; return '<li class="' + (o === v ? "on-oma" : "") + '"><span class="pk-teksti">' + esc(vt) + (o === v ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">? %</span><span class="pk-palkki"><i></i></span></li>'; }).join("") + "</ul></div>";
         }
         if (f) r += '<p class="o-vs__fakta"><b>Tiesitkö?</b> ' + esc(f) + "</p>";
         return r + "</section>";
@@ -896,8 +942,7 @@
       return [{ avain: "a" + d.i, kysymys: "Mitä aromeja porukka löysi?", vaihtoehdot: aromit(d.i), oikea: null, fakta: "", moni: true }];
     }
     if (d.k === "vtulos") {
-      var vv = lVaihtoehdot(d.l);
-      return lopuksi().map(function (q) { return { avain: lAvain(q.id, d.l), kysymys: q.kysymys, vaihtoehdot: vv, oikea: lOikea(q, d.l), fakta: lFakta(q, d.l) }; })
+      return lopuksi().map(function (q) { return { avain: lAvain(q.id, d.l), kysymys: q.kysymys, vaihtoehdot: qVaihtoehdot(q, d.l), oikea: lOikea(q, d.l), fakta: lFakta(q, d.l), pari: onPari(q) }; })
         .concat(linjanViinit(d.l).map(function (i) { return { avain: "t" + i, kysymys: "★ Lasi " + nro(i) + " · " + lyhytNimi(i), vaihtoehdot: TAHDET, oikea: null, fakta: "", tahdet: true }; }));
     }
     return [];
@@ -914,7 +959,7 @@
       var j = x.moni && koontiTila() ? (koontiData(d.i).on ? true : null) : x.moni ? jaetut[x.avain] : naytettavat(x.avain, x.vaihtoehdot.length);
       var valmiina = x.moni && koontiTila() ? valmiinaTeksti(d.i) : "";
       kortit.push('<div class="j-tulos' + (x.moni ? " j-tulos--pilvi" : "") + '"><b>' + esc(x.kysymys) + "</b>" + valmiina +
-        (j ? (x.moni ? kuplat(d.i, false, 30) : palkit(x.vaihtoehdot, j, x.oikea, null) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
+        (j ? (x.moni ? kuplat(d.i, false, 30) : palkit(x.vaihtoehdot, j, x.oikea, null, x.pari ? 3 : 0) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
            : x.oikea != null ? '<span class="j-tulos__oikea">✓ ' + esc(x.vaihtoehdot[x.oikea]) + "</span>"
            : '<span class="j-tulos__odota">' + (x.moni ? "Aromeja kerätään vielä…" : "Vastauksia kerätään vielä…") + "</span>") +
         (x.fakta ? '<span class="j-tulos__fakta">' + esc(x.fakta) + "</span>" : "") + "</div>");
@@ -1255,7 +1300,10 @@
       var n = x.vaihtoehdot.length, p = puhelinLuvut(x.avain, n), L = luvut(x.avain, n), j = jaetut[x.avain];
       if (koontiTila()) {
         var lv = liveLuvut(x.avain, n) || p;
-        return '<div class="p-laskuri p-laskuri--live"><h3>' + esc(x.kysymys) + "</h3><ul>" + x.vaihtoehdot.map(function (v, o) {
+        var nakyvat = x.vaihtoehdot.map(function (v, o) { return o; });
+        if (x.pari) nakyvat = nakyvat.filter(function (o) { return lv[o] > 0; }).sort(function (a, b) { return lv[b] - lv[a] || a - b; });
+        return '<div class="p-laskuri p-laskuri--live"><h3>' + esc(x.kysymys) + "</h3><ul>" + (x.pari && !nakyvat.length ? '<li><span>Ei vielä pareja.</span><b></b></li>' : "") + nakyvat.map(function (o) {
+          var v = x.vaihtoehdot[o];
           return '<li class="' + (o === x.oikea ? "on-oikea" : "") + '"><span>' + (o === x.oikea ? "✓ " : "") + (x.tahdet ? "★ " : "") + esc(v) + "</span><b>" + lv[o] + "</b></li>";
         }).join("") + '</ul><span class="p-tila' + (j ? " on" : "") + '">' + (j ? "Näkyy kaikille" : "Piilossa") + " · " + summa(lv) + " vastausta" +
           (x.tahdet && keskiarvo(lv) != null ? " · ★ " + desi(keskiarvo(lv)) : "") + "</span></div>";
@@ -1310,7 +1358,7 @@
         muistiinpano("Ohje", "Osallistujat vastaavat puhelimessa kohdassa Yhteenveto. Seuraavilla dioilla jaat vastaukset ja tähtien keskiarvot.") +
         lopuksi().map(function (q) {
           var t = (onLinjat() ? ["viini", "alkoholiton"] : ["viini"]).map(function (l) {
-            var o = lOikea(q, l), vv = lVaihtoehdot(l);
+            var o = lOikea(q, l), vv = qVaihtoehdot(q, l);
             return (onLinjat() ? (l === "alkoholiton" ? "Alkoholittomat: " : "Kuohuviinit: ") : "") + (o != null ? "✓ " + vv[o] + ". " : "") + lFakta(q, l);
           }).join("\n");
           return muistiinpano(esc(q.kysymys), t);
@@ -1423,7 +1471,7 @@
     jtDiat("vertailu").forEach(function (k) { h += jtIlmanOtsikkoa(ohjausOsio(D[k], k, url)); });
     if (koontiTila()) {
       var m = mukana() || 0;
-      var vastanneet = Math.max.apply(null, [0].concat(lopuksi().map(function (q) { return summa(liveLuvut(lAvain(q.id, S.linja || "viini"), lVaihtoehdot(S.linja || "viini").length) || []); })));
+      var vastanneet = Math.max.apply(null, [0].concat(lopuksi().map(function (q) { return summa(liveLuvut(lAvain(q.id, S.linja || "viini"), qVaihtoehdot(q, S.linja || "viini").length) || []); })));
       h = '<div class="jt-luvut"><div><b>' + m + "</b><span>mukana</span></div><div><b>" + vastanneet + "</b><span>vastannut loppukysymykseen</span></div></div>" + h;
     }
     return jtLaatikko("Oikeat vastaukset ja tulosten julkaisu", h);
@@ -1705,6 +1753,17 @@
       case "l-valitse":
         if (S.loppu.lukittu) return;
         S.loppu.v[t.dataset.id] = +t.dataset.o; tallenna(); renderOsallistuja(); break;
+      case "l-pari-viini":
+        if (S.loppu.lukittu) return;
+        var pq = lopuksi().filter(function (q) { return q.id === t.dataset.id; })[0], pn = qJuustot(pq).length, po = +t.dataset.o;
+        if (!S.loppu.pv) S.loppu.pv = {};
+        if (S.loppu.pv[t.dataset.id] !== po) {
+          S.loppu.pv[t.dataset.id] = po;
+          var pvan = S.loppu.v[t.dataset.id];
+          if (pvan != null && pn && Math.floor(pvan / pn) !== po) delete S.loppu.v[t.dataset.id];
+          tallenna(); renderOsallistuja();
+        }
+        break;
       case "l-lukitse":
         S.loppu.lukittu = true; kirjaaLopuksi(); tallenna(); renderOsallistuja(); window.scrollTo(0, 0); haeKoonti("loppu"); break;
       case "p-kasin":

@@ -81,6 +81,11 @@
     while (olemassa.indexOf(id) >= 0) id = perus + "-" + n++;
     return id;
   }
+  // Viini + juusto -parikysymyksen juustot: hallinnassa yksi per rivi, tallennettuna listana (enintään 6).
+  function juustoLista(q) {
+    var l = typeof q.juustotTeksti === "string" ? q.juustotTeksti.split("\n") : (Array.isArray(q.juustot) ? q.juustot : []);
+    return l.map(function (x) { return String(x || "").replace(/\s+/g, " ").trim(); }).filter(Boolean).slice(0, 6);
+  }
   function puhdista(t) {
     var d = kopio(t); delete d.id; delete d.osoite;
     d.aromit = (d.aromit || []).map(function (a) { return String(a).trim(); }).filter(Boolean);
@@ -99,7 +104,9 @@
       });
       var x = { id: q.id || "q" + Math.random().toString(36).slice(2, 7), kysymys: q.kysymys.trim() };
       if (Object.keys(f).length) x.fakta = f;
-      if (Object.keys(o).length) x.oikea = o;
+      var jj = q.tyyppi === "pari" ? juustoLista(q) : [];
+      if (jj.length) { x.tyyppi = "pari"; x.juustot = jj; }
+      else if (Object.keys(o).length) x.oikea = o;
       return x;
     });
     return d;
@@ -111,7 +118,9 @@
     d.lopuksi = (d.lopuksi || []).map(function (q) {
       var f = q.fakta;
       if (typeof f === "string") f = { viini: f, alkoholiton: f };
-      return { id: q.id, kysymys: q.kysymys || "", fakta: f || {}, oikea: q.oikea || {} };
+      var x = { id: q.id, kysymys: q.kysymys || "", fakta: f || {}, oikea: q.oikea || {} };
+      if (q.tyyppi === "pari") { x.tyyppi = "pari"; x.juustot = juustoLista(q); x.juustotTeksti = x.juustot.join("\n"); }
+      return x;
     });
     d.lahjakortti = Object.assign({}, PERUS.lahjakortti, d.lahjakortti || {});
     return d;
@@ -342,7 +351,12 @@
       (t.lopuksi || []).forEach(function (q) {
         var d = ((loppu.L || {})[q.id + "-" + l]) || {};
         if (!Object.keys(d).some(function (x) { return d[x] > 0; })) { var vk = vKysymys(q, l, ii); if (Object.keys(vk).length) { d = vk; lahdeVastaukset = true; } }
-        var rivit = ii.map(function (i, n) { return { nimi: "Lasi " + (n + 1) + " · " + nimi(i), n: Math.max(0, d[n] || 0) }; });
+        var jj = q.tyyppi === "pari" ? juustoLista(q) : [], rivit;
+        if (jj.length) {
+          rivit = [];
+          ii.forEach(function (i, n) { jj.forEach(function (ju, k) { rivit.push({ nimi: nimi(i) + " + " + ju, n: Math.max(0, d[n * jj.length + k] || 0) }); }); });
+          rivit = rivit.filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; });
+        } else rivit = ii.map(function (i, n) { return { nimi: "Lasi " + (n + 1) + " · " + nimi(i), n: Math.max(0, d[n] || 0) }; });
         var yht = rivit.reduce(function (a, b) { return a + b.n; }, 0);
         L.kysymykset.push({ kysymys: q.kysymys, rivit: rivit, yht: yht });
       });
@@ -436,16 +450,20 @@
 
     // Lopuksi
     var V = w.viinit.filter(function (x) { return !x.alkoholiton; }), Al = w.viinit.filter(function (x) { return x.alkoholiton; });
-    h += '<section class="h-osio"><h2 class="h-alaotsikko">Lopuksi-kysymykset</h2><p class="h-ohje">1–4 kysymystä kaikista lasien juomista. Vastausvaihtoehdot ovat osallistujan omat juomat. Tähtien keskiarvot näytetään lopuksi automaattisesti.</p>' +
+    h += '<section class="h-osio"><h2 class="h-alaotsikko">Lopuksi-kysymykset</h2><p class="h-ohje">1–4 kysymystä kaikista lasien juomista. Vastausvaihtoehdot ovat osallistujan omat juomat. Viini + juusto -parissa osallistuja valitsee ensin viinin ja sitten sille juuston. Tähtien keskiarvot näytetään lopuksi automaattisesti.</p>' +
       w.lopuksi.map(function (q, i) {
+        var pari = q.tyyppi === "pari";
         return '<div class="h-kysymys">' + kentta("lopuksi." + i + ".kysymys", "Kysymys " + (i + 1), q.kysymys) +
+          valinta("lopuksi." + i + ".tyyppi", "Vastaustapa", pari ? "pari" : "", [["", "Valitaan yksi lasi"], ["pari", "Viini + juusto -pari"]]) +
+          (pari ? kentta("lopuksi." + i + ".juustotTeksti", "Juustot (yksi per rivi, 2–6)", q.juustotTeksti != null ? q.juustotTeksti : (q.juustot || []).join("\n"), "textarea") : "") +
           kentta("lopuksi." + i + ".fakta.viini", alkOn ? "Fakta vastauksen jälkeen · viinit" : "Fakta vastauksen jälkeen (valinnainen)", q.fakta.viini, "textarea") +
           (alkOn ? kentta("lopuksi." + i + ".fakta.alkoholiton", "Fakta · alkoholittomat", q.fakta.alkoholiton, "textarea") : "") +
-          '<div class="h-kaksi">' + oikeaValinta(i, "viini", V, alkOn ? "Oikea vastaus · viinit" : "Oikea vastaus (antaa pisteen)") +
-          (alkOn ? oikeaValinta(i, "alkoholiton", Al, "Oikea vastaus · alkoholittomat") : "") + "</div>" +
+          (pari ? "" : '<div class="h-kaksi">' + oikeaValinta(i, "viini", V, alkOn ? "Oikea vastaus · viinit" : "Oikea vastaus (antaa pisteen)") +
+          (alkOn ? oikeaValinta(i, "alkoholiton", Al, "Oikea vastaus · alkoholittomat") : "") + "</div>") +
           '<div class="h-rivi"><button class="h-pieni h-pieni--vaara" data-act="kysymys-pois" data-i="' + i + '">Poista kysymys</button></div></div>';
       }).join("") +
-      (w.lopuksi.length < 4 ? '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="kysymys-lisaa">+ Lisää kysymys</button>' : "") + "</section>";
+      (w.lopuksi.length < 4 ? '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="kysymys-lisaa">+ Lisää kysymys</button>' +
+        '<button class="vt-painike vt-painike--toissijainen vt-painike--leveä" data-act="kysymys-lisaa-pari" style="margin-top:var(--vali-2)">+ Lisää viini + juusto -kysymys</button>' : "") + "</section>";
 
     // Muut toiminnot
     h += '<section class="h-osio"><h2 class="h-alaotsikko">Muut</h2><div class="h-rivi">' +
@@ -741,6 +759,7 @@
         if (kp && kp.indexOf(muokId + "/") === 0) window.VTData.poistaKuva(kp).catch(function () {});
         juomaAuki[i] = true; rakenne(); break;
       case "kysymys-lisaa": muok.lopuksi.push({ id: "q" + Date.now().toString(36), kysymys: "", fakta: {}, oikea: {} }); rakenne(); break;
+      case "kysymys-lisaa-pari": muok.lopuksi.push({ id: "pari" + Date.now().toString(36), kysymys: "Mikä viini- ja juustopari toimi parhaiten?", fakta: {}, oikea: {}, tyyppi: "pari", juustot: [], juustotTeksti: "" }); rakenne(); break;
       case "kysymys-pois": muok.lopuksi.splice(i, 1); rakenne(); break;
       case "poista-tasting":
         if (!window.confirm("Poistetaanko tasting " + (muok.nimi || muokId) + " pysyvästi? Linkki lakkaa toimimasta.")) return;
@@ -759,6 +778,7 @@
     var t = e.target, p = t.dataset && t.dataset.p;
     if (!p || !muok || t.type === "checkbox" || t.tagName === "SELECT") return;
     aseta(p, t.type === "number" ? (t.value === "" ? "" : +t.value) : t.value);
+    if (/^lopuksi\.\d+\.juustotTeksti$/.test(p)) { var jq = muok.lopuksi[+p.split(".")[1]]; jq.juustot = juustoLista(jq); }
     merkitse();
     if (/^viinit\.\d+\.(nimi|alue|maa)$/.test(p)) {
       var i = +p.split(".")[1], v = muok.viinit[i], s = document.querySelector('[data-juoma="' + i + '"] summary b');
@@ -781,6 +801,11 @@
     if (t.tagName === "SELECT") {
       var v = t.value;
       aseta(p, /\.oikea\./.test(p) ? (v === "" ? null : +v) : v);
+      if (/^lopuksi\.\d+\.tyyppi$/.test(p)) {
+        var tq = muok.lopuksi[+p.split(".")[1]];
+        if (v === "pari") { tq.juustot = juustoLista(tq); tq.juustotTeksti = tq.juustot.join("\n"); } else delete tq.tyyppi;
+        rakenne(); return;
+      }
       merkitse();
     }
   });
