@@ -820,3 +820,27 @@ html[data-theme="ilta"] body.osallistuja { background: var(--tausta); color: var
 /* Tulosrivit: äänimäärä isona, osuus pienenä sen alla */
 .pk-luku { display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.15; white-space: nowrap; }
 .pk-pros { font-size: 0.72em; font-weight: 700; color: var(--teksti-vaimea); }
+/* Tulosrivit: äänimäärä pallossa vasemmalla, nimi ja merkit, palkki nimen alla */
+.pk--n li { grid-template-columns: 2.1em 1fr auto; align-items: center; column-gap: 0.7em; row-gap: 0.35em; }
+.pk--n .pk-n { grid-row: 1 / span 2; align-self: center; display: inline-flex; align-items: center; justify-content: center; width: 2.1em; height: 2.1em; border: 2px solid var(--viiva); border-radius: 50%; background: var(--pinta); font-family: var(--font-display); font-size: 1em; line-height: 1; font-variant-numeric: tabular-nums; }
+.pk--n .pk-teksti { display: block; }
+.pk--n .pk-luku { display: block; font-size: 0.8em; font-weight: 700; color: var(--teksti-vaimea); }
+.pk--n .pk-palkki { grid-column: 2 / -1; }
+.pk-juusto { display: block; margin-top: 0.1em; font-size: 0.86em; font-weight: 600; color: var(--teksti-vaimea); }
+.pk-merkit { display: inline; }
+.pk-merkit em { margin-left: 0.35em; vertical-align: 0.1em; }
+.pk-teksti em.pk-merkki { background: var(--vihrea); }
+.pk--n li.on-oma .pk-n { border-color: var(--sininen); background: var(--sininen); color: var(--valkoinen); }
+.pk--karki-vihrea li.on-karki:not(.on-oma) .pk-n { border-color: var(--vihrea); background: var(--vihrea); color: var(--on-vihrea); }
+.pk--karki-vihrea li.on-karki .pk-palkki i { background: var(--vihrea); }
+.pk--karki-vihrea li.on-karki.on-oma .pk-palkki i { background: var(--sininen); }
+.pk--n li.on-nolla .pk-teksti, .pk--n li.on-nolla .pk-n { opacity: 0.5; }
+.pk--n li { grid-template-columns: 2.1em minmax(0, 1fr) auto; }
+.pk--n .pk-teksti { min-width: 0; overflow-wrap: break-word; hyphens: auto; }
+.pk-teksti em { white-space: nowrap; }
+/* Iso näyttö: vain ääniä saaneet rivit, jotta kortit pysyvät väljinä */
+.j-tulos .pk--n li.on-nolla { display: none; }
+.j-tulos .pk--n li { grid-template-columns: 1.8em minmax(0, 1fr); column-gap: 0.5em; }
+.j-tulos .pk--n .pk-n { width: 1.8em; height: 1.8em; }
+.j-tulos .pk--n .pk-luku { display: none; }
+.j-tulos .pk-merkit em { font-size: 0.62em; }

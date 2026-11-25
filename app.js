@@ -350,11 +350,19 @@
       if (oma != null && ylin.indexOf(oma) < 0 && jarj.indexOf(oma) >= 0) ylin.push(oma);
       jarj = ylin;
     }
-    return '<ul class="pk">' + jarj.map(function (o) {
-      var v = vaihtoehdot[o];
-      var n = luvut[o] || 0, pros = s ? Math.round(100 * n / s) : 0;
-      return '<li class="' + (o === oma ? "on-oma " : "") + (o === oikea ? "on-oikea " : "") + (huippu > 0 && n === huippu ? "on-karki" : "") + '"><span class="pk-teksti">' + (o === oikea ? "✓ " : "") + esc(v) +
-        (o === oma ? "<em>sinä</em>" : "") + '</span><span class="pk-luku">' + kpl(n, "ääni", "ääntä") + '<small class="pk-pros">' + pros + ' %</small></span><span class="pk-palkki"><i style="width:' + pros + '%"></i></span></li>';
+    // Selkeä tulosrivi: äänimäärä pallossa, nimi (parissa viini ja juusto omilla riveillään), kärjelle merkki.
+    // Prosentit vasta, kun ääniä on vähintään viisi; pienillä määrillä ne ovat lähinnä kohinaa.
+    var karjet = huippu > 0 ? vaihtoehdot.filter(function (v, o) { return (luvut[o] || 0) === huippu; }).length : 0;
+    return '<ul class="pk pk--n' + (oikea == null ? " pk--karki-vihrea" : "") + '">' + jarj.map(function (o) {
+      var v = String(vaihtoehdot[o]), n = luvut[o] || 0, pros = s ? Math.round(100 * n / s) : 0, karki = huippu > 0 && n === huippu;
+      var ix = max ? v.indexOf(" + ") : -1;
+      var nimi = ix > 0 ? esc(v.slice(0, ix)) + '<small class="pk-juusto"><span aria-hidden="true">🧀</span> ' + esc(v.slice(ix + 3)) + "</small>" : esc(v);
+      var merkit = (o === oma ? "<em>sinä</em>" : "") + (karki ? '<em class="pk-merkki">' + (karjet > 1 ? "Tasapeli" : "Suosituin") + "</em>" : "");
+      return '<li class="' + (o === oma ? "on-oma " : "") + (o === oikea ? "on-oikea " : "") + (karki ? "on-karki " : "") + (n ? "" : "on-nolla") + '">' +
+        '<span class="pk-n" aria-label="' + kpl(n, "ääni", "ääntä") + '">' + n + "</span>" +
+        '<span class="pk-teksti">' + (o === oikea ? "✓ " : "") + nimi + (merkit ? '<span class="pk-merkit">' + merkit + "</span>" : "") + "</span>" +
+        '<span class="pk-luku">' + (s >= 5 ? pros + " %" : "") + "</span>" +
+        '<span class="pk-palkki"><i style="width:' + pros + '%"></i></span></li>';
     }).join("") + "</ul>";
   }
   function nakyvissa(i) { if (onOma(i)) return onAuki(i); var o = omat()[nro(i) - 1]; return o == null || onAuki(o); }
@@ -747,7 +755,7 @@
           r += '<p class="o-vs__oma">Oikea vastaus: <b>' + esc(vv[o]) + "</b></p>" +
             '<p class="o-vs__oma">Sinä: <b>' + esc(v == null ? "ei vastausta" : vv[v]) + "</b> " +
             (v === o ? '<span class="o-merkki o-merkki--oikein">Oikein</span>' : '<span class="o-merkki o-merkki--vaarin">Ohi</span>') + "</p>";
-        } else {
+        } else if (!(j && summa(j)) || v == null) {
           r += '<p class="o-vs__oma">Sinä: <b>' + esc(v == null ? "ei vastausta" : vv[v]) + "</b></p>";
         }
         if (j && summa(j)) {
@@ -961,7 +969,7 @@
       var j = x.moni && koontiTila() ? (koontiData(d.i).on ? true : null) : x.moni ? jaetut[x.avain] : naytettavat(x.avain, x.vaihtoehdot.length);
       var valmiina = x.moni && koontiTila() ? valmiinaTeksti(d.i) : "";
       kortit.push('<div class="j-tulos' + (x.moni ? " j-tulos--pilvi" : "") + '"><b>' + esc(x.kysymys) + "</b>" + valmiina +
-        (j ? (x.moni ? kuplat(d.i, false, 30) : palkit(x.vaihtoehdot, j, x.oikea, null, x.pari ? 3 : 0) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
+        (j ? (x.moni ? kuplat(d.i, false, 30) : palkit(x.vaihtoehdot, j, x.oikea, null, x.pari ? 2 : 0) + '<span class="j-tulos__n">' + summa(j) + " vastausta</span>")
            : x.oikea != null ? '<span class="j-tulos__oikea">✓ ' + esc(x.vaihtoehdot[x.oikea]) + "</span>"
            : '<span class="j-tulos__odota">' + (x.moni ? "Aromeja kerätään vielä…" : "Vastauksia kerätään vielä…") + "</span>") +
         (x.fakta ? '<span class="j-tulos__fakta">' + esc(x.fakta) + "</span>" : "") + "</div>");
